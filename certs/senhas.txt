@@ -1,0 +1,18 @@
+a senha do CA eh faria201
+
+as demais senhas sao todas lotusnotes
+
+Keyring
+# The password to the KYRFILE
+KYRPASS=1234567890
+
+https://iamserver.tdec.com.br:8443 (admin)
+user: admin
+senha: lotusnotes
+
+o serviço roda na porta 9443
+
+usuário Notes IAMAccessor - senha do id é lotusnotes
+
+
+

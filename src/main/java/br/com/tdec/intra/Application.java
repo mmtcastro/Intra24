@@ -1,9 +1,10 @@
 package br.com.tdec.intra;
 
-import com.vaadin.flow.component.page.AppShellConfigurator;
-import com.vaadin.flow.theme.Theme;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.theme.Theme;
 
 /**
  * The entry point of the Spring Boot application.
@@ -16,8 +17,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @Theme(value = "intra24")
 public class Application implements AppShellConfigurator {
 
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
+	private static final long serialVersionUID = 1L;
+
+	public static void main(String[] args) {
+		SpringApplication.run(Application.class, args);
+	}
 
 }
