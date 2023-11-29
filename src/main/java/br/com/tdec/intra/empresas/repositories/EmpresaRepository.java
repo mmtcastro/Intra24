@@ -7,31 +7,25 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.stereotype.Repository;
 
 import com.hcl.domino.db.model.BulkOperationException;
-import com.hcl.domino.db.model.Database;
 import com.hcl.domino.db.model.Document;
 import com.hcl.domino.db.model.OptionalCount;
 import com.hcl.domino.db.model.OptionalItemNames;
 import com.hcl.domino.db.model.OptionalQueryLimit;
 import com.hcl.domino.db.model.OptionalStart;
 
+import br.com.tdec.intra.abs.AbstractRepository;
 import br.com.tdec.intra.config.DominoServer;
 import br.com.tdec.intra.empresas.model.Empresa;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Repository
 @Data
-public class EmpresaRepository {
-
-	private final DominoServer dominoServer;
-	private final Database database;
+@EqualsAndHashCode(callSuper = false)
+public class EmpresaRepository extends AbstractRepository {
 
 	public EmpresaRepository(DominoServer dominoServer) {
-		this.dominoServer = dominoServer;
-
-		this.database = dominoServer.getServer().useDatabase("empresas.nsf");
-		System.out.println("EmpresasDao - O database eh " + database.toString() + " deu certo");
-		System.out.println(database.toString());
-
+		super(dominoServer, "empresas.nsf");
 	}
 
 	public List<Empresa> getAllEmpresas() {
