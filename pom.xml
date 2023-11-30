@@ -14,9 +14,6 @@
 	<properties>
 		<java.version>17</java.version>
 		<vaadin.version>24.2.4</vaadin.version>
-		<domino-db.version>1.6.7</domino-db.version>
-		<domino-db.path>
-			C:\Users\mcast\git\intra24\lib\domino-db-${domino-db.version}.jar</domino-db.path>
 	</properties>
 
 
@@ -101,21 +98,16 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Aqui um lebrete de como fazer para instalar o appdevpack no
-		depositorio 
-			M2 do Maven mvn install:install-file -Dfile=lib/domino-db-1.2.0.jar
-		-DgroupId=appDevPack.hcl.com 
-			-DartifactId=domino-db -Dversion=1.2.0 depois tem que entrar em
-		C:\Users\mcastro\.m2\repository\ 
-			e procurar o appdevpac.hcl.com e copiar parte do
-		C:\Users\mcastro\.m2\repository\appdevpack\hcl\com\domino-db\1.2.0.pom -->
+		
+		<!-- Manually installed dependency 
+		mvn install:install-file -Dfile=lib/domino-db-1.6.7.jar -DgroupId=appDevPack.hcl.com -DartifactId=domino-db -Dversion=1.6.7 -Dpackaging=jar	
+		-->
 		<dependency>
-			<groupId>group-id</groupId>
+			<groupId>appDevPack.hcl.com</groupId>
 			<artifactId>domino-db</artifactId>
-			<version>${domino-db.version}</version>
-			<scope>system</scope>
-			<systemPath>${domino-db.path}</systemPath>
+			<version>1.6.7</version>
 		</dependency>
+
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-all</artifactId>

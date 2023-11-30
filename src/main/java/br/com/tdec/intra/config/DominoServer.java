@@ -27,6 +27,7 @@ public class DominoServer {
 	private String idFilePassword;
 
 	public DominoServer(DominoProperties dominoProperties) {
+		System.out.println("Antes da criacao do componente dominoServer");
 		this.dominoProperties = dominoProperties;
 		this.host = dominoProperties.getHost();
 		this.port = dominoProperties.getPort();
