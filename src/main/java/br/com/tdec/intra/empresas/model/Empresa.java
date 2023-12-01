@@ -1,11 +1,11 @@
 package br.com.tdec.intra.empresas.model;
 
-import lombok.Data;
+import br.com.tdec.intra.abs.AbstractModel;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-public class Empresa {
-	private String id;
-	private String uid;
-	private String codigo;
-	private String nome;
+@Getter
+@Setter
+public class Empresa extends AbstractModel implements Comparable<AbstractModel> {
+
 }
