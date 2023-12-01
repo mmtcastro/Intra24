@@ -97,7 +97,6 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-
 		
 		<!-- Manually installed dependency 
 		mvn install:install-file -Dfile=lib/domino-db-1.6.7.jar -DgroupId=appDevPack.hcl.com -DartifactId=domino-db -Dversion=1.6.7 -Dpackaging=jar	
