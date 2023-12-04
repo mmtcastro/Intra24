@@ -11,6 +11,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 
 import br.com.tdec.intra.config.DominoServer;
+import br.com.tdec.intra.empresas.model.Empresa;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 
@@ -28,10 +29,14 @@ public class HelloWorldView extends HorizontalLayout {
 	public HelloWorldView(DominoServer dominoServer) {
 		this.dominoServer = dominoServer;
 		name = new TextField("Your name");
-		sayHello = new Button("Say hello");
+		sayHello = new Button("Diga Olá");
 		sayHello.addClickListener(e -> {
 			Notification.show("Hello " + name.getValue());
 		});
+
+		Empresa empresa = new Empresa();
+		empresa.setNome("TDEC");
+
 		sayHello.addClickShortcut(Key.ENTER);
 		Text serverName = new Text(dominoServer.getHostName());
 
