@@ -1,7 +1,6 @@
 package br.com.tdec.intra.abs;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -16,12 +15,10 @@ import com.hcl.domino.db.model.Document;
 import com.hcl.domino.db.model.OptionalCount;
 import com.hcl.domino.db.model.OptionalItemNames;
 import com.hcl.domino.db.model.OptionalStart;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.data.provider.LazyDataView;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.config.DominoServer;
-import br.com.tdec.intra.empresas.model.Empresa;
+import br.com.tdec.intra.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,12 +32,12 @@ public abstract class AbstractRepository<E extends AbstractModelDoc> extends Abs
 	protected DominoServer dominoServer;
 	protected Database database;
 	protected final Class<E> modelClass;
-	protected Grid<Empresa> basicInfoGrid;
+	// protected Grid<E> basicGrid;
+	// protected TextField filterText;
 
 	// Default constructor
 	public AbstractRepository(Class<E> modelClass) {
 		this.modelClass = modelClass;
-		init();
 	}
 
 	// Constructor with DominoServer and databaseName
@@ -50,29 +47,32 @@ public abstract class AbstractRepository<E extends AbstractModelDoc> extends Abs
 		this.databaseName = databaseName;
 		this.database = dominoServer.getDatabase(databaseName);
 		this.modelClass = modelClass;
-		init();
 	}
 
-	public void init() {
-		initBasicGrid();
-	}
-
-	public void initBasicGrid() {
-		basicInfoGrid = new Grid<>();
-		basicInfoGrid.setSizeFull();
-		basicInfoGrid.addColumn(AbstractModelDoc::getCodigo).setHeader("Código");
-		// basicInfoGrid.addColumn(AbstractModelDoc::getNome).setHeader("Nome");
-		// basicInfoGrid.addColumn(AbstractModelDoc::getDescricao).setHeader("Descrição");
-		// basicInfoGrid.addColumn(AbstractModelDoc::getTipo).setHeader("Autor");
-		// basicInfoGrid.addColumn(AbstractModelDoc::getCriacao).setHeader("Criação");
-
-		LazyDataView<Empresa> dataView = basicInfoGrid
-				.setItems(q -> findAll(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), "").stream());
+//	public void initBasicGrid() {
+//		basicGrid = new Grid<>();
+//		initFilter();
+//		updateList();
+//	}
+//
+//	public void initFilter() {
+//		filterText = new TextField();
+//		filterText.setPlaceholder("filtro...");
+//		filterText.setClearButtonVisible(true);
+//		filterText.setValueChangeMode(ValueChangeMode.LAZY);
+//		filterText.addValueChangeListener(e -> updateList());
+//	}
+//
+//	public void updateList() {
+//		LazyDataView<E> dataView = basicGrid.setItems(
+//				q -> this.findAll(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), filterText.getValue())
+//						.stream());
 //
 //		dataView.setItemCountEstimate(8000);
-	}
+//	}
 
-	public List<Empresa> findAll(int offset, int limit, List<QuerySortOrder> sortOrders, Optional<Void> filter,
+	@SuppressWarnings("unchecked")
+	public List<E> findAll(int offset, int limit, List<QuerySortOrder> sortOrders, Optional<Void> filter,
 			String search) {
 		limit = 50; // nao consegui fazer funcionar o limit automaticamente.
 		print("Iniciando findAll com " + offset + " - " + limit);
@@ -85,19 +85,22 @@ public abstract class AbstractRepository<E extends AbstractModelDoc> extends Abs
 			}
 		}
 		print("Filter eh " + filter);
-		List<Empresa> lista = new ArrayList<>();
+		List<E> lista = new ArrayList<E>();
 		try {
-			String query = "'_intraForms'.Form = 'GrupoEconomico'";
+			// String query = "'_intraForms'.Form = 'GrupoEconomico'";
+			String query = "";
 			if (sortOrders != null && sortOrders.size() > 0 && sortOrders.get(0).getSorted().equals("codigo")) {
-				query = "'_intraForms'.Form = 'GrupoEconomico'";
+				query = "'_intraForms'.Form = '" + Utils.getFormFromModelClass(modelClass) + "'";
+				print("query eh " + query);
 			}
 			if (search != null && !search.isEmpty()) {
 				query = query + " and contains ('" + search + "*')";
 			}
 			print("query eh " + query);
 			print("Database eh " + database);
-			List<String> items = new ArrayList<>(Arrays.asList("Codigo", "Nome", "Descricao", "Id", "Tipo", "Criacao"));
-
+			// List<String> items = new ArrayList<>(Arrays.asList("Codigo", "Nome",
+			// "Descricao", "Id", "Tipo", "Criacao"));
+			List<String> items = List.of("Codigo");
 			List<Document> docs = database.readDocuments(query, //
 					new OptionalItemNames(items), // tem que usar, senao nao carrega os campos
 					// new OptionalQueryLimit(maxViewEntriesScanned, maxDocumentsScanned,
@@ -108,7 +111,7 @@ public abstract class AbstractRepository<E extends AbstractModelDoc> extends Abs
 			print("Achei " + docs.size() + " Documentos de GruposEconomicos");
 
 			for (Document doc : docs) {
-				lista.add((Empresa) loadModel(doc));
+				lista.add((E) loadModel(doc));
 			}
 		} catch (BulkOperationException e) {
 			// TODO Auto-generated catch block

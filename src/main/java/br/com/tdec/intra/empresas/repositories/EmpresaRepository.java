@@ -2,6 +2,7 @@ package br.com.tdec.intra.empresas.repositories;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.data.domain.Page;
@@ -18,6 +19,7 @@ import com.hcl.domino.db.model.OptionalCount;
 import com.hcl.domino.db.model.OptionalItemNames;
 import com.hcl.domino.db.model.OptionalQueryLimit;
 import com.hcl.domino.db.model.OptionalStart;
+import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.abs.AbstractRepository;
 import br.com.tdec.intra.config.DominoServer;
@@ -41,7 +43,6 @@ public class EmpresaRepository extends AbstractRepository<Empresa>
 		int maxViewEntriesScanned = 100;
 		int maxDocumentsScanned = 100;
 		int maxMilliSeconds = 10000000;
-		var ret = new ArrayList<Document>();
 		String query = "'_intraForms'.Form = 'Empresa' and codigo contains ('GERDAU*')";
 		List<String> items = List.of("id", "codigo", "nome");
 
@@ -75,9 +76,56 @@ public class EmpresaRepository extends AbstractRepository<Empresa>
 	}
 
 	@Override
-	public Iterable<Empresa> findAll(Sort sort) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Empresa> findAll(int offset, int limit, List<QuerySortOrder> sortOrders, Optional<Void> filter,
+			String search) {
+		limit = 50;
+		print("Iniciando findAll com " + offset + " - " + limit);
+		print("SortedOrders eh " + sortOrders);
+		if (sortOrders != null) {
+			for (QuerySortOrder sortOrder : sortOrders) {
+				print("--- Sorting ----");
+				print("Sorted: " + sortOrder.getSorted());
+				print("Direction:  " + sortOrder.getDirection());
+			}
+		}
+		print("Filter eh " + filter);
+		List<Empresa> empresas = new ArrayList<>();
+		try {
+			String query = "'_intraForms'.Form = 'Empresa'";
+			if (sortOrders != null && sortOrders.size() > 0 && sortOrders.get(0).getSorted().equals("codigo")) {
+				query = "'_intraForms'.Form = 'GrupoEconomico'";
+			}
+			if (search != null && !search.isEmpty()) {
+				query = query + " and contains ('" + search + "*')";
+			}
+			print("query eh " + query);
+			print("Database eh " + database);
+//			List<String> items = new ArrayList<>(
+//					Arrays.asList("Codigo", "Nome", "GerenteConta", "Descricao", "Id", "Tipo", "Criacao"));
+			List<String> items = List.of("id", "codigo", "nome");
+			List<Document> docs = database.readDocuments(query, //
+					new OptionalItemNames(items), // tem que usar, senao nao carrega os campos
+					// new OptionalQueryLimit(maxViewEntriesScanned, maxDocumentsScanned,
+					// maxMilliSeconds))//
+					// new OptionalQueryLimit(1000,1000, 400), new OptionalStart(offset), new
+					// OptionalCount(limit))
+					new OptionalStart(offset), new OptionalCount(limit)).get();
+			print("Achei " + docs.size() + " Documentos de GruposEconomicos");
+
+			for (Document doc : docs) {
+				empresas.add((Empresa) loadModel(doc));
+			}
+		} catch (BulkOperationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return empresas;
 	}
 
 	@Override
@@ -93,6 +141,29 @@ public class EmpresaRepository extends AbstractRepository<Empresa>
 		Page<Empresa> page = new PageImpl<>(empresas, pag, totalElements);
 
 		return page;
+	}
+
+	@Override
+	public Iterable<Empresa> findAll(Sort sort) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Empresa loadModel(Document doc) {
+		Empresa model = null;
+		try {
+			print("Este eh o codigo " + doc.getItemByName("codigo").get(0).getValue().toString());
+			model = new Empresa();
+			// List<Item<?>> items = doc.getItems();
+			model.setId(doc.getItemByName("id").get(0).getValue().toString());
+			model.setCodigo(doc.getItemByName("codigo").get(0).getValue().toString());
+			// model.setNome(doc.getItemByName("nome").get(0).getValue().toString());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return model;
 	}
 
 }
