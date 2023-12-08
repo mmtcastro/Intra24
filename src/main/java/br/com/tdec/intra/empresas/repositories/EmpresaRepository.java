@@ -21,6 +21,7 @@ import com.hcl.domino.db.model.OptionalQueryLimit;
 import com.hcl.domino.db.model.OptionalStart;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
+import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.abs.AbstractRepository;
 import br.com.tdec.intra.config.DominoServer;
 import br.com.tdec.intra.empresas.model.Empresa;
@@ -30,8 +31,7 @@ import lombok.EqualsAndHashCode;
 @Repository
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class EmpresaRepository extends AbstractRepository<Empresa>
-		implements PagingAndSortingRepository<Empresa, String> {
+public class EmpresaRepository extends AbstractRepository implements PagingAndSortingRepository<Empresa, String> {
 
 	public EmpresaRepository(DominoServer dominoServer) {
 		super(dominoServer, "empresas.nsf", Empresa.class);
@@ -76,7 +76,7 @@ public class EmpresaRepository extends AbstractRepository<Empresa>
 	}
 
 	@Override
-	public List<Empresa> findAll(int offset, int limit, List<QuerySortOrder> sortOrders, Optional<Void> filter,
+	public List<AbstractModelDoc> findAll(int offset, int limit, List<QuerySortOrder> sortOrders, Optional<Void> filter,
 			String search) {
 		limit = 50;
 		print("Iniciando findAll com " + offset + " - " + limit);
@@ -89,7 +89,7 @@ public class EmpresaRepository extends AbstractRepository<Empresa>
 			}
 		}
 		print("Filter eh " + filter);
-		List<Empresa> empresas = new ArrayList<>();
+		List<AbstractModelDoc> empresas = new ArrayList<>();
 		try {
 			String query = "'_intraForms'.Form = 'Empresa'";
 			if (sortOrders != null && sortOrders.size() > 0 && sortOrders.get(0).getSorted().equals("codigo")) {

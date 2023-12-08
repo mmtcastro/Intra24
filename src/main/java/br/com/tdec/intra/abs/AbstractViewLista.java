@@ -10,16 +10,21 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.LazyDataView;
 import com.vaadin.flow.data.value.ValueChangeMode;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = false)
 public class AbstractViewLista extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
-	protected AbstractRepository<? extends AbstractModelDoc> repository;
+	protected AbstractRepository repository;
 	protected Button criarDocumento;
 	protected Grid<AbstractModelDoc> grid;
 	protected TextField filterText;
 	protected HorizontalLayout toolbar;
 
-	public AbstractViewLista(AbstractRepository<? extends AbstractModelDoc> repository) {
+	public AbstractViewLista(AbstractRepository repository) {
 		this.repository = repository;
 
 	}
@@ -31,11 +36,13 @@ public class AbstractViewLista extends VerticalLayout {
 		filterText.setPlaceholder("filtro...");
 		filterText.setClearButtonVisible(true);
 		filterText.setValueChangeMode(ValueChangeMode.LAZY);
-		filterText.addValueChangeListener(e -> updateList());
+		filterText.addValueChangeListener(e -> updateList(grid));
 		toolbar = new HorizontalLayout(filterText, criarDocumento);
+		add(toolbar, grid);
+		updateList(grid);
 	}
 
-	public void updateList() {
+	public void updateList(Grid<AbstractModelDoc> grid) {
 		LazyDataView<AbstractModelDoc> dataView = grid.setItems(q -> captureWildcard(this.repository
 				.findAll(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), filterText.getValue())
 				.stream()));
@@ -43,9 +50,10 @@ public class AbstractViewLista extends VerticalLayout {
 		dataView.setItemCountEstimate(8000);
 	}
 
+	@SuppressWarnings({ "unchecked" })
 	private Stream<AbstractModelDoc> captureWildcard(Stream<? extends AbstractModelDoc> stream) {
 		// This casting operation captures the wildcard and returns a stream of
-		// AbstractModelDoc
+		// AbstractModelDoc - por causa do <E> no AbstractRepository
 		return (Stream<AbstractModelDoc>) stream;
 	}
 

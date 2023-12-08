@@ -7,7 +7,7 @@ import br.com.tdec.intra.config.DominoServer;
 import br.com.tdec.intra.empresas.model.Cargo;
 
 @Repository
-public class CargoRepository extends AbstractRepository<Cargo> {
+public class CargoRepository extends AbstractRepository {
 
 	public CargoRepository(DominoServer dominoServer) {
 		super(dominoServer, "empresas.nsf", Cargo.class);

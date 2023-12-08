@@ -22,7 +22,7 @@ public class CargosView extends AbstractViewLista {
 
 		initGrid();
 		add(toolbar, grid);
-		updateList();
+		updateList(grid);
 	}
 
 }

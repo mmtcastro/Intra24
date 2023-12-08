@@ -28,7 +28,7 @@ public class EmpresasView extends AbstractViewLista {
 
 	private static final long serialVersionUID = 1L;
 	private Grid<Empresa> gridEmpresa;
-	private TextField filterText;
+	private TextField filterTextEmpresa;
 	private Button criarEmpresa;
 
 	public EmpresasView(EmpresaRepository repository) {
@@ -41,10 +41,10 @@ public class EmpresasView extends AbstractViewLista {
 
 		initGridEmpresa();
 		initFilter();
-		updateList();
+		// updateList(gridEmpresa);
 
 		criarEmpresa = new Button("Criar GrupoEconomico", e -> criarEmpresa());
-		HorizontalLayout toolbar = new HorizontalLayout(filterText, criarEmpresa);
+		HorizontalLayout toolbar = new HorizontalLayout(filterTextEmpresa, criarEmpresa);
 
 		add(toolbar, gridEmpresa);
 
@@ -78,18 +78,18 @@ public class EmpresasView extends AbstractViewLista {
 
 //	public void updateList() {
 //		LazyDataView<Empresa> dataView = grid.setItems(q -> repository
-//				.findAll(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), filterText.getValue())
+//				.findAll(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), filterTextEmpresa.getValue())
 //				.stream());
 //
 //		dataView.setItemCountEstimate(8000);
 //	}
 
 	public void initFilter() {
-		filterText = new TextField();
-		filterText.setPlaceholder("filtro...");
-		filterText.setClearButtonVisible(true);
-		filterText.setValueChangeMode(ValueChangeMode.LAZY);
-		filterText.addValueChangeListener(e -> updateList());
+		filterTextEmpresa = new TextField();
+		filterTextEmpresa.setPlaceholder("filtro...");
+		filterTextEmpresa.setClearButtonVisible(true);
+		filterTextEmpresa.setValueChangeMode(ValueChangeMode.LAZY);
+		// filterTextEmpresa.addValueChangeListener(e -> updateList(gridEmpresa));
 	}
 
 	private void criarEmpresa() {

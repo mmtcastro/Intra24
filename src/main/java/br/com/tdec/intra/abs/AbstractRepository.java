@@ -5,9 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 
 import com.hcl.domino.db.model.BulkOperationException;
 import com.hcl.domino.db.model.Database;
@@ -19,60 +17,25 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.config.DominoServer;
 import br.com.tdec.intra.utils.Utils;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
 @Repository
-@Service
-public abstract class AbstractRepository<E extends AbstractModelDoc> extends Abstract {
+public abstract class AbstractRepository extends Abstract {
 
 	protected String databaseName;
 	protected DominoServer dominoServer;
 	protected Database database;
-	protected final Class<E> modelClass;
-	// protected Grid<E> basicGrid;
-	// protected TextField filterText;
-
-	// Default constructor
-	public AbstractRepository(Class<E> modelClass) {
-		this.modelClass = modelClass;
-	}
+	protected final Class<?> modelClass;
 
 	// Constructor with DominoServer and databaseName
-	@Autowired
-	public AbstractRepository(DominoServer dominoServer, String databaseName, Class<E> modelClass) {
+	public AbstractRepository(DominoServer dominoServer, String databaseName, Class<?> modelClass) {
 		this.dominoServer = dominoServer;
 		this.databaseName = databaseName;
 		this.database = dominoServer.getDatabase(databaseName);
 		this.modelClass = modelClass;
 	}
 
-//	public void initBasicGrid() {
-//		basicGrid = new Grid<>();
-//		initFilter();
-//		updateList();
-//	}
-//
-//	public void initFilter() {
-//		filterText = new TextField();
-//		filterText.setPlaceholder("filtro...");
-//		filterText.setClearButtonVisible(true);
-//		filterText.setValueChangeMode(ValueChangeMode.LAZY);
-//		filterText.addValueChangeListener(e -> updateList());
-//	}
-//
-//	public void updateList() {
-//		LazyDataView<E> dataView = basicGrid.setItems(
-//				q -> this.findAll(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), filterText.getValue())
-//						.stream());
-//
-//		dataView.setItemCountEstimate(8000);
-//	}
-
 	@SuppressWarnings("unchecked")
-	public List<E> findAll(int offset, int limit, List<QuerySortOrder> sortOrders, Optional<Void> filter,
+	public List<AbstractModelDoc> findAll(int offset, int limit, List<QuerySortOrder> sortOrders, Optional<Void> filter,
 			String search) {
 		limit = 50; // nao consegui fazer funcionar o limit automaticamente.
 		print("Iniciando findAll com " + offset + " - " + limit);
@@ -85,18 +48,22 @@ public abstract class AbstractRepository<E extends AbstractModelDoc> extends Abs
 			}
 		}
 		print("Filter eh " + filter);
-		List<E> lista = new ArrayList<E>();
+		List<AbstractModelDoc> lista = new ArrayList<>();
 		try {
 			// String query = "'_intraForms'.Form = 'GrupoEconomico'";
 			String query = "";
 			if (sortOrders != null && sortOrders.size() > 0 && sortOrders.get(0).getSorted().equals("codigo")) {
 				query = "'_intraForms'.Form = '" + Utils.getFormFromModelClass(modelClass) + "'";
 				print("query eh " + query);
+			} else {
+				print(">>> Problema com o sortOrders. Nao esta ordenando por codigo");
 			}
 			if (search != null && !search.isEmpty()) {
 				query = query + " and contains ('" + search + "*')";
 			}
-			print("query eh " + query);
+
+			query = "'_intraForms'.Form = 'Vertical'";
+			print(">>>---->>> query eh " + query);
 			print("Database eh " + database);
 			// List<String> items = new ArrayList<>(Arrays.asList("Codigo", "Nome",
 			// "Descricao", "Id", "Tipo", "Criacao"));
@@ -108,10 +75,10 @@ public abstract class AbstractRepository<E extends AbstractModelDoc> extends Abs
 					// new OptionalQueryLimit(1000,1000, 400), new OptionalStart(offset), new
 					// OptionalCount(limit))
 					new OptionalStart(offset), new OptionalCount(limit)).get();
-			print("Achei " + docs.size() + " Documentos de GruposEconomicos");
+			print("Achei " + docs.size() + " Documentos");
 
 			for (Document doc : docs) {
-				lista.add((E) loadModel(doc));
+				lista.add(loadModel(doc));
 			}
 		} catch (BulkOperationException e) {
 			// TODO Auto-generated catch block
@@ -131,10 +98,13 @@ public abstract class AbstractRepository<E extends AbstractModelDoc> extends Abs
 		AbstractModelDoc model = null;
 		try {
 			model = (AbstractModelDoc) modelClass.getDeclaredConstructor().newInstance();
+			// print("Model eh " + model.getClass().getName());
+			print(doc.getItemByName("id"));
 			// List<Item<?>> items = doc.getItems();
-			model.setId(doc.getItemByName("id").get(0).getValue().toString());
-			model.setCodigo(doc.getItemByName("codigo").get(0).getValue().toString());
-			model.setNome(doc.getItemByName("nome").get(0).getValue().toString());
+			// model.setId(doc.getItemByName("id").get(0).getValue().toString());
+			model.setCodigo("123456");
+			// model.setCodigo(doc.getItemByName("codigo").get(0).getValue().toString());
+			// model.setNome(doc.getItemByName("nome").get(0).getValue().toString());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

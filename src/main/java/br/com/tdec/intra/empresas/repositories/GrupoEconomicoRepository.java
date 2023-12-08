@@ -9,7 +9,7 @@ import br.com.tdec.intra.empresas.model.GrupoEconomico;
 
 @Repository
 @Service
-public class GrupoEconomicoRepository extends AbstractRepository<GrupoEconomico> {
+public class GrupoEconomicoRepository extends AbstractRepository {
 
 	public GrupoEconomicoRepository(DominoServer dominoServer) {
 		super(dominoServer, "empresas.nsf", GrupoEconomico.class);
