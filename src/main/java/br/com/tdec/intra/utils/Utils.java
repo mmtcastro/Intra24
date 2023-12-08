@@ -4,40 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Utils {
-	/**
-	 * Retorna
-	 * 
-	 * @param modelPackage
-	 * @return
-	 */
-	public static String getFormFromModelClass(Class<?> modelClass) {
-		if (modelClass == null) {
-			return "Erro - Utils - getFormFromModelPackage";
-		}
-		String modelPackage = modelClass.getCanonicalName();
-		String ret = "Erro no Utils.getFormFromModelClass";
-		try {
-			List<String> classe = stringToArrayList(modelPackage, ".");
-			String tipo = classe.get(4);
-			String form = "";
-			if (tipo.equals("model")) {
-				form = classe.get(5);
-			} else if (tipo.equals("view")) {
-				form = classe.get(5).substring(0, classe.get(5).length() - 4);
-			} else if (tipo.equals("dao")) {
-				form = classe.get(5).substring(0, classe.get(5).length() - 3);
-			} else if (tipo.equals("app")) {
-				form = classe.get(5).substring(0, classe.get(5).length() - 3);
-			} else if (tipo.equals("validator")) {
-				form = classe.get(5).substring(0, classe.get(5).length() - 9);
-			}
-			ret = removePluraisDoModelo(Utils.toProperCase(form));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return ret;
-	}
 
 	/**
 	 * Retorna
@@ -248,21 +214,25 @@ public class Utils {
 		return str;
 	}
 
+//	public static String toProperCase(String input) {
+//		StringBuilder titleCase = new StringBuilder();
+//		boolean nextTitleCase = true;
+//
+//		for (char c : input.toCharArray()) {
+//			if (Character.isSpaceChar(c)) {
+//				nextTitleCase = true;
+//			} else if (nextTitleCase) {
+//				c = Character.toTitleCase(c);
+//				nextTitleCase = false;
+//			}
+//
+//			titleCase.append(c);
+//		}
+//		return titleCase.toString();
+//	}
+
 	public static String toProperCase(String input) {
-		StringBuilder titleCase = new StringBuilder();
-		boolean nextTitleCase = true;
-
-		for (char c : input.toCharArray()) {
-			if (Character.isSpaceChar(c)) {
-				nextTitleCase = true;
-			} else if (nextTitleCase) {
-				c = Character.toTitleCase(c);
-				nextTitleCase = false;
-			}
-
-			titleCase.append(c);
-		}
-		return titleCase.toString();
+		return input.substring(0, 1).toUpperCase() + input.substring(1);
 	}
 
 	public static void print(String str) {

@@ -4,6 +4,7 @@ import java.util.Comparator;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -62,9 +63,10 @@ public class VerticaisView extends AbstractViewLista {
 	public void initGridVertical() {
 		gridVertical = new Grid<>();
 
-		Grid.Column<AbstractModelDoc> codigoColumn = gridVertical.addColumn(AbstractModelDoc::getCodigo)
-				.setHeader("Código");
+		Column<AbstractModelDoc> codigoColumn = gridVertical.addColumn(AbstractModelDoc::getCodigo).setHeader("Código");
 		codigoColumn.setComparator(Comparator.comparing(AbstractModelDoc::getCodigo)).setKey("codigo");
+		Grid.Column<AbstractModelDoc> idColumn = gridVertical.addColumn(AbstractModelDoc::getId).setHeader("Id");
+		idColumn.setComparator(Comparator.comparing(AbstractModelDoc::getId)).setKey("id");
 
 	}
 

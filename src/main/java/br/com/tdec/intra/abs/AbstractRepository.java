@@ -1,5 +1,7 @@
 package br.com.tdec.intra.abs;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -10,13 +12,13 @@ import org.springframework.stereotype.Repository;
 import com.hcl.domino.db.model.BulkOperationException;
 import com.hcl.domino.db.model.Database;
 import com.hcl.domino.db.model.Document;
+import com.hcl.domino.db.model.Item;
 import com.hcl.domino.db.model.OptionalCount;
 import com.hcl.domino.db.model.OptionalItemNames;
 import com.hcl.domino.db.model.OptionalStart;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.config.DominoServer;
-import br.com.tdec.intra.utils.Utils;
 
 @Repository
 public abstract class AbstractRepository extends Abstract {
@@ -34,7 +36,6 @@ public abstract class AbstractRepository extends Abstract {
 		this.modelClass = modelClass;
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<AbstractModelDoc> findAll(int offset, int limit, List<QuerySortOrder> sortOrders, Optional<Void> filter,
 			String search) {
 		limit = 50; // nao consegui fazer funcionar o limit automaticamente.
@@ -50,10 +51,9 @@ public abstract class AbstractRepository extends Abstract {
 		print("Filter eh " + filter);
 		List<AbstractModelDoc> lista = new ArrayList<>();
 		try {
-			// String query = "'_intraForms'.Form = 'GrupoEconomico'";
 			String query = "";
 			if (sortOrders != null && sortOrders.size() > 0 && sortOrders.get(0).getSorted().equals("codigo")) {
-				query = "'_intraForms'.Form = '" + Utils.getFormFromModelClass(modelClass) + "'";
+				query = "'_intraForms'.Form = '" + modelClass.getSimpleName() + "'";
 				print("query eh " + query);
 			} else {
 				print(">>> Problema com o sortOrders. Nao esta ordenando por codigo");
@@ -62,14 +62,13 @@ public abstract class AbstractRepository extends Abstract {
 				query = query + " and contains ('" + search + "*')";
 			}
 
-			query = "'_intraForms'.Form = 'Vertical'";
-			print(">>>---->>> query eh " + query);
-			print("Database eh " + database);
-			// List<String> items = new ArrayList<>(Arrays.asList("Codigo", "Nome",
-			// "Descricao", "Id", "Tipo", "Criacao"));
-			List<String> items = List.of("Codigo");
-			List<Document> docs = database.readDocuments(query, //
-					new OptionalItemNames(items), // tem que usar, senao nao carrega os campos
+			query = "'_intraForms'.Form = '" + modelClass.getSimpleName() + "'";
+
+			AbstractModelDoc model = (AbstractModelDoc) modelClass.getDeclaredConstructor().newInstance();
+			List<String> items = model.getAllModelFieldNamesProperCase();
+
+			List<Document> docs = database.readDocuments(query, new OptionalItemNames(items), // tem que usar, senao nao
+																								// carrega os campos
 					// new OptionalQueryLimit(maxViewEntriesScanned, maxDocumentsScanned,
 					// maxMilliSeconds))//
 					// new OptionalQueryLimit(1000,1000, 400), new OptionalStart(offset), new
@@ -89,6 +88,24 @@ public abstract class AbstractRepository extends Abstract {
 		} catch (ExecutionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return lista;
 
@@ -96,15 +113,25 @@ public abstract class AbstractRepository extends Abstract {
 
 	public AbstractModelDoc loadModel(Document doc) {
 		AbstractModelDoc model = null;
+
+		Method method;
+
+		List<Item<?>> item;
 		try {
 			model = (AbstractModelDoc) modelClass.getDeclaredConstructor().newInstance();
-			// print("Model eh " + model.getClass().getName());
-			print(doc.getItemByName("id"));
-			// List<Item<?>> items = doc.getItems();
-			// model.setId(doc.getItemByName("id").get(0).getValue().toString());
-			model.setCodigo("123456");
-			// model.setCodigo(doc.getItemByName("codigo").get(0).getValue().toString());
-			// model.setNome(doc.getItemByName("nome").get(0).getValue().toString());
+			List<String> items = model.getAllModelFieldNamesProperCase();
+			for (String campo : items) {
+				item = doc.getItemByName(campo);
+				method = modelClass.getDeclaredMethod("set" + campo, String.class);
+				if (item != null) {
+					method.invoke(model, item.get(0).getValue().get(0).toString());
+				}
+			}
+			List<Item<?>> codigo = doc.getItemByName("Codigo");
+			List<Item<?>> id = doc.getItemByName("Id");
+			model.setId(id != null ? id.get(0).getValue().get(0).toString() : null);
+			model.setCodigo(codigo != null ? codigo.get(0).getValue().get(0).toString() : null);
+			print(model);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
