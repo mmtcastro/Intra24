@@ -71,4 +71,15 @@ public abstract class AbstractModel extends Abstract {
 			}
 		}
 	}
+
+	public static List<Method> findAllMethods(Class<?> clazz) {
+		List<Method> methods = new ArrayList<>();
+		for (Method method : clazz.getDeclaredMethods()) {
+			methods.add(method);
+		}
+		if (clazz.getSuperclass() != null) {
+			methods.addAll(findAllMethods(clazz.getSuperclass()));
+		}
+		return methods;
+	}
 }
