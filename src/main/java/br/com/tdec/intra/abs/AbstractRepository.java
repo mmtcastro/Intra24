@@ -122,8 +122,8 @@ public abstract class AbstractRepository extends Abstract {
 			List<String> items = model.getAllModelFieldNamesProperCase();
 			for (String campo : items) {
 				item = doc.getItemByName(campo);
-				method = modelClass.getDeclaredMethod("set" + campo, String.class);
 				if (item != null) {
+					method = model.findMethod("set" + campo);
 					method.invoke(model, item.get(0).getValue().get(0).toString());
 				}
 			}

@@ -72,6 +72,10 @@ public abstract class AbstractModel extends Abstract {
 		}
 	}
 
+	/**
+	 * Busca todos os metodos da classe e das superclasses
+	 */
+
 	public static List<Method> findAllMethods(Class<?> clazz) {
 		List<Method> methods = new ArrayList<>();
 		for (Method method : clazz.getDeclaredMethods()) {
@@ -81,5 +85,22 @@ public abstract class AbstractModel extends Abstract {
 			methods.addAll(findAllMethods(clazz.getSuperclass()));
 		}
 		return methods;
+	}
+
+	/**
+	 * Busca o metodo pelo nome, buscando na classe e superclasses
+	 * 
+	 * @param methodName
+	 * @return
+	 */
+	public Method findMethod(String methodName) {
+		Method method = null;
+		try {
+			method = getMethod(this.getClass(), methodName, null);
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return method;
 	}
 }
