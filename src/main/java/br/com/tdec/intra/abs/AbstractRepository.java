@@ -3,6 +3,7 @@ package br.com.tdec.intra.abs;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -13,6 +14,7 @@ import com.hcl.domino.db.model.BulkOperationException;
 import com.hcl.domino.db.model.Database;
 import com.hcl.domino.db.model.Document;
 import com.hcl.domino.db.model.Item;
+import com.hcl.domino.db.model.ItemValueType;
 import com.hcl.domino.db.model.OptionalCount;
 import com.hcl.domino.db.model.OptionalItemNames;
 import com.hcl.domino.db.model.OptionalStart;
@@ -77,6 +79,7 @@ public abstract class AbstractRepository extends Abstract {
 			print("Achei " + docs.size() + " Documentos");
 
 			for (Document doc : docs) {
+				// doc.getItems().add(new TextItem("Valor", "{#100.0}"));
 				lista.add(loadModel(doc));
 			}
 		} catch (BulkOperationException e) {
@@ -117,21 +120,43 @@ public abstract class AbstractRepository extends Abstract {
 		Method method;
 
 		List<Item<?>> item;
+		ItemValueType itemValueType;
+		Class<?> fieldClass;
 		try {
 			model = (AbstractModelDoc) modelClass.getDeclaredConstructor().newInstance();
-			List<String> items = model.getAllModelFieldNamesProperCase();
+			List<String> items = model.getAllModelFieldNamesProperCase(); // Notes grava em properCase
+
+			// model.findAllMethods(modelClass);
+			String fieldName;
+			fieldName = "stop";
+
 			for (String campo : items) {
 				item = doc.getItemByName(campo);
+				fieldName = "set" + campo;
+				print(fieldName);
 				if (item != null) {
-					method = model.findMethod("set" + campo);
+					if (item.get(0).getItemValueType() == ItemValueType.TEXT) {
+						fieldClass = String.class;
+					} else if (item.get(0).getItemValueType() == ItemValueType.NUMBER) {
+						fieldClass = Double.class;
+					} else if (item.get(0).getItemValueType() == ItemValueType.DATETIME) {
+						fieldClass = Date.class;
+					} else {
+						fieldClass = String.class;
+					}
+					itemValueType = item.get(0).getItemValueType();
+					print(itemValueType);
+					method = model.getClass().getMethod("set" + campo, fieldClass);
 					method.invoke(model, item.get(0).getValue().get(0).toString());
 				}
 			}
-			List<Item<?>> codigo = doc.getItemByName("Codigo");
-			List<Item<?>> id = doc.getItemByName("Id");
-			model.setId(id != null ? id.get(0).getValue().get(0).toString() : null);
-			model.setCodigo(codigo != null ? codigo.get(0).getValue().get(0).toString() : null);
-			print(model);
+
+//			List<Item<?>> codigo = doc.getItemByName("Codigo");
+//			List<Item<?>> id = doc.getItemByName("Id");
+//
+//			model.setId(id != null ? id.get(0).getValue().get(0).toString() : null);
+//			model.setCodigo(codigo != null ? codigo.get(0).getValue().get(0).toString() : null);
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

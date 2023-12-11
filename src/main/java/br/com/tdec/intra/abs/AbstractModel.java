@@ -55,22 +55,22 @@ public abstract class AbstractModel extends Abstract {
 		return fields;
 	}
 
-	public static Method getMethod(Class<?> clazz, String methodName, Class<?> parameterTypes)
-			throws NoSuchMethodException {
-		try {
-			// Try to get the method from the current class
-			return clazz.getMethod(methodName, parameterTypes);
-		} catch (NoSuchMethodException e) {
-			// If not found, try the superclass
-			Class<?> superClass = clazz.getSuperclass();
-			if (superClass != null) {
-				return getMethod(superClass, methodName, parameterTypes);
-			} else {
-				// If no more superclasses, throw the exception
-				throw e;
-			}
-		}
-	}
+//	public static Method getMethod(Class<?> clazz, String methodName, Class<?> parameterTypes)
+//			throws NoSuchMethodException {
+//		try {
+//			// Try to get the method from the current class
+//			return clazz.getMethod(methodName, parameterTypes);
+//		} catch (NoSuchMethodException e) {
+//			// If not found, try the superclass
+//			Class<?> superClass = clazz.getSuperclass();
+//			if (superClass != null) {
+//				return getMethod(superClass, methodName, parameterTypes);
+//			} else {
+//				// If no more superclasses, throw the exception
+//				throw e;
+//			}
+//		}
+//	}
 
 	/**
 	 * Busca todos os metodos da classe e das superclasses
@@ -84,23 +84,8 @@ public abstract class AbstractModel extends Abstract {
 		if (clazz.getSuperclass() != null) {
 			methods.addAll(findAllMethods(clazz.getSuperclass()));
 		}
+		methods.stream().forEach(m -> System.out.println(m.getName()));
 		return methods;
 	}
 
-	/**
-	 * Busca o metodo pelo nome, buscando na classe e superclasses
-	 * 
-	 * @param methodName
-	 * @return
-	 */
-	public Method findMethod(String methodName) {
-		Method method = null;
-		try {
-			method = getMethod(this.getClass(), methodName, null);
-		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return method;
-	}
 }
