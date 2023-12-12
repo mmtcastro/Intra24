@@ -2,8 +2,8 @@ package br.com.tdec.intra.abs;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -134,20 +134,22 @@ public abstract class AbstractRepository extends Abstract {
 				item = doc.getItemByName(campo);
 				fieldName = "set" + campo;
 				print(fieldName);
-				if (item != null) {
+				if (item != null && item.get(0) != null && item.get(0).getValue() != null
+						&& item.get(0).getValue().size() > 0) {
 					if (item.get(0).getItemValueType() == ItemValueType.TEXT) {
 						fieldClass = String.class;
 					} else if (item.get(0).getItemValueType() == ItemValueType.NUMBER) {
 						fieldClass = Double.class;
 					} else if (item.get(0).getItemValueType() == ItemValueType.DATETIME) {
-						fieldClass = Date.class;
+						fieldClass = ZonedDateTime.class;
 					} else {
 						fieldClass = String.class;
 					}
 					itemValueType = item.get(0).getItemValueType();
 					print(itemValueType);
 					method = model.getClass().getMethod("set" + campo, fieldClass);
-					method.invoke(model, item.get(0).getValue().get(0).toString());
+					// method.invoke(model, item.get(0).getValue().get(0).toString());
+					method.invoke(model, item.get(0).getValue().get(0));
 				}
 			}
 

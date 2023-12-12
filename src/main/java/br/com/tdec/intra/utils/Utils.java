@@ -238,4 +238,19 @@ public class Utils {
 	public static void print(String str) {
 		System.out.println(str);
 	}
+
+	public static Class<?> getClassModelFromViewClass(Class<?> viewClass) {
+		String fullClassName = viewClass.getName(); // Nome completo da classe, incluindo o pacote
+
+		// Substitui ".view." por ".model." e remove o sufixo "View"
+		String modelClassName = fullClassName.replace(".view.", ".model.").replaceAll("View$", "");
+
+		try {
+			return Class.forName(modelClassName);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 }

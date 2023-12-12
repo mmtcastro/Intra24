@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 
 import com.vaadin.flow.component.button.Button;
@@ -9,6 +10,7 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.LazyDataView;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -45,7 +47,6 @@ public class VerticaisView extends AbstractViewLista {
 		initFilterVertical();
 
 		toolbarVertical = new HorizontalLayout(filterTextVertical, criarVertical);
-		toolbarVertical = new HorizontalLayout(filterTextVertical, criarVertical);
 
 		add(toolbarVertical, gridVertical);
 		updateGrid(gridVertical);
@@ -63,11 +64,25 @@ public class VerticaisView extends AbstractViewLista {
 	public void initGridVertical() {
 		gridVertical = new Grid<>();
 
-		Column<AbstractModelDoc> codigoColumn = gridVertical.addColumn(AbstractModelDoc::getCodigo).setHeader("Código");
+		Column<AbstractModelDoc> codigoColumn = gridVertical.addColumn(AbstractModelDoc::getCodigo).setHeader("Código")
+				.setSortable(true);
 		codigoColumn.setComparator(Comparator.comparing(AbstractModelDoc::getCodigo)).setKey("codigo");
 		Grid.Column<AbstractModelDoc> idColumn = gridVertical.addColumn(AbstractModelDoc::getId).setHeader("Id");
 		idColumn.setComparator(Comparator.comparing(AbstractModelDoc::getId)).setKey("id");
+//		Grid.Column<AbstractModelDoc> criacaoLocalDateTime = gridVertical
+//				.addColumn(new LocalDateTimeRenderer<>(AbstractModelDoc::getCriacao, "dd/MM/yyyy HH:mm:ss"))
+//				.setHeader("Criação");
+		Grid.Column<AbstractModelDoc> criacaoColumn = gridVertical
+				.addColumn(new TextRenderer<>(
+						item -> item.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss Z"))))
+				.setHeader("Criação");
+		criacaoColumn.setComparator(Comparator.comparing(AbstractModelDoc::getCriacao)).setKey("criacao");
 
+		Grid.Column<AbstractModelDoc> valorColumn = gridVertical.addColumn(AbstractModelDoc::getValor)
+				.setHeader("Valor");
+		valorColumn.setComparator(Comparator.comparing(AbstractModelDoc::getId)).setKey("valor");
+
+		gridVertical.asSingleSelect().addValueChangeListener(evt -> editVertical(evt.getValue()));
 	}
 
 	public void updateGrid(Grid<AbstractModelDoc> grid) {
@@ -80,6 +95,16 @@ public class VerticaisView extends AbstractViewLista {
 
 	public void criarVertical() {
 
+	}
+
+	private void editVertical(AbstractModelDoc abstractModelDoc) {
+		if (abstractModelDoc == null) {
+			// closeEditor();
+		} else {
+			// grupoEconomicoForm.setGrupoEconomico(grupoEconomico);
+			// grupoEconomicoForm.setVisible(true);
+			// addClassName("editing-grupoEconomico");
+		}
 	}
 
 }
