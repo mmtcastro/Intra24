@@ -18,7 +18,7 @@ public class CargosView extends AbstractViewLista {
 	private static final long serialVersionUID = 1L;
 
 	public CargosView(CargoRepository repository) {
-		super(repository);
+		// super(repository);
 
 		initGrid();
 		add(toolbar, grid);

@@ -1,6 +1,7 @@
 package br.com.tdec.intra.empresas.view;
 
 import java.util.Comparator;
+import java.util.List;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
@@ -27,13 +28,14 @@ import lombok.EqualsAndHashCode;
 public class EmpresasView extends AbstractViewLista {
 
 	private static final long serialVersionUID = 1L;
+	private EmpresaRepository repository;
 	private Grid<Empresa> gridEmpresa;
 	private TextField filterTextEmpresa;
 	private Button criarEmpresa;
+	private List<Empresa> empresas;
 
 	public EmpresasView(EmpresaRepository repository) {
-		super(repository);
-		System.out.println(repository.toString());
+		// super(repository);
 		add(new H1("Empresas"));
 
 		Button buttonGetAllEmpresas = new Button("getAllEmpresas", e -> repository.getAllEmpresas());

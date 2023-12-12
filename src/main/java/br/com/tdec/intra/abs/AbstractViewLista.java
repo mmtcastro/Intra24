@@ -24,10 +24,10 @@ public class AbstractViewLista extends VerticalLayout {
 	protected TextField filterText;
 	protected HorizontalLayout toolbar;
 
-	public AbstractViewLista(AbstractRepository repository) {
-		this.repository = repository;
-
-	}
+//	public AbstractViewLista(AbstractRepository repository) {
+//		this.repository = repository;
+//
+//	}
 
 	public void initGrid() {
 		grid = new Grid<>();

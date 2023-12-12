@@ -35,28 +35,30 @@ public class EmpresaRepository extends AbstractRepository implements PagingAndSo
 	}
 
 	public List<Empresa> getAllEmpresas() {
+
+		List<Empresa> empresas = new ArrayList<Empresa>();
+
 		int offset = 0;
-		int limit = 100;
-		int maxViewEntriesScanned = 100;
-		int maxDocumentsScanned = 100;
-		int maxMilliSeconds = 10000000;
-		String query = "'_intraForms'.Form = 'Empresa' and codigo contains ('GERDAU*')";
+		int limit = 200000;
+		int maxViewEntriesScanned = 200000;
+		int maxDocumentsScanned = 200000;
+		int maxMilliSeconds = 120000;
+		String query = "'_intraForms'.Form = 'Empresa'";
 		List<String> items = List.of("id", "codigo", "nome");
 
 		List<Document> docs;
-		List<Empresa> empresas = new ArrayList<Empresa>();
 
 		try {
 			docs = database.readDocuments(query, //
 					new OptionalItemNames(items), // tem que usar, senao nao carrega os campos
 					new OptionalQueryLimit(maxViewEntriesScanned, maxDocumentsScanned, maxMilliSeconds), //
-					new OptionalQueryLimit(100000, 1000000, 400000), new OptionalStart(offset),
 					new OptionalCount(limit), new OptionalStart(offset), new OptionalCount(limit)).get();
+
 			System.out.println("Achei " + docs.size() + " Documentos de Empresas");
 			for (Document doc : docs) {
 				Empresa model = (Empresa) loadModel(doc);
 				empresas.add(model);
-				System.out.println(model.getCodigo().toString());
+				// System.out.println(model.getCodigo().toString());
 			}
 		} catch (BulkOperationException e) {
 			// TODO Auto-generated catch block
@@ -127,7 +129,8 @@ public class EmpresaRepository extends AbstractRepository implements PagingAndSo
 
 	@Override
 	public Page<Empresa> findAll(Pageable pageable) {
-		List<Empresa> empresas = getAllEmpresas();
+
+		List<Empresa> empresas = new ArrayList<>();
 		int pageSize = 10; // Define the page size
 		int totalElements = empresas.size(); // Calculate the total number of elements
 
@@ -149,7 +152,6 @@ public class EmpresaRepository extends AbstractRepository implements PagingAndSo
 	public Empresa loadModel(Document doc) {
 		Empresa model = null;
 		try {
-			print("Este eh o codigo " + doc.getItemByName("codigo").get(0).getValue().toString());
 			model = new Empresa();
 			// List<Item<?>> items = doc.getItems();
 			model.setId(doc.getItemByName("id").get(0).getValue().toString());

@@ -1,6 +1,5 @@
 package br.com.tdec.intra.empresas.view;
 
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 
 import com.vaadin.flow.component.button.Button;
@@ -10,13 +9,13 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.LazyDataView;
-import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.abs.AbstractViewLista;
+import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.repositories.VerticalRepository;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
@@ -31,15 +30,16 @@ import lombok.EqualsAndHashCode;
 public class VerticaisView extends AbstractViewLista {
 
 	private static final long serialVersionUID = 1L;
-	// private VerticalRepository repository;
-	private Grid<AbstractModelDoc> gridVertical;
+	private VerticalRepository repository;
+	private Grid<Vertical> gridVertical;
 	private TextField filterTextVertical;
 	private Button criarVertical;
 	private HorizontalLayout toolbarVertical;
 
 	public VerticaisView(VerticalRepository repository) {
-		super(repository);
-		// this.repository = repository;
+		// super(repository);
+		// super();
+		this.repository = repository;
 		System.out.println(repository);
 		add(new H1("Verticais"));
 		criarVertical = new Button("Criar Documento", e -> criarVertical());
@@ -64,31 +64,29 @@ public class VerticaisView extends AbstractViewLista {
 	public void initGridVertical() {
 		gridVertical = new Grid<>();
 
-		Column<AbstractModelDoc> codigoColumn = gridVertical.addColumn(AbstractModelDoc::getCodigo).setHeader("Código")
+		Column<Vertical> codigoColumn = gridVertical.addColumn(Vertical::getCodigo).setHeader("Código")
 				.setSortable(true);
-		codigoColumn.setComparator(Comparator.comparing(AbstractModelDoc::getCodigo)).setKey("codigo");
-		Grid.Column<AbstractModelDoc> idColumn = gridVertical.addColumn(AbstractModelDoc::getId).setHeader("Id");
-		idColumn.setComparator(Comparator.comparing(AbstractModelDoc::getId)).setKey("id");
+		codigoColumn.setComparator(Comparator.comparing(Vertical::getCodigo)).setKey("codigo");
+		Grid.Column<Vertical> idColumn = gridVertical.addColumn(Vertical::getId).setHeader("Id");
+		idColumn.setComparator(Comparator.comparing(Vertical::getId)).setKey("id");
 //		Grid.Column<AbstractModelDoc> criacaoLocalDateTime = gridVertical
 //				.addColumn(new LocalDateTimeRenderer<>(AbstractModelDoc::getCriacao, "dd/MM/yyyy HH:mm:ss"))
 //				.setHeader("Criação");
-		Grid.Column<AbstractModelDoc> criacaoColumn = gridVertical
-				.addColumn(new TextRenderer<>(
-						item -> item.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss Z"))))
-				.setHeader("Criação");
-		criacaoColumn.setComparator(Comparator.comparing(AbstractModelDoc::getCriacao)).setKey("criacao");
-
-		Grid.Column<AbstractModelDoc> valorColumn = gridVertical.addColumn(AbstractModelDoc::getValor)
-				.setHeader("Valor");
-		valorColumn.setComparator(Comparator.comparing(AbstractModelDoc::getId)).setKey("valor");
+//		Grid.Column<Vertical> criacaoColumn = gridVertical
+//				.addColumn(new TextRenderer<>(
+//						item -> item.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss Z"))))
+//				.setHeader("Criação");
+//		criacaoColumn.setComparator(Comparator.comparing(Vertical::getCriacao)).setKey("criacao");
+//
+//		Grid.Column<Vertical> valorColumn = gridVertical.addColumn(AbstractModelDoc::getValor).setHeader("Valor");
+//		valorColumn.setComparator(Comparator.comparing(Vertical::getId)).setKey("valor");
 
 		gridVertical.asSingleSelect().addValueChangeListener(evt -> editVertical(evt.getValue()));
 	}
 
-	public void updateGrid(Grid<AbstractModelDoc> grid) {
-		LazyDataView<AbstractModelDoc> dataView = grid.setItems(q -> this.repository
-				.findAll(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), filterTextVertical.getValue())
-				.stream());
+	public void updateGrid(Grid<?> grid) {
+		LazyDataView<Vertical> dataView = gridVertical.setItems(q -> this.repository.findAllVerticais(q.getOffset(),
+				q.getLimit(), q.getSortOrders(), q.getFilter(), filterTextVertical.getValue()).stream());
 
 		dataView.setItemCountEstimate(8000);
 	}
