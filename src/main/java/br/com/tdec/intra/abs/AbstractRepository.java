@@ -2,12 +2,16 @@ package br.com.tdec.intra.abs;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.hcl.domino.db.model.BulkOperationException;
@@ -25,6 +29,7 @@ import br.com.tdec.intra.config.DominoServer;
 @Repository
 public abstract class AbstractRepository extends Abstract {
 
+	private static final Logger logger = LoggerFactory.getLogger(AbstractRepository.class);
 	protected String databaseName;
 	protected DominoServer dominoServer;
 	protected Database database;
@@ -42,6 +47,7 @@ public abstract class AbstractRepository extends Abstract {
 			String search) {
 		limit = 50; // nao consegui fazer funcionar o limit automaticamente.
 		print("Iniciando findAll com " + offset + " - " + limit);
+		print("Filter eh " + filter);
 		print("SortedOrders eh " + sortOrders);
 		if (sortOrders != null) {
 			for (QuerySortOrder sortOrder : sortOrders) {
@@ -50,7 +56,7 @@ public abstract class AbstractRepository extends Abstract {
 				print("Direction:  " + sortOrder.getDirection());
 			}
 		}
-		print("Filter eh " + filter);
+
 		List<AbstractModelDoc> lista = new ArrayList<>();
 		try {
 			String query = "";
@@ -67,8 +73,8 @@ public abstract class AbstractRepository extends Abstract {
 			query = "'_intraForms'.Form = '" + modelClass.getSimpleName() + "'";
 
 			AbstractModelDoc model = (AbstractModelDoc) modelClass.getDeclaredConstructor().newInstance();
-			List<String> items = model.getAllModelFieldNamesProperCase();
 
+			List<String> items = new ArrayList<String>(model.getAllModelFieldNamesProperCase().keySet());
 			List<Document> docs = database.readDocuments(query, new OptionalItemNames(items), // tem que usar, senao nao
 																								// carrega os campos
 					// new OptionalQueryLimit(maxViewEntriesScanned, maxDocumentsScanned,
@@ -117,50 +123,67 @@ public abstract class AbstractRepository extends Abstract {
 	public AbstractModelDoc loadModel(Document doc) {
 		AbstractModelDoc model = null;
 
-		Method method;
+		Method method = null;
 
 		List<Item<?>> item;
 		ItemValueType itemValueType;
-		Class<?> fieldClass;
+		Class<?> superClass;
 		try {
 			model = (AbstractModelDoc) modelClass.getDeclaredConstructor().newInstance();
-			List<String> items = model.getAllModelFieldNamesProperCase(); // Notes grava em properCase
 
-			// model.findAllMethods(modelClass);
+			Map<String, Class<?>> items = model.getAllModelFieldNamesProperCase(); // Notes grava em properCase
+
 			String fieldName;
 			fieldName = "stop";
 
-			for (String campo : items) {
+			for (String campo : items.keySet()) {
 				item = doc.getItemByName(campo);
-				fieldName = "set" + campo;
-				print(fieldName);
 				if (item != null && item.get(0) != null && item.get(0).getValue() != null
 						&& item.get(0).getValue().size() > 0) {
-					if (item.get(0).getItemValueType() == ItemValueType.TEXT) {
-						fieldClass = String.class;
-					} else if (item.get(0).getItemValueType() == ItemValueType.NUMBER) {
-						fieldClass = Double.class;
-					} else if (item.get(0).getItemValueType() == ItemValueType.DATETIME) {
-						fieldClass = ZonedDateTime.class;
-					} else {
-						fieldClass = String.class;
+//					if (item.get(0).getItemValueType() == ItemValueType.TEXT) {
+//						fieldClass = items.get(campo); // boolean é string no disco
+//					} else if (item.get(0).getItemValueType() == ItemValueType.NUMBER) {
+//						fieldClass = Double.class;
+//					} else if (item.get(0).getItemValueType() == ItemValueType.DATETIME) {
+//						fieldClass = ZonedDateTime.class;
+//					} else {
+//						fieldClass = String.class;
+//					}
+					superClass = items.get(campo).getSuperclass();
+					fieldName = "set" + campo;
+					if (fieldName.equals("setCnpj")) {
+						print(fieldName);
 					}
+					print(fieldName);
 					itemValueType = item.get(0).getItemValueType();
 					print(itemValueType);
-					method = model.getClass().getMethod("set" + campo, fieldClass);
-					// method.invoke(model, item.get(0).getValue().get(0).toString());
-					method.invoke(model, item.get(0).getValue().get(0));
+					if (items.get(campo).equals(Boolean.class)) {
+						method = model.getClass().getMethod("set" + campo, Boolean.class);
+						if (item.get(0).getValue().get(0).equals("1")) {
+							method.invoke(model, true);
+						} else {
+							method.invoke(model, false);
+						}
+					} else if (items.get(campo).equals(List.class) || items.get(campo).equals(ArrayList.class)) {
+					} else if (items.get(campo).equals(Set.class) || items.get(campo).equals(TreeSet.class)) {
+					} else if (superClass != null && superClass.equals(AbstractModelDoc.class)) {
+						print("superClass: " + superClass);
+					} else {
+						method = model.getClass().getMethod("set" + campo, items.get(campo));
+						method.invoke(model, item.get(0).getValue().get(0));
+					}
 				}
-			}
 
 //			List<Item<?>> codigo = doc.getItemByName("Codigo");
 //			List<Item<?>> id = doc.getItemByName("Id");
 //
 //			model.setId(id != null ? id.get(0).getValue().get(0).toString() : null);
 //			model.setCodigo(codigo != null ? codigo.get(0).getValue().get(0).toString() : null);
+			}
+		} catch (
 
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
+		Exception e) {
+			logger.error("Logger -> loadModel + method: " + method.getName(), e);
 			e.printStackTrace();
 		}
 

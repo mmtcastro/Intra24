@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractViewLista;
@@ -18,11 +19,17 @@ public class CargosView extends AbstractViewLista {
 	private static final long serialVersionUID = 1L;
 
 	public CargosView(CargoRepository repository) {
-		// super(repository);
+		super(repository);
+		Button sendMailButton = new Button("Send Mail", e -> sendMail());
+		add(sendMailButton);
+		initGridDefault();
 
-		initGrid();
-		add(toolbar, grid);
-		updateList(grid);
+	}
+
+	public void sendMail() {
+		// sendMail("mcastro@tdec.com.br", "mcastro@tdec.com.br", "Subject Teste", "Body
+		// Teste");
+		emailService.sendSimpleMessage("mcastro@tdec.com.br", "mcastro@tdec.com.br", "Subject Teste", "Body Teste");
 	}
 
 }

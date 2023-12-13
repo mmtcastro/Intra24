@@ -57,7 +57,7 @@ public class VerticalRepository extends AbstractRepository {
 			query = "'_intraForms'.Form = '" + modelClass.getSimpleName() + "'";
 
 			AbstractModelDoc model = (AbstractModelDoc) modelClass.getDeclaredConstructor().newInstance();
-			List<String> items = model.getAllModelFieldNamesProperCase();
+			List<String> items = new ArrayList<String>(model.getAllModelFieldNamesProperCase().keySet());
 
 			List<Document> docs = database.readDocuments(query, new OptionalItemNames(items), // tem que usar, senao nao
 																								// carrega os campos

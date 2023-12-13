@@ -1,6 +1,6 @@
 package br.com.tdec.intra.empresas.model;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
 import lombok.Getter;
@@ -50,7 +50,7 @@ public class Empresa extends AbstractModelDoc implements Comparable<AbstractMode
 						// "efêmera", muda sempre, menos o BAIXADO
 	private String statusCnpj; // se for "BAIXADO", nao precisa consultar mais, pois nao pode ser alterado por
 								// novas consultas
-	private Date ultimaConsultaCnpj;
+	private ZonedDateTime ultimaConsultaCnpj;
 
 	private Boolean fezNegocios;
 	private Boolean temFaturas;

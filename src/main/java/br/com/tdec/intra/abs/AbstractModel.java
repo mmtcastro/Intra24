@@ -4,10 +4,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import br.com.tdec.intra.utils.Utils;
+import lombok.Data;
 
+@Data
 public abstract class AbstractModel extends Abstract {
 
 	/**
@@ -43,34 +47,17 @@ public abstract class AbstractModel extends Abstract {
 	 * 
 	 * @return
 	 */
-	public List<String> getAllModelFieldNamesProperCase() {
-		List<String> fields = new ArrayList<>();
+	public Map<String, Class<?>> getAllModelFieldNamesProperCase() {
+		Map<String, Class<?>> fields = new HashMap<>();
 		Class<?> currentClass = this.getClass();
 		while (currentClass != null) {
 			for (Field field : currentClass.getDeclaredFields()) {
-				fields.add((Utils.toProperCase(field.getName())));
+				fields.put(Utils.toProperCase(field.getName()), field.getType());
 			}
 			currentClass = currentClass.getSuperclass();
 		}
 		return fields;
 	}
-
-//	public static Method getMethod(Class<?> clazz, String methodName, Class<?> parameterTypes)
-//			throws NoSuchMethodException {
-//		try {
-//			// Try to get the method from the current class
-//			return clazz.getMethod(methodName, parameterTypes);
-//		} catch (NoSuchMethodException e) {
-//			// If not found, try the superclass
-//			Class<?> superClass = clazz.getSuperclass();
-//			if (superClass != null) {
-//				return getMethod(superClass, methodName, parameterTypes);
-//			} else {
-//				// If no more superclasses, throw the exception
-//				throw e;
-//			}
-//		}
-//	}
 
 	/**
 	 * Busca todos os metodos da classe e das superclasses

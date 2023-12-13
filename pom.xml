@@ -47,6 +47,10 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.vaadin</groupId>
 			<!-- Replace artifactId with vaadin-core to use only free components -->
 			<artifactId>vaadin</artifactId>
@@ -97,9 +101,11 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<!-- Manually installed dependency 
-		mvn install:install-file -Dfile=lib/domino-db-1.6.7.jar -DgroupId=appDevPack.hcl.com -DartifactId=domino-db -Dversion=1.6.7 -Dpackaging=jar	
+		mvn install:install-file -Dfile=lib/domino-db-1.6.7.jar
+		-DgroupId=appDevPack.hcl.com -DartifactId=domino-db -Dversion=1.6.7
+		-Dpackaging=jar	
 		-->
 		<dependency>
 			<groupId>appDevPack.hcl.com</groupId>
@@ -140,6 +146,7 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
+		
 	</dependencies>
 
 	<build>

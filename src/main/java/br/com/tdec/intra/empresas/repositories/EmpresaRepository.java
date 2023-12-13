@@ -149,20 +149,4 @@ public class EmpresaRepository extends AbstractRepository implements PagingAndSo
 		return null;
 	}
 
-	public Empresa loadModel(Document doc) {
-		Empresa model = null;
-		try {
-			model = new Empresa();
-			// List<Item<?>> items = doc.getItems();
-			model.setId(doc.getItemByName("id").get(0).getValue().toString());
-			model.setCodigo(doc.getItemByName("codigo").get(0).getValue().toString());
-			// model.setNome(doc.getItemByName("nome").get(0).getValue().toString());
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return model;
-	}
-
 }
