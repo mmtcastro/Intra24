@@ -46,9 +46,11 @@ public abstract class AbstractRepository extends Abstract {
 	public List<AbstractModelDoc> findAll(int offset, int limit, List<QuerySortOrder> sortOrders, Optional<Void> filter,
 			String search) {
 		limit = 50; // nao consegui fazer funcionar o limit automaticamente.
-		print("Iniciando findAll com " + offset + " - " + limit);
-		print("Filter eh " + filter);
+		print("Iniciando findAll com offset: " + offset + " e limit: " + limit);
+
 		print("SortedOrders eh " + sortOrders);
+		print("Filter eh " + filter);
+		print("Search eh " + search);
 		if (sortOrders != null) {
 			for (QuerySortOrder sortOrder : sortOrders) {
 				print("--- Sorting ----");
@@ -58,20 +60,20 @@ public abstract class AbstractRepository extends Abstract {
 		}
 
 		List<AbstractModelDoc> lista = new ArrayList<>();
+
 		try {
-			String query = "";
+			String query = "'_intraForms'.Form = '" + modelClass.getSimpleName() + "'";
+			;
 			if (sortOrders != null && sortOrders.size() > 0 && sortOrders.get(0).getSorted().equals("codigo")) {
 				query = "'_intraForms'.Form = '" + modelClass.getSimpleName() + "'";
-				print("query eh " + query);
 			} else {
 				print(">>> Problema com o sortOrders. Nao esta ordenando por codigo");
 			}
 			if (search != null && !search.isEmpty()) {
-				query = query + " and contains ('" + search + "*')";
+				query = "'_intraForms'.Form = '" + modelClass.getSimpleName() + "'" + " and contains ('" + search
+						+ "*')";
 			}
-
-			query = "'_intraForms'.Form = '" + modelClass.getSimpleName() + "'";
-
+			print("query eh " + query);
 			AbstractModelDoc model = (AbstractModelDoc) modelClass.getDeclaredConstructor().newInstance();
 
 			List<String> items = new ArrayList<String>(model.getAllModelFieldNamesProperCase().keySet());
@@ -154,9 +156,9 @@ public abstract class AbstractRepository extends Abstract {
 					if (fieldName.equals("setCnpj")) {
 						print(fieldName);
 					}
-					print(fieldName);
+					// print(fieldName);
 					itemValueType = item.get(0).getItemValueType();
-					print(itemValueType);
+					// print(itemValueType);
 					if (items.get(campo).equals(Boolean.class)) {
 						method = model.getClass().getMethod("set" + campo, Boolean.class);
 						if (item.get(0).getValue().get(0).equals("1")) {
@@ -167,7 +169,9 @@ public abstract class AbstractRepository extends Abstract {
 					} else if (items.get(campo).equals(List.class) || items.get(campo).equals(ArrayList.class)) {
 					} else if (items.get(campo).equals(Set.class) || items.get(campo).equals(TreeSet.class)) {
 					} else if (superClass != null && superClass.equals(AbstractModelDoc.class)) {
-						print("superClass: " + superClass);
+						print("Doc superClass: " + superClass);
+					} else if (superClass != null && superClass.equals(AbstractModelLista.class)) {
+						print("Lista superClass: " + superClass);
 					} else {
 						method = model.getClass().getMethod("set" + campo, items.get(campo));
 						method.invoke(model, item.get(0).getValue().get(0));

@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -42,6 +43,9 @@ public class HelloWorldView extends HorizontalLayout {
 
 		setMargin(true);
 		setVerticalComponentAlignment(Alignment.END, name, sayHello);
+		ProgressBar progressBar = new ProgressBar();
+		progressBar.setIndeterminate(true);
+		add(progressBar);
 
 		add(name, sayHello, serverName);
 	}

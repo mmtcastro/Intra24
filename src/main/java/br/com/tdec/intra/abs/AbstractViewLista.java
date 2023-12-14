@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -31,6 +32,7 @@ public class AbstractViewLista extends VerticalLayout {
 	protected EmailService emailService;
 	protected AbstractRepository repository;
 	protected Grid<AbstractModelDoc> gridDefault;
+	FormLayout form = new FormLayout();
 
 	public AbstractViewLista(AbstractRepository repository) {
 		this.repository = repository;
@@ -41,6 +43,7 @@ public class AbstractViewLista extends VerticalLayout {
 		setSizeFull();
 		gridDefault = new Grid<>();
 		gridDefault.setSizeFull();
+
 		Button criarDocumento = new Button("Criar Documento", e -> criarDocumento());
 
 		Column<AbstractModelDoc> codigoColumn = gridDefault.addColumn(AbstractModelDoc::getCodigo).setHeader("Código")
@@ -54,25 +57,28 @@ public class AbstractViewLista extends VerticalLayout {
 //		Grid.Column<AbstractModelDoc> criacaoLocalDateTime = gridDefault
 //				.addColumn(new LocalDateTimeRenderer<>(AbstractModelDoc::getCriacao, "dd/MM/yyyy HH:mm:ss"))
 //				.setHeader("Criação");
-		Grid.Column<AbstractModelDoc> criacaoColumn = gridDefault
-				.addColumn(new TextRenderer<>(
-						item -> item.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))))
-				.setHeader("Criação");
+		Grid.Column<AbstractModelDoc> criacaoColumn = gridDefault.addColumn(new TextRenderer<>(item -> {
+			if (item.getCriacao() != null) {
+				return item.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+			} else {
+				return null; // Or any placeholder text you prefer
+			}
+		})).setHeader("Criação");
 //		criacaoColumn.setComparator(Comparator.comparing(AbstractModelDoc::getCriacao)).setKey("criacao");
 //
 //		Grid.Column<Vertical> valorColumn = gridVertical.addColumn(AbstractModelDoc::getValor).setHeader("Valor");
 //		valorColumn.setComparator(Comparator.comparing(Vertical::getId)).setKey("valor");
 
-		TextField filterText = new TextField();
-		filterText.setPlaceholder("filtro...");
-		filterText.setClearButtonVisible(true);
-		filterText.setValueChangeMode(ValueChangeMode.LAZY);
-		filterText.addValueChangeListener(e -> updateListDefault(gridDefault, filterText));
+		TextField searchText = new TextField();
+		searchText.setPlaceholder("buscar...");
+		searchText.setClearButtonVisible(true);
+		searchText.setValueChangeMode(ValueChangeMode.LAZY);
+		searchText.addValueChangeListener(e -> updateListDefault(gridDefault, searchText.getValue()));
 
 		gridDefault.asSingleSelect().addValueChangeListener(evt -> editModel(evt.getValue()));
 
-		updateListDefault(gridDefault, filterText);
-		HorizontalLayout toolbar = new HorizontalLayout(filterText, criarDocumento);
+		updateListDefault(gridDefault, searchText.getValue());
+		HorizontalLayout toolbar = new HorizontalLayout(searchText, criarDocumento);
 		add(toolbar, gridDefault);
 
 	}
@@ -84,11 +90,10 @@ public class AbstractViewLista extends VerticalLayout {
 	/**
 	 * Designa um DataView com LazyLoading para o grid
 	 */
-	public void updateListDefault(Grid<AbstractModelDoc> grid, TextField filterText) {
-		System.out.println("Filtro eh " + filterText.getValue());
+	public void updateListDefault(Grid<AbstractModelDoc> grid, String searchText) {
+		System.out.println("Search eh " + searchText);
 		LazyDataView<AbstractModelDoc> dataView = grid.setItems(q -> captureWildcard(this.repository
-				.findAll(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), filterText.getValue())
-				.stream()));
+				.findAll(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), searchText).stream()));
 
 		dataView.setItemCountEstimate(8000);
 	}
