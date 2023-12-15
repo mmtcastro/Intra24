@@ -253,4 +253,19 @@ public class Utils {
 		}
 	}
 
+	public static Class<?> getFormClassFromDocClass(Class<?> clazz) {
+		Class<?> ret = null;
+		String fullClassName = clazz.getName(); // Nome completo da classe, incluindo o pacote
+
+		// Replace the package part and append 'View' to the class name
+		String formClassName = fullClassName.replace("model", "view") + "View";
+
+		try {
+			ret = Class.forName(formClassName);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+
 }

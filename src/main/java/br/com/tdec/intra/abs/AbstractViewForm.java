@@ -9,8 +9,8 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.map.Map;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 
 import br.com.tdec.intra.utils.Utils;
 import lombok.Data;
@@ -18,7 +18,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class AbstractViewForm extends FormLayout implements BeforeEnterObserver {
+public abstract class AbstractViewForm extends FormLayout {
 
 	private static final long serialVersionUID = 1L;
 	protected AbstractModelDoc model;
@@ -30,24 +30,29 @@ public abstract class AbstractViewForm extends FormLayout implements BeforeEnter
 	private Button edit;
 	private HorizontalLayout buttons;
 
-	public AbstractViewForm() {
+	public AbstractViewForm(AbstractModelDoc model) {
 
 		initModel();
 		title = new H1(this.model.getClass().getSimpleName());
 		this.setTitle(title);
-		initButtons();
+
 	}
 
-	public void beforeEnter(BeforeEnterEvent event) {
-		queryParams = (Map) event.getLocation().getQueryParameters().getParameters();
-		System.out.println("queryParams: " + queryParams);
-		// List<String> ids = queryParams.get("id");
+	public void initDefaultForm(AbstractModelDoc model) {
+		FormLayout formLayout = new FormLayout();
+		TextField codigoField = new TextField("codigo");
+		TextField descricaoField = new TextField("descricao");
+		// DatePicker criacaoField = new DatePicker("criacao");
+		formLayout.add(codigoField);
+		Binder<AbstractModelDoc> binder = new Binder<>(AbstractModelDoc.class);
+		binder.forField(codigoField).bind(AbstractModelDoc::getCodigo, AbstractModelDoc::setCodigo);
 
-//		if (ids != null && !ids.isEmpty()) {
-//			infoLabel.setText("ID: " + ids.get(0));
-//		} else {
-//			infoLabel.setText("No ID provided");
-//		}
+		binder.forField(descricaoField).bind(AbstractModelDoc::getDescricao, AbstractModelDoc::setDescricao);
+
+		binder.setBean(model);
+
+		add(formLayout);
+		initButtons();
 	}
 
 	public void initButtons() {

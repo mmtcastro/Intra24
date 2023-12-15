@@ -1,5 +1,7 @@
 package br.com.tdec.intra.abs;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.stream.Stream;
@@ -19,6 +21,7 @@ import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 
 import br.com.tdec.intra.config.EmailService;
+import br.com.tdec.intra.utils.Utils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -32,7 +35,7 @@ public class AbstractViewLista extends VerticalLayout {
 	protected EmailService emailService;
 	protected AbstractRepository repository;
 	protected Grid<AbstractModelDoc> gridDefault;
-	FormLayout form = new FormLayout();
+	protected FormLayout form = new FormLayout();
 
 	public AbstractViewLista(AbstractRepository repository) {
 		this.repository = repository;
@@ -75,16 +78,28 @@ public class AbstractViewLista extends VerticalLayout {
 		searchText.setValueChangeMode(ValueChangeMode.LAZY);
 		searchText.addValueChangeListener(e -> updateListDefault(gridDefault, searchText.getValue()));
 
-		gridDefault.asSingleSelect().addValueChangeListener(evt -> editModel(evt.getValue()));
-
 		updateListDefault(gridDefault, searchText.getValue());
 		HorizontalLayout toolbar = new HorizontalLayout(searchText, criarDocumento);
 		add(toolbar, gridDefault);
 
+		gridDefault.asSingleSelect().addValueChangeListener(evt -> editModel(evt.getValue()));
+
 	}
 
-	public void editModel(AbstractModelDoc abstractModelDoc) {
+	public void editModel(AbstractModelDoc model) {
+		try {
+			Class<?> clazz = model.getClass();
+			Class<?> viewClass = Utils.getFormClassFromDocClass(clazz);
+			Constructor<?> constructor = viewClass.getDeclaredConstructor(AbstractModelDoc.class);
+			AbstractViewForm form = (AbstractViewForm) constructor.newInstance(model);
+			form.initDefaultForm(model);
+			form.setVisible(true);
+			addClassName("editing");
 
+		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException
+				| InvocationTargetException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
