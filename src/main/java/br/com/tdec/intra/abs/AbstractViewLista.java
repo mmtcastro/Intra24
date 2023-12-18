@@ -1,5 +1,7 @@
 package br.com.tdec.intra.abs;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.format.DateTimeFormatter;
@@ -35,7 +37,8 @@ public class AbstractViewLista extends VerticalLayout {
 	protected EmailService emailService;
 	protected AbstractRepository repository;
 	protected Grid<AbstractModelDoc> gridDefault;
-	protected FormLayout form = new FormLayout();
+	protected FormLayout formDefault;
+	// protected FormLayout form = new FormLayout();
 
 	public AbstractViewLista(AbstractRepository repository) {
 		this.repository = repository;
@@ -46,6 +49,8 @@ public class AbstractViewLista extends VerticalLayout {
 		setSizeFull();
 		gridDefault = new Grid<>();
 		gridDefault.setSizeFull();
+		formDefault = new FormLayout();
+		formDefault.setWidth("25em");
 
 		Button criarDocumento = new Button("Criar Documento", e -> criarDocumento());
 
@@ -80,22 +85,41 @@ public class AbstractViewLista extends VerticalLayout {
 
 		updateListDefault(gridDefault, searchText.getValue());
 		HorizontalLayout toolbar = new HorizontalLayout(searchText, criarDocumento);
-		add(toolbar, gridDefault);
+		// add(toolbar, gridDefault, formDefault);
+		add(toolbar, getContent());
+		formDefault.setVisible(false);
 
 		gridDefault.asSingleSelect().addValueChangeListener(evt -> editModel(evt.getValue()));
 
 	}
 
+	public void initFormDefault() {
+		// formDefault = new FormLayout();
+		formDefault.setWidth("25em");
+		Class<?> classForm = Utils.getFormClassFromDocClass(this.getClass());
+		Constructor<?> constructor = classForm.getDeclaredConstructor(this.getClass());
+		formDefault = (AbstractViewForm) constructor.newInstance(model);
+
+	}
+
+	private HorizontalLayout getContent() {
+		HorizontalLayout content = new HorizontalLayout(gridDefault, formDefault);
+		content.setFlexGrow(2, gridDefault);
+		content.setFlexGrow(1, formDefault);
+		content.addClassNames("content");
+		content.setSizeFull();
+		return content;
+	}
+
 	public void editModel(AbstractModelDoc model) {
 		try {
-			Class<?> clazz = model.getClass();
-			Class<?> viewClass = Utils.getFormClassFromDocClass(clazz);
-			Constructor<?> constructor = viewClass.getDeclaredConstructor(AbstractModelDoc.class);
-			AbstractViewForm form = (AbstractViewForm) constructor.newInstance(model);
-			form.initDefaultForm(model);
-			form.setVisible(true);
-			addClassName("editing");
+			if (model == null) {
+				closeFormDefault();
+			} else {
 
+				((AbstractViewForm) formDefault).initDefaultForm(model);
+				formDefault.setVisible(true);
+			}
 		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException
 				| InvocationTargetException e) {
 			e.printStackTrace();
@@ -133,6 +157,11 @@ public class AbstractViewLista extends VerticalLayout {
 //			}
 //		});
 
+	}
+
+	public void closeFormDefault() {
+		removeClassName("editing");
+		formDefault.setVisible(false);
 	}
 
 	public void sendMail(String from, String sendTo, String subject, String body) {

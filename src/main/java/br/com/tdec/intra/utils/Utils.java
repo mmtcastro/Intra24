@@ -35,25 +35,6 @@ public class Utils {
 			ret = ret + removePlural(sub);
 		}
 		return ret;
-
-		// ArrayList<String> substrings = new ArrayList<String>();
-		//
-		// int pos = 0;
-		//
-		// for (int i = 0; i < modelo.length(); i++) {
-		// if (Character.isUpperCase(modelo.charAt(i))) {
-		// if (i > 0) {
-		// substrings.add(modelo.substring(pos, i));
-		// pos = i;
-		// }
-		// }
-		// }
-		// substrings.add(modelo.substring(pos, modelo.length()));
-		//
-		// for (String sub : substrings) {
-		// ret = ret + removePlural(sub);
-		// }
-		// return ret;
 	}
 
 	/**
@@ -262,6 +243,29 @@ public class Utils {
 
 		try {
 			ret = Class.forName(formClassName);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+
+	public static Class<?> getViewFormClassFromViewListaClass(Class<?> listaClass) {
+		Class<?> ret = null;
+		String listaClassName = listaClass.getName();
+		String[] parts = listaClassName.split("\\.");
+		String formClassName = parts[parts.length - 1];
+		String transformedClassName = removePlural(formClassName);
+
+		// Reconstruct the transformed class name
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < parts.length - 1; i++) {
+			sb.append(parts[i]);
+			sb.append(".");
+		}
+		sb.append(transformedClassName);
+
+		try {
+			ret = Class.forName(sb.toString());
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}

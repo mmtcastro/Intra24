@@ -39,11 +39,10 @@ public abstract class AbstractViewForm extends FormLayout {
 	}
 
 	public void initDefaultForm(AbstractModelDoc model) {
-		FormLayout formLayout = new FormLayout();
 		TextField codigoField = new TextField("codigo");
 		TextField descricaoField = new TextField("descricao");
 		// DatePicker criacaoField = new DatePicker("criacao");
-		formLayout.add(codigoField);
+		add(codigoField);
 		Binder<AbstractModelDoc> binder = new Binder<>(AbstractModelDoc.class);
 		binder.forField(codigoField).bind(AbstractModelDoc::getCodigo, AbstractModelDoc::setCodigo);
 
@@ -51,7 +50,7 @@ public abstract class AbstractViewForm extends FormLayout {
 
 		binder.setBean(model);
 
-		add(formLayout);
+		// add(formLayout);
 		initButtons();
 	}
 
