@@ -3,6 +3,7 @@ package br.com.tdec.intra.abs;
 import java.time.ZonedDateTime;
 import java.util.TreeSet;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
@@ -19,6 +20,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected String idNegocio;
 	protected String codigoNegocio;
 	protected String form;
+	@NotNull
 	protected String codigo;
 	protected String status;
 	protected String sit;

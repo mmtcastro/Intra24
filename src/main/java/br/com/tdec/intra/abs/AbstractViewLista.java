@@ -1,7 +1,5 @@
 package br.com.tdec.intra.abs;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.format.DateTimeFormatter;
@@ -49,8 +47,7 @@ public class AbstractViewLista extends VerticalLayout {
 		setSizeFull();
 		gridDefault = new Grid<>();
 		gridDefault.setSizeFull();
-		formDefault = new FormLayout();
-		formDefault.setWidth("25em");
+		initFormDefault();
 
 		Button criarDocumento = new Button("Criar Documento", e -> criarDocumento());
 
@@ -95,10 +92,31 @@ public class AbstractViewLista extends VerticalLayout {
 
 	public void initFormDefault() {
 		// formDefault = new FormLayout();
-		formDefault.setWidth("25em");
-		Class<?> classForm = Utils.getFormClassFromDocClass(this.getClass());
-		Constructor<?> constructor = classForm.getDeclaredConstructor(this.getClass());
-		formDefault = (AbstractViewForm) constructor.newInstance(model);
+		try {
+
+			Class<?> classForm = Utils.getFormClassFromDocClass(this.getClass());
+			Constructor<?> constructor = classForm.getDeclaredConstructor(this.getClass());
+			formDefault = (AbstractViewForm) constructor.newInstance(this.getClass());
+			formDefault.setWidth("25em");
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 
@@ -112,18 +130,15 @@ public class AbstractViewLista extends VerticalLayout {
 	}
 
 	public void editModel(AbstractModelDoc model) {
-		try {
-			if (model == null) {
-				closeFormDefault();
-			} else {
 
-				((AbstractViewForm) formDefault).initDefaultForm(model);
-				formDefault.setVisible(true);
-			}
-		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException
-				| InvocationTargetException e) {
-			e.printStackTrace();
+		if (model == null) {
+			closeFormDefault();
+		} else {
+
+			((AbstractViewForm) formDefault).initDefaultForm(model);
+			formDefault.setVisible(true);
 		}
+
 	}
 
 	/**

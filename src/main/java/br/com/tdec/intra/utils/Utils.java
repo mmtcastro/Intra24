@@ -239,7 +239,12 @@ public class Utils {
 		String fullClassName = clazz.getName(); // Nome completo da classe, incluindo o pacote
 
 		// Replace the package part and append 'View' to the class name
-		String formClassName = fullClassName.replace("model", "view") + "View";
+		String[] parts = fullClassName.split("\\.");
+
+		// Obtém a última parte que contém o nome da classe
+		String lastPart = parts[parts.length - 1];
+
+		String[] 
 
 		try {
 			ret = Class.forName(formClassName);
@@ -249,27 +254,10 @@ public class Utils {
 		return ret;
 	}
 
-	public static Class<?> getViewFormClassFromViewListaClass(Class<?> listaClass) {
-		Class<?> ret = null;
-		String listaClassName = listaClass.getName();
-		String[] parts = listaClassName.split("\\.");
-		String formClassName = parts[parts.length - 1];
-		String transformedClassName = removePlural(formClassName);
-
-		// Reconstruct the transformed class name
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < parts.length - 1; i++) {
-			sb.append(parts[i]);
-			sb.append(".");
-		}
-		sb.append(transformedClassName);
-
-		try {
-			ret = Class.forName(sb.toString());
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		return ret;
+	public String[] splitProperCase(String str) {
+		// Divide a string usando expressões regulares
+		String[] parts = str.split("(?=[A-Z])");
+		return parts;
 	}
 
 }
