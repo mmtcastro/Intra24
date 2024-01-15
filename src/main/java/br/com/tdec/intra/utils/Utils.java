@@ -11,14 +11,15 @@ public class Utils {
 	 * @param modelPackage
 	 * @return
 	 */
-	public static List<String> stringToArrayList(String string, String separador) {
+	public static List<String> stringToArrayList(String string, String separator) {
 		List<String> ret = new ArrayList<>();
-		String[] array = string.split(separador);
+		// Escape the separator if it's a special character in regex
+		String regexSeparator = separator.matches("[\\[\\]().*+?^$\\\\|]") ? "\\" + separator : separator;
+		String[] array = string.split(regexSeparator);
 		for (String item : array) {
 			ret.add(item);
 		}
-		return ret;
-
+		return new ArrayList<>(ret);
 	}
 
 	/**
@@ -234,30 +235,55 @@ public class Utils {
 		}
 	}
 
-	public static Class<?> getFormClassFromDocClass(Class<?> clazz) {
+	public static Class<?> getModelClassFromListaClass(Class<?> classLista) {
 		Class<?> ret = null;
-		String fullClassName = clazz.getName(); // Nome completo da classe, incluindo o pacote
-
-		// Replace the package part and append 'View' to the class name
-		String[] parts = fullClassName.split("\\.");
-
-		// Obtém a última parte que contém o nome da classe
-		String lastPart = parts[parts.length - 1];
-
-		String[] 
-
+		String className = "";
+		String classeForm = "";
 		try {
-			ret = Class.forName(formClassName);
-		} catch (ClassNotFoundException e) {
+			List<String> classeList = stringToArrayList(classLista.getCanonicalName(), ".");
+			List<String> properCase = properCaseToArrayList(classeList.get(classeList.size() - 1));
+			className = removePluraisDoModelo(properCase.get(0));
+			classeForm = classeList.get(0) + "." + classeList.get(1) + "." + classeList.get(2) + "." + classeList.get(3)
+					+ "." + classeList.get(4) + ".model." + className;
+			ret = Class.forName(classeForm);
+
+		} catch (Exception e) {
+			print("Erro - Utils - getFormClassFromListaClass - " + classLista.getCanonicalName() + " - " + ret);
 			e.printStackTrace();
 		}
 		return ret;
 	}
 
-	public String[] splitProperCase(String str) {
+	public static String[] splitProperCase(String str) {
 		// Divide a string usando expressões regulares
 		String[] parts = str.split("(?=[A-Z])");
 		return parts;
+	}
+
+	/**
+	 * Retorna a classe do form a partir da classe da lista - ex. VerticaisView,
+	 * VerticalView
+	 */
+
+	public static Class<?> getViewDocClassFromViewListaClass(Class<?> classLista) {
+		Class<?> ret = null;
+		String className = "";
+		try {
+			List<String> classeList = stringToArrayList(classLista.getCanonicalName(), ".");
+			List<String> properCase = properCaseToArrayList(classeList.get(classeList.size() - 1));
+
+			for (int i = 0; i < properCase.size(); i++) {
+				className = className + removePlural(properCase.get(i));
+			}
+			String classeForm = classeList.get(0) + "." + classeList.get(1) + "." + classeList.get(2) + "."
+					+ classeList.get(3) + "." + classeList.get(4) + "." + classeList.get(5) + "." + className;
+			ret = Class.forName(classeForm);
+
+		} catch (Exception e) {
+			print("Erro - Utils - getViewDocClassFromViewListaClass - " + classLista.getCanonicalName() + " - " + ret);
+			e.printStackTrace();
+		}
+		return ret;
 	}
 
 }

@@ -35,7 +35,9 @@ public class AbstractViewLista extends VerticalLayout {
 	protected EmailService emailService;
 	protected AbstractRepository repository;
 	protected Grid<AbstractModelDoc> gridDefault;
-	protected FormLayout formDefault;
+	protected FormLayout formLayoutDefault;
+	protected AbstractViewDoc form;
+	protected AbstractModelDoc model;
 	// protected FormLayout form = new FormLayout();
 
 	public AbstractViewLista(AbstractRepository repository) {
@@ -47,7 +49,9 @@ public class AbstractViewLista extends VerticalLayout {
 		setSizeFull();
 		gridDefault = new Grid<>();
 		gridDefault.setSizeFull();
-		initFormDefault();
+		formLayoutDefault = new FormLayout();
+
+		// initFormDefault();
 
 		Button criarDocumento = new Button("Criar Documento", e -> criarDocumento());
 
@@ -83,21 +87,24 @@ public class AbstractViewLista extends VerticalLayout {
 		updateListDefault(gridDefault, searchText.getValue());
 		HorizontalLayout toolbar = new HorizontalLayout(searchText, criarDocumento);
 		// add(toolbar, gridDefault, formDefault);
-		add(toolbar, getContent());
-		formDefault.setVisible(false);
+		add(toolbar, getContent(), formLayoutDefault);
+		formLayoutDefault.setVisible(false);
 
 		gridDefault.asSingleSelect().addValueChangeListener(evt -> editModel(evt.getValue()));
 
 	}
 
-	public void initFormDefault() {
+	public void initDefaultForm(AbstractModelDoc model) {
 		// formDefault = new FormLayout();
+		System.out.println(model.getCodigo());
 		try {
-
-			Class<?> classForm = Utils.getFormClassFromDocClass(this.getClass());
-			Constructor<?> constructor = classForm.getDeclaredConstructor(this.getClass());
-			formDefault = (AbstractViewForm) constructor.newInstance(this.getClass());
-			formDefault.setWidth("25em");
+			Class<?> classForm = Utils.getViewDocClassFromViewListaClass(this.getClass());
+//			Constructor<?> constructor = classForm.getDeclaredConstructor(AbstractModelDoc.class);
+//			form = (AbstractViewDoc) constructor.newInstance(model);
+			Constructor<?> constructor = classForm.getDeclaredConstructor();
+			form = (AbstractViewDoc) constructor.newInstance();
+			form.setModel(model);
+			formLayoutDefault.setVisible(true);
 		} catch (NoSuchMethodException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -121,9 +128,9 @@ public class AbstractViewLista extends VerticalLayout {
 	}
 
 	private HorizontalLayout getContent() {
-		HorizontalLayout content = new HorizontalLayout(gridDefault, formDefault);
+		HorizontalLayout content = new HorizontalLayout(gridDefault, formLayoutDefault);
 		content.setFlexGrow(2, gridDefault);
-		content.setFlexGrow(1, formDefault);
+		content.setFlexGrow(1, formLayoutDefault);
 		content.addClassNames("content");
 		content.setSizeFull();
 		return content;
@@ -135,8 +142,8 @@ public class AbstractViewLista extends VerticalLayout {
 			closeFormDefault();
 		} else {
 
-			((AbstractViewForm) formDefault).initDefaultForm(model);
-			formDefault.setVisible(true);
+			initDefaultForm(model);
+			formLayoutDefault.setVisible(true);
 		}
 
 	}
@@ -176,7 +183,7 @@ public class AbstractViewLista extends VerticalLayout {
 
 	public void closeFormDefault() {
 		removeClassName("editing");
-		formDefault.setVisible(false);
+		formLayoutDefault.setVisible(false);
 	}
 
 	public void sendMail(String from, String sendTo, String subject, String body) {
