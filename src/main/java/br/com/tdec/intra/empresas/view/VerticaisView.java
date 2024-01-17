@@ -23,7 +23,7 @@ public class VerticaisView extends AbstractViewLista {
 	public VerticaisView(VerticalRepository repository) {
 		super(repository);
 		add(new H1("Verticais"));
-		initGridDefault();
+		initDefaultGrid();
 	}
 
 }

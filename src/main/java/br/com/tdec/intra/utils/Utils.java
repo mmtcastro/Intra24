@@ -1,7 +1,10 @@
 package br.com.tdec.intra.utils;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class Utils {
 
@@ -285,5 +288,15 @@ public class Utils {
 		}
 		return ret;
 	}
+	
+	public String getZonedDateTimeToStringConverter(ZonedDateTime zonedDateTime) {
+		if (zonedDateTime == null) {
+            return "";  
+        }     
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-MM-dd HH:mm:ss Z", new Locale("pt", "BR"));
+        return zonedDateTime.format(formatter);
+	}
+	
+	
 
 }
