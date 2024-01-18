@@ -75,4 +75,19 @@ public abstract class AbstractModel extends Abstract {
 		return methods;
 	}
 
+	public Field getField(String fieldName) {
+		Field ret = null;
+		try {
+			List<Field> fields = this.getAllModelFields();
+			for (Field field : fields) {
+				field.setAccessible(true);
+				if (field.getName().equalsIgnoreCase(fieldName)) {
+					return field;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
 }

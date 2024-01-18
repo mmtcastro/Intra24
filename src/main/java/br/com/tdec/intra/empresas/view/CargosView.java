@@ -24,7 +24,7 @@ public class CargosView extends AbstractViewLista {
 		super(repository);
 		Button sendMailButton = new Button("Send Mail", e -> sendMail());
 		add(sendMailButton);
-		initGridDefault();
+		initDefaultGrid();
 
 	}
 

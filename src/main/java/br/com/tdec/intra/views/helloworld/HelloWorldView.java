@@ -43,9 +43,7 @@ public class HelloWorldView extends HorizontalLayout {
 
 		setMargin(true);
 		setVerticalComponentAlignment(Alignment.END, name, sayHello);
-		ProgressBar progressBar = new ProgressBar();
-		progressBar.setIndeterminate(true);
-		add(progressBar);
+		
 
 		add(name, sayHello, serverName);
 	}

@@ -1,7 +1,9 @@
 package br.com.tdec.intra.abs;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +12,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.compress.utils.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -18,10 +21,15 @@ import com.hcl.domino.db.model.BulkOperationException;
 import com.hcl.domino.db.model.Database;
 import com.hcl.domino.db.model.Document;
 import com.hcl.domino.db.model.Item;
+import com.hcl.domino.db.model.TextItem;
+import com.hcl.domino.db.model.NumberItem;
+import com.hcl.domino.db.model.OptionalArg;
+import com.hcl.domino.db.model.DateTimeItem;
 import com.hcl.domino.db.model.ItemValueType;
 import com.hcl.domino.db.model.OptionalCount;
 import com.hcl.domino.db.model.OptionalItemNames;
 import com.hcl.domino.db.model.OptionalStart;
+import com.hcl.domino.db.model.ReadRichTextMgr;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.config.DominoServer;
@@ -119,10 +127,10 @@ public abstract class AbstractRepository extends Abstract {
 			e.printStackTrace();
 		}
 		return lista;
-
 	}
 
-	public AbstractModelDoc loadModel(Document doc) {
+	public AbstractModelDoc loadModel(Document doc) throws InterruptedException {
+		print(doc.getItemByName("Codigo").get(0).getValue().get(0));
 		AbstractModelDoc model = null;
 
 		Method method = null;
@@ -131,49 +139,38 @@ public abstract class AbstractRepository extends Abstract {
 		ItemValueType itemValueType;
 		Class<?> superClass;
 		try {
+			ReadRichTextMgr readManager = database.getReadRichTextMgrByUnid(doc.getUnid(), Sets.newHashSet("Body"),
+					new OptionalArg[0]);
+			//print("InputStream eh " + readManager.readField());
+
 			model = (AbstractModelDoc) modelClass.getDeclaredConstructor().newInstance();
 
-			Map<String, Class<?>> items = model.getAllModelFieldNamesProperCase(); // Notes grava em properCase
+			Map<String, Class<?>> campos = model.getAllModelFieldNamesProperCase(); // Notes grava em properCase
 
-			String fieldName;
-			fieldName = "stop";
-
-			for (String campo : items.keySet()) {
+			for (String campo : campos.keySet()) {
 				item = doc.getItemByName(campo);
+				System.out.println(campos.get(campo));
 				if (item != null && item.get(0) != null && item.get(0).getValue() != null
 						&& item.get(0).getValue().size() > 0) {
-//					if (item.get(0).getItemValueType() == ItemValueType.TEXT) {
-//						fieldClass = items.get(campo); // boolean é string no disco
-//					} else if (item.get(0).getItemValueType() == ItemValueType.NUMBER) {
-//						fieldClass = Double.class;
-//					} else if (item.get(0).getItemValueType() == ItemValueType.DATETIME) {
-//						fieldClass = ZonedDateTime.class;
-//					} else {
-//						fieldClass = String.class;
-//					}
-					superClass = items.get(campo).getSuperclass();
-					fieldName = "set" + campo;
-					if (fieldName.equals("setCnpj")) {
-						print(fieldName);
-					}
-					// print(fieldName);
+					superClass = campos.get(campo).getSuperclass();
 					itemValueType = item.get(0).getItemValueType();
-					// print(itemValueType);
-					if (items.get(campo).equals(Boolean.class)) {
+					if (campos.get(campo).equals(Boolean.class)) {
 						method = model.getClass().getMethod("set" + campo, Boolean.class);
 						if (item.get(0).getValue().get(0).equals("1")) {
 							method.invoke(model, true);
 						} else {
 							method.invoke(model, false);
 						}
-					} else if (items.get(campo).equals(List.class) || items.get(campo).equals(ArrayList.class)) {
-					} else if (items.get(campo).equals(Set.class) || items.get(campo).equals(TreeSet.class)) {
+					} else if (campos.get(campo).equals(List.class) || campos.get(campo).equals(ArrayList.class)) {
+						// criar um metodo para ler a lista
+					} else if (campos.get(campo).equals(Set.class) || campos.get(campo).equals(TreeSet.class)) {
+						// criar um metodo para ler a lista
 					} else if (superClass != null && superClass.equals(AbstractModelDoc.class)) {
 						print("Doc superClass: " + superClass);
 					} else if (superClass != null && superClass.equals(AbstractModelLista.class)) {
 						print("Lista superClass: " + superClass);
 					} else {
-						method = model.getClass().getMethod("set" + campo, items.get(campo));
+						method = model.getClass().getMethod("set" + campo, campos.get(campo));
 						method.invoke(model, item.get(0).getValue().get(0));
 					}
 				}
@@ -187,11 +184,84 @@ public abstract class AbstractRepository extends Abstract {
 		} catch (
 
 		Exception e) {
-			logger.error("Logger -> loadModel + method: " + method.getName(), e);
+			//logger.error("Logger -> loadModel + method: " + method.getName(), e);
 			e.printStackTrace();
 		}
 
 		return model;
+	}
+
+	public boolean saveModel(AbstractModelDoc model, List<String> campos) {
+		boolean success = false;
+		try {
+			List<Field> fields = new ArrayList<>();
+			Field checkField;
+			String ckSuperClass = null;
+			if (campos == null) {
+				fields = model.getAllModelFields();
+			} else {
+				for (String campo : campos) {
+					checkField = model.getField(campo);
+					if (checkField != null) {
+						fields.add(checkField);
+					}
+				}
+			}
+			List<Item<?>> item;
+			List<Item<?>> itemList = new ArrayList<Item<?>>();
+			for (Field field : fields) {
+				field.setAccessible(true);
+				// System.out.println(field.getName() + " - " + field.get(model));
+				if (field.get(model) == null) {
+					continue;
+				}
+				System.out.println(field.getName() + " - " + field.get(model));
+				if (field.getType().getSuperclass() != null) {
+					ckSuperClass = field.getType().getSuperclass().getName();
+				} else {
+					ckSuperClass = null;
+				}
+				if (field.getType().equals(String.class)) {
+					itemList.add(new TextItem(field.getName(), ((String) field.get(model))));
+				} else if (field.getType().equals(Double.class)) {
+					itemList.add(new NumberItem(field.getName(), ((Double) field.get(model))));
+				} else if (field.getType().getClass().equals(ZonedDateTime.class)) {
+					itemList.add(new DateTimeItem(field.getName(), ((ZonedDateTime) field.get(model))));
+				} else {
+					System.out.println("It's a different type! - " + field.getName() + " - " + field.getType());
+				}
+
+			}
+
+			String query = "'_intraIds'.Id = '" + model.getId() + "'";
+
+			List<Document> docs = database.readDocuments(query, new OptionalItemNames(List.of(model.getId()))).get();
+			if (docs.size() == 0) {
+				System.out.println("Novo Documento");
+				// Document doc = database.createDocument();
+				// doc.put("Form", Utils.getFormFromModel(model));
+			} else {
+				System.out.println("Documento existente - size eh " + docs.size());
+
+			}
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (BulkOperationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return success;
 	}
 
 }

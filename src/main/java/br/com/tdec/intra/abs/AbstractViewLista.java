@@ -2,6 +2,7 @@ package br.com.tdec.intra.abs;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.stream.Stream;
@@ -13,6 +14,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
@@ -57,7 +59,7 @@ public class AbstractViewLista extends VerticalLayout {
 		defaultGrid.setSizeFull();
 	    defaultGrid.addClassName("abstract-view-lista-grid");
 
-		Button criarDocumento = new Button("Criar Documento", e -> criarDocumento());
+		Button criarDocumento = new Button("Criar Documento", e -> addModel());
 
 		Column<AbstractModelDoc> codigoColumn = defaultGrid.addColumn(AbstractModelDoc::getCodigo).setHeader("Código")
 				.setSortable(true);
@@ -94,10 +96,17 @@ public class AbstractViewLista extends VerticalLayout {
 		defaultForm = new DefaultForm();
 		defaultForm.setWidth("25cm");
 		add(toolbar,getDefaultContent());
+		closeEditor();
 		
 		defaultGrid.asSingleSelect().addValueChangeListener(evt -> editModel(evt.getValue()));
 
 	}
+	
+	private void closeEditor() {
+		defaultForm.setModel(null);
+		defaultForm.setVisible(false);
+        removeClassName("abstract-view-lista-editing");
+    }
 	
 	private Component getDefaultContent() {
         HorizontalLayout content = new HorizontalLayout(defaultGrid, defaultForm);
@@ -109,52 +118,19 @@ public class AbstractViewLista extends VerticalLayout {
     }
 	
 	
-
-	public void initDefaultForm(AbstractModelDoc model) {
-		// formDefault = new FormLayout();
-		System.out.println(model.getCodigo());
-		try {
-			Class<?> classForm = Utils.getViewDocClassFromViewListaClass(this.getClass());
-//			Constructor<?> constructor = classForm.getDeclaredConstructor(AbstractModelDoc.class);
-//			form = (AbstractViewDoc) constructor.newInstance(model);
-			Constructor<?> constructor = classForm.getDeclaredConstructor();
-			form = (AbstractViewDoc) constructor.newInstance();
-			form.setModel(model);
-			System.out.println(form.getModel().getCodigo());
-			//formLayoutDefault.setVisible(true);
-		
-		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+	public LocalDate twoDaysBeforeToday() {
+		return LocalDate.now().minusDays(2);
 	}
-
 	
 
 	public void editModel(AbstractModelDoc model) {
-
+		this.model = model;
 		if (model == null) {
 			closeFormDefault();
 		} else {
-
 			defaultForm.setModel(model);
-			
+			defaultForm.setVisible(true);
+            addClassName("abstract-view-lista-editing");		
 		}
 
 	}
@@ -177,20 +153,7 @@ public class AbstractViewLista extends VerticalLayout {
 		return (Stream<AbstractModelDoc>) stream;
 	}
 
-	public void criarDocumento() {
-//		AbstractModelDoc model = repository.createModelDoc();
-//		AbstractForm form = repository.createForm(model);
-//		form.open();
-//		form.addOpenedChangeListener(e -> {
-//			if (!e.isOpened()) {
-//				if (form.isSaved()) {
-//					repository.save(model);
-//					updateList();
-//				}
-//			}
-//		});
-
-	}
+	
 
 	public void closeFormDefault() {
 		removeClassName("editing");
@@ -207,12 +170,28 @@ public class AbstractViewLista extends VerticalLayout {
 
 	}
 	
+	/**
+	 * Adiciona um novo modelo ao grid
+	 * 
+	 */
+	private void addModel() {
+		defaultGrid.asSingleSelect().clear();
+		Class<?> classModel = Utils.getModelClassFromViewListaClass(this.getClass());
+		try {
+			model = (AbstractModelDoc) classModel.getDeclaredConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
+		editModel(model);
+	}
+	
 	public class DefaultForm extends FormLayout {
 
 		private static final long serialVersionUID = 1L;
 		TextField codigo = new TextField("Código");
 		TextField descricao = new TextField("Descrição");
-		TextField status = new TextField("Status");
+		ComboBox<String> status = new ComboBox<>("Status");
 		TextField autor = new TextField("Autor");
 		TextField criacao = new TextField("Criação");
 
@@ -227,13 +206,25 @@ public class AbstractViewLista extends VerticalLayout {
 			binder = new BeanValidationBinder<>(AbstractModelDoc.class);
 			binder.forField(criacao).withConverter(new UtilsConverter.ZonedDateTimeToStringConverter())
 					.bind(AbstractModelDoc::getCriacao, AbstractModelDoc::setCriacao);
+			autor.setReadOnly(true);
+			criacao.setReadOnly(true);
+			status.setItems("Ativo", "Inativo");
+	        status.setPlaceholder("Selecione o status");
+			
 			binder.bindInstanceFields(this);
+			save.addClickListener(e -> save());
 
 			add(codigo, descricao, status, autor, criacao, createButtonsLayout());
+			
+		}
+
+		private boolean save() {
+			return repository.saveModel(model, null);
 		}
 
 		public void setModel(AbstractModelDoc model) {
 			binder.setBean(model);
+			
 		}
 
 		private HorizontalLayout createButtonsLayout() {
@@ -243,9 +234,14 @@ public class AbstractViewLista extends VerticalLayout {
 
 			save.addClickShortcut(Key.ENTER);
 			close.addClickShortcut(Key.ESCAPE);
+			
+			close.addClickListener(e -> closeEditor());
 
 			return new HorizontalLayout(save, delete, close);
+			
 		}
+		
+		
 	}
 
 }
