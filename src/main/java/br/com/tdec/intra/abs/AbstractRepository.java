@@ -20,10 +20,13 @@ import org.springframework.stereotype.Repository;
 import com.hcl.domino.db.model.BulkOperationException;
 import com.hcl.domino.db.model.Database;
 import com.hcl.domino.db.model.Document;
+import com.hcl.domino.db.model.DocumentException;
+import com.hcl.domino.db.model.ErrorHandler;
 import com.hcl.domino.db.model.Item;
 import com.hcl.domino.db.model.TextItem;
 import com.hcl.domino.db.model.NumberItem;
 import com.hcl.domino.db.model.OptionalArg;
+import com.hcl.domino.db.model.OptionalChunkSizeKb;
 import com.hcl.domino.db.model.DateTimeItem;
 import com.hcl.domino.db.model.ItemValueType;
 import com.hcl.domino.db.model.OptionalCount;
@@ -130,7 +133,7 @@ public abstract class AbstractRepository extends Abstract {
 	}
 
 	public AbstractModelDoc loadModel(Document doc) throws InterruptedException {
-		print(doc.getItemByName("Codigo").get(0).getValue().get(0));
+		print("==> Codigo da Vertical eh "+ doc.getItemByName("Codigo").get(0).getValue().get(0));
 		AbstractModelDoc model = null;
 
 		Method method = null;
@@ -139,9 +142,28 @@ public abstract class AbstractRepository extends Abstract {
 		ItemValueType itemValueType;
 		Class<?> superClass;
 		try {
-			ReadRichTextMgr readManager = database.getReadRichTextMgrByUnid(doc.getUnid(), Sets.newHashSet("Body"),
+			// === testes com rich text
+
+			ErrorHandler<DocumentException> errHandler = new ErrorHandler<DocumentException>() {
+				@Override
+				public void onErrorHandler(DocumentException dominoDbException) {
+					System.out.println("Exception" + dominoDbException.getMessage());
+				}
+			};
+			OptionalChunkSizeKb chunkSize = new OptionalChunkSizeKb(32);
+			ReadRichTextMgr readManager = database.getReadRichTextMgr(
+					  "Form = 'Empresa' and Codigo = 'TDECREDES'",
+					  Sets.newHashSet("Obs", "Observacoes"),
+					  errHandler,
+					  chunkSize);
+			
+			
+			ReadRichTextMgr readManagerUnid = database.getReadRichTextMgrByUnid(doc.getUnid(), Sets.newHashSet("Body"),
 					new OptionalArg[0]);
-			//print("InputStream eh " + readManager.readField());
+
+			// print("InputStream eh " + readManager.readField());
+
+			// === fim dos testes com rich text
 
 			model = (AbstractModelDoc) modelClass.getDeclaredConstructor().newInstance();
 
@@ -184,7 +206,7 @@ public abstract class AbstractRepository extends Abstract {
 		} catch (
 
 		Exception e) {
-			//logger.error("Logger -> loadModel + method: " + method.getName(), e);
+			// logger.error("Logger -> loadModel + method: " + method.getName(), e);
 			e.printStackTrace();
 		}
 
