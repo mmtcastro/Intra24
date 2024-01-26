@@ -108,7 +108,7 @@ public class HelloWorldView extends HorizontalLayout {
 
 
 	private void getGruposEconomicos() {
-		Mono<String> response = webClient.get().uri("/lists/GruposEconomicos?dataSource=empresasscope").header("Authorization", "Bearer " + token) // Bearer
+		Mono<String> response = webClient.get().uri("/lists/GruposEconomicos?dataSource=empresasscope&count=10").header("Authorization", "Bearer " + token) // Bearer
 				.retrieve().bodyToMono(String.class);
 		response.subscribe(data -> System.out.println("Data: " + data), error -> System.err.println("Error: " + error),
 				() -> System.out.println("Completed"));
