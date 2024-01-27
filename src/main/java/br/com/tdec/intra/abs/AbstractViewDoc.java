@@ -29,12 +29,14 @@ public abstract class AbstractViewDoc extends FormLayout {
 	private Button delete;
 	private Button edit;
 	private HorizontalLayout buttons;
+	
 
 	public AbstractViewDoc() {
 		// initModel();
 	}
 
 	public AbstractViewDoc(AbstractModelDoc model) {
+		addClassName("abstract-view-doc");
 		this.model = model;
 		title = new H1(this.model.getClass().getSimpleName());
 		this.setTitle(title);
@@ -105,5 +107,8 @@ public abstract class AbstractViewDoc extends FormLayout {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+	
+	
+	
 }
+

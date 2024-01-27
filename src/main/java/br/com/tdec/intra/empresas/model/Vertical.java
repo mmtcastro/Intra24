@@ -1,8 +1,12 @@
 package br.com.tdec.intra.empresas.model;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
+import lombok.Data;
 
+@Data
 public class Vertical extends AbstractModelDoc {
+	
+	//private String body;
 
 	public int compareTo(AbstractModelDoc outro) {
 		if (getCodigo() != null) {

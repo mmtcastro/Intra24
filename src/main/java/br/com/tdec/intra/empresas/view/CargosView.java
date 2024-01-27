@@ -1,6 +1,7 @@
 package br.com.tdec.intra.empresas.view;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractViewLista;
@@ -10,6 +11,7 @@ import jakarta.annotation.security.PermitAll;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+@PageTitle("Cargos")
 @Route(value = "cargos", layout = MainLayout.class)
 @PermitAll
 @Data
@@ -22,7 +24,7 @@ public class CargosView extends AbstractViewLista {
 		super(repository);
 		Button sendMailButton = new Button("Send Mail", e -> sendMail());
 		add(sendMailButton);
-		initGridDefault();
+		initDefaultGrid();
 
 	}
 

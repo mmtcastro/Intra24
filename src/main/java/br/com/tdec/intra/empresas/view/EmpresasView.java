@@ -23,7 +23,7 @@ public class EmpresasView extends AbstractViewLista {
 	public EmpresasView(EmpresaRepository repository) {
 		super(repository);
 		add(new H1("Empresas"));
-		initGridDefault();
+		initDefaultGrid();
 
 	}
 

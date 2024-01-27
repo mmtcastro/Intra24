@@ -19,11 +19,12 @@ import lombok.EqualsAndHashCode;
 public class VerticaisView extends AbstractViewLista {
 
 	private static final long serialVersionUID = 1L;
+	
 
 	public VerticaisView(VerticalRepository repository) {
 		super(repository);
 		add(new H1("Verticais"));
-		initGridDefault();
+		initDefaultGrid();
 	}
 
 }

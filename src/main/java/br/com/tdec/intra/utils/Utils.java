@@ -1,7 +1,12 @@
 package br.com.tdec.intra.utils;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+
+import br.com.tdec.intra.abs.AbstractViewLista.DefaultForm;
 
 public class Utils {
 
@@ -281,6 +286,41 @@ public class Utils {
 
 		} catch (Exception e) {
 			print("Erro - Utils - getViewDocClassFromViewListaClass - " + classLista.getCanonicalName() + " - " + ret);
+			e.printStackTrace();
+		}
+		return ret;
+	}
+
+	public String getZonedDateTimeToStringConverter(ZonedDateTime zonedDateTime) {
+		if (zonedDateTime == null) {
+			return "";
+		}
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-MM-dd HH:mm:ss Z", new Locale("pt", "BR"));
+		return zonedDateTime.format(formatter);
+	}
+
+	/**
+	 * Retorna a classe do form a partir da classe da lista - ex.
+	 * br.com.tdec.empresas.view.VerticaisView,
+	 * br.com.tdec.intra.empresas.model.Vertical
+	 * 
+	 */
+	public static Class<?> getModelClassFromViewListaClass(Class<?> viewListaClass) {
+		Class<?> ret = null;
+		String className = "";
+		try {
+			List<String> classeList = stringToArrayList(viewListaClass.getCanonicalName(), ".");
+			List<String> properCase = properCaseToArrayList(classeList.get(classeList.size() - 1));
+
+			className = removePlural(properCase.get(0));
+
+			String classeModel = classeList.get(0) + "." + classeList.get(1) + "." + classeList.get(2) + "."
+					+ classeList.get(3) + "." + classeList.get(4) + ".model." + className;
+			ret = Class.forName(classeModel);
+
+		} catch (Exception e) {
+			print("Erro - Utils - getModelClassFromViewListaClass - " + viewListaClass.getCanonicalName() + " - "
+					+ ret);
 			e.printStackTrace();
 		}
 		return ret;
