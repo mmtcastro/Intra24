@@ -10,8 +10,11 @@ import java.util.Map;
 
 import br.com.tdec.intra.utils.Utils;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public abstract class AbstractModel extends Abstract {
 
 	/**

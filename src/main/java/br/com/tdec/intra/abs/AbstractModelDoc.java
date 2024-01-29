@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.TreeSet;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractModelDoc extends AbstractModel {
 
 	@JsonProperty("@unid")

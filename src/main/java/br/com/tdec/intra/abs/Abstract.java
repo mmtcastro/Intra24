@@ -1,13 +1,16 @@
 package br.com.tdec.intra.abs;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 
 import br.com.tdec.intra.config.EmailService;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public abstract class Abstract {
 
 	@Autowired
@@ -18,8 +21,7 @@ public abstract class Abstract {
 	}
 
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
-
+		 return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 
 	public void sendMail(String sendTo, String subject, String body) {
@@ -31,4 +33,6 @@ public abstract class Abstract {
 		emailService.emailSender.send(message);
 
 	}
+	
+	
 }
