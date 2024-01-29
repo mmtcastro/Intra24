@@ -1,39 +1,73 @@
 package br.com.tdec.intra.abs;
 
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.TreeSet;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Data
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public abstract class AbstractModelDoc extends AbstractModel {
 
+	@JsonProperty("@unid")
+	protected String unid;
+	@JsonProperty("@noteid")
+	private int noteid;
+	@JsonProperty("@index")
+	private String index;
+	@JsonAlias({ "Id", "id" })
 	protected String id;
+	@JsonAlias({ "Uid", "uid" })
 	protected String uid;
+	@JsonAlias({ "IdOrigem", "idOrigem" })
 	protected String idOrigem;
+	@JsonAlias({ "CodigoOrigem", "codigoOrigem" })
 	protected String codigoOrigem;
+	@JsonAlias({ "IdRaiz", "idRaiz" })
 	protected String idRaiz;
+	@JsonAlias({ "CodigoRaiz", "codigoRaiz" })
 	protected String codigoRaiz;
+	@JsonAlias({ "CampoOrigem", "campoOrigem" })
 	protected String campoOrigem; // utilizado por AbstractModelLista para saber em qual campo fazer o load da
 									// lista (saveModel)
+	@JsonAlias({ "IdNegocio", "idNegocio" })
 	protected String idNegocio;
+	@JsonAlias({ "CodigoNegocio", "codigoNegocio" })
 	protected String codigoNegocio;
+	@JsonAlias({ "Form", "form" })
 	protected String form;
 	@NotNull
+	@JsonAlias({ "Codigo", "codigo" })
 	protected String codigo;
+	@JsonAlias({ "Status", "status" })
 	protected String status;
+	@JsonAlias({ "Sit", "sit" })
 	protected String sit;
-	protected ZonedDateTime data;
+	@JsonAlias({ "Data", "data" })
+	protected Date data;
+	@JsonAlias({ "autor", "Autor" })
 	protected String autor;
-	protected ZonedDateTime criacao;
+	@JsonAlias({ "Criacao", "criacao" })
+	protected Date criacao;
+	@JsonAlias({ "responsavel", "Responsavel" })
 	protected String responsavel;
+	@JsonAlias({ "Area", "area" })
 	protected String area;
+	@JsonAlias({ "nome", "Nome" })
 	protected String nome;
+	@JsonAlias({ "descricao", "Descricao" })
 	protected String descricao;
 	protected ZonedDateTime dataMudancaStatus;
 	protected String responsavelMudancaStatus;
+	@JsonAlias({ "Tipo", "tipo" })
 	protected String tipo;
+	@JsonAlias({ "valor", "Valor" })
 	protected Double valor;
 //	// protected MimeMultipart obs; retirado pois nao se deve usar RTF/MIME à
 //	// vontade. Apenas um por documento é recomendado.

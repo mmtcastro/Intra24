@@ -1,6 +1,5 @@
 package br.com.tdec.intra.abs;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -28,7 +27,6 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 
 import br.com.tdec.intra.config.EmailService;
 import br.com.tdec.intra.utils.Utils;
-import br.com.tdec.intra.utils.UtilsConverter;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -57,7 +55,7 @@ public class AbstractViewLista extends VerticalLayout {
 		setSizeFull();
 		defaultGrid = new Grid<>();
 		defaultGrid.setSizeFull();
-	    defaultGrid.addClassName("abstract-view-lista-grid");
+		defaultGrid.addClassName("abstract-view-lista-grid");
 
 		Button criarDocumento = new Button("Criar Documento", e -> addModel());
 
@@ -92,36 +90,34 @@ public class AbstractViewLista extends VerticalLayout {
 
 		updateListDefault(defaultGrid, searchText.getValue());
 		HorizontalLayout toolbar = new HorizontalLayout(searchText, criarDocumento);
-	
+
 		defaultForm = new DefaultForm();
 		defaultForm.setWidth("25cm");
-		add(toolbar,getDefaultContent());
+		add(toolbar, getDefaultContent());
 		closeEditor();
-		
+
 		defaultGrid.asSingleSelect().addValueChangeListener(evt -> editModel(evt.getValue()));
 
 	}
-	
+
 	private void closeEditor() {
 		defaultForm.setModel(null);
 		defaultForm.setVisible(false);
-        removeClassName("abstract-view-lista-editing");
-    }
-	
+		removeClassName("abstract-view-lista-editing");
+	}
+
 	private Component getDefaultContent() {
-        HorizontalLayout content = new HorizontalLayout(defaultGrid, defaultForm);
-        content.setFlexGrow(2, defaultGrid); 
-        content.setFlexGrow(1, defaultForm);
-        content.addClassNames("abstract-view-lista-content");
-        content.setSizeFull();
-        return content;
-    }
-	
-	
+		HorizontalLayout content = new HorizontalLayout(defaultGrid, defaultForm);
+		content.setFlexGrow(2, defaultGrid);
+		content.setFlexGrow(1, defaultForm);
+		content.addClassNames("abstract-view-lista-content");
+		content.setSizeFull();
+		return content;
+	}
+
 	public LocalDate twoDaysBeforeToday() {
 		return LocalDate.now().minusDays(2);
 	}
-	
 
 	public void editModel(AbstractModelDoc model) {
 		this.model = model;
@@ -130,7 +126,7 @@ public class AbstractViewLista extends VerticalLayout {
 		} else {
 			defaultForm.setModel(model);
 			defaultForm.setVisible(true);
-            addClassName("abstract-view-lista-editing");		
+			addClassName("abstract-view-lista-editing");
 		}
 
 	}
@@ -153,11 +149,9 @@ public class AbstractViewLista extends VerticalLayout {
 		return (Stream<AbstractModelDoc>) stream;
 	}
 
-	
-
 	public void closeFormDefault() {
 		removeClassName("editing");
-		//formLayoutDefault.setVisible(false);
+		// formLayoutDefault.setVisible(false);
 	}
 
 	public void sendMail(String from, String sendTo, String subject, String body) {
@@ -169,7 +163,7 @@ public class AbstractViewLista extends VerticalLayout {
 		emailService.emailSender.send(message);
 
 	}
-	
+
 	/**
 	 * Adiciona um novo modelo ao grid
 	 * 
@@ -179,13 +173,13 @@ public class AbstractViewLista extends VerticalLayout {
 		Class<?> classModel = Utils.getModelClassFromViewListaClass(this.getClass());
 		try {
 			model = (AbstractModelDoc) classModel.getDeclaredConstructor().newInstance();
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException | NoSuchMethodException | SecurityException e) {
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e) {
 			e.printStackTrace();
 		}
 		editModel(model);
 	}
-	
+
 	public class DefaultForm extends FormLayout {
 
 		private static final long serialVersionUID = 1L;
@@ -202,20 +196,20 @@ public class AbstractViewLista extends VerticalLayout {
 		BeanValidationBinder<AbstractModelDoc> binder;
 
 		public DefaultForm() {
-			addClassName("default-form");
-			binder = new BeanValidationBinder<>(AbstractModelDoc.class);
-			binder.forField(criacao).withConverter(new UtilsConverter.ZonedDateTimeToStringConverter())
-					.bind(AbstractModelDoc::getCriacao, AbstractModelDoc::setCriacao);
-			autor.setReadOnly(true);
-			criacao.setReadOnly(true);
-			status.setItems("Ativo", "Inativo");
-	        status.setPlaceholder("Selecione o status");
-			
-			binder.bindInstanceFields(this);
-			save.addClickListener(e -> save());
+//			addClassName("default-form");
+//			binder = new BeanValidationBinder<>(AbstractModelDoc.class);
+//			binder.forField(criacao).withConverter(new UtilsConverter.ZonedDateTimeToStringConverter())
+//					.bind(AbstractModelDoc::getCriacao, AbstractModelDoc::setCriacao);
+//			autor.setReadOnly(true);
+//			criacao.setReadOnly(true);
+//			status.setItems("Ativo", "Inativo");
+//	        status.setPlaceholder("Selecione o status");
+//			
+//			binder.bindInstanceFields(this);
+//			save.addClickListener(e -> save());
+//
+//			add(codigo, descricao, status, autor, criacao, createButtonsLayout());
 
-			add(codigo, descricao, status, autor, criacao, createButtonsLayout());
-			
 		}
 
 		private boolean save() {
@@ -224,7 +218,7 @@ public class AbstractViewLista extends VerticalLayout {
 
 		public void setModel(AbstractModelDoc model) {
 			binder.setBean(model);
-			
+
 		}
 
 		private HorizontalLayout createButtonsLayout() {
@@ -234,14 +228,13 @@ public class AbstractViewLista extends VerticalLayout {
 
 			save.addClickShortcut(Key.ENTER);
 			close.addClickShortcut(Key.ESCAPE);
-			
+
 			close.addClickListener(e -> closeEditor());
 
 			return new HorizontalLayout(save, delete, close);
-			
+
 		}
-		
-		
+
 	}
 
 }

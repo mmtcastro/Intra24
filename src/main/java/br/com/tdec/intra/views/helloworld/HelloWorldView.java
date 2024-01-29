@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Key;
@@ -17,7 +18,6 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -25,6 +25,7 @@ import com.vaadin.flow.router.RouteAlias;
 
 import br.com.tdec.intra.config.DominoServer;
 import br.com.tdec.intra.empresas.model.Empresa;
+import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import lombok.Data;
@@ -38,7 +39,7 @@ import reactor.core.publisher.Mono;
 @RouteAlias(value = "", layout = MainLayout.class)
 @PermitAll
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class HelloWorldView extends HorizontalLayout {
 
 	private static final long serialVersionUID = 1L;
@@ -51,7 +52,7 @@ public class HelloWorldView extends HorizontalLayout {
 	private Button getViewsButton = new Button("Get Views");
 	private Button getScopesButton = new Button("Get Scopes");
 	private Button getGruposEconomicosButton = new Button("Get Grupos Economicos");
-	private Button getVerticaisButton =  new Button("Get Verticais");
+	private Button getVerticaisButton = new Button("Get Verticais");
 
 	public HelloWorldView(DominoServer dominoServer) {
 		this.dominoServer = dominoServer;
@@ -69,20 +70,18 @@ public class HelloWorldView extends HorizontalLayout {
 		getViewsButton.addClickListener(e -> {
 			getViews();
 		});
-		
+
 		getScopesButton.addClickListener(e -> {
 			getScopes();
 		});
-		
+
 		getGruposEconomicosButton.addClickListener(e -> {
 			getGruposEconomicos();
 		});
-		
+
 		getVerticaisButton.addClickListener(e -> {
 			getVerticais();
 		});
-		
-		
 
 		Empresa empresa = new Empresa();
 		empresa.setNome("TDEC");
@@ -93,30 +92,41 @@ public class HelloWorldView extends HorizontalLayout {
 		setMargin(true);
 		setVerticalComponentAlignment(Alignment.END, name, sayHello);
 
-		add(name, sayHello, getUserInfoButton,getViewsButton,getScopesButton ,getGruposEconomicosButton,getVerticaisButton);
+		add(name, sayHello, getUserInfoButton, getViewsButton, getScopesButton, getGruposEconomicosButton,
+				getVerticaisButton);
 	}
-
-	
 
 	private void getVerticais() {
-		Mono<String> response = webClient.get().uri("/lists/Verticais?dataSource=empresasscope").header("Authorization", "Bearer " + token) // Bearer
+		Mono<String> response = webClient.get().uri("/lists/Verticais?dataSource=empresasscope")
+				.header("Authorization", "Bearer " + token) // Bearer
 				.retrieve().bodyToMono(String.class);
 		response.subscribe(data -> System.out.println("Data: " + data), error -> System.err.println("Error: " + error),
 				() -> System.out.println("Completed"));
 	}
 
+	private Mono<List<GrupoEconomico>> getGruposEconomicos() {
+		return webClient.get().uri("/lists/GruposEconomicos?dataSource=empresasscope&count=10")
+				.header("Authorization", "Bearer " + token) // Bearer
+				.retrieve()//
+				.bodyToMono(String.class)//
+				.flatMap(this::convertJsonToListOfGruposEconomicos);
 
+//		response.subscribe(data -> System.out.println("Data: " + data), error -> System.err.println("Error: " + error),
+//				() -> System.out.println("Completed"));
 
-	private void getGruposEconomicos() {
-		Mono<String> response = webClient.get().uri("/lists/GruposEconomicos?dataSource=empresasscope&count=10").header("Authorization", "Bearer " + token) // Bearer
-				.retrieve().bodyToMono(String.class);
-		response.subscribe(data -> System.out.println("Data: " + data), error -> System.err.println("Error: " + error),
-				() -> System.out.println("Completed"));
-		
-		
 	}
 
-
+	private Mono<List<GrupoEconomico>> convertJsonToListOfGruposEconomicos(String json) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			List<GrupoEconomico> gruposEconomicos = objectMapper.readValue(json,
+					new TypeReference<List<GrupoEconomico>>() {
+					});
+			return Mono.just(gruposEconomicos);
+		} catch (Exception e) {
+			return Mono.error(e);
+		}
+	}
 
 	public WebClient createWebClient() {
 		WebClient webClient = WebClient.builder().baseUrl("http://zoloft.tdec.com.br:8880/api/v1/") // Base URL
@@ -144,7 +154,7 @@ public class HelloWorldView extends HorizontalLayout {
 		}
 		return webClient;
 	}
-	
+
 	public void getUserInfo() {
 		Mono<String> response = webClient.get().uri("/userinfo").header("Authorization", "Bearer " + token) // Bearer
 				.retrieve().bodyToMono(String.class);
@@ -160,13 +170,13 @@ public class HelloWorldView extends HorizontalLayout {
 				() -> System.out.println("Completed"));
 
 	}
-	
+
 	private void getScopes() {
 		Mono<String> response = webClient.get().uri("/scopes").header("Authorization", "Bearer " + token) // Bearer
 				.retrieve().bodyToMono(String.class);
 		response.subscribe(data -> System.out.println("Data: " + data), error -> System.err.println("Error: " + error),
 				() -> System.out.println("Completed"));
-		
+
 	}
 
 	@Getter
@@ -180,7 +190,6 @@ public class HelloWorldView extends HorizontalLayout {
 		private int expSeconds;
 		@JsonProperty("issueDate")
 		private String issueDate;
-		
 
 	}
 

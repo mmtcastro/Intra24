@@ -16,6 +16,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 
 import br.com.tdec.intra.empresas.view.CargosView;
 import br.com.tdec.intra.empresas.view.EmpresasView;
+import br.com.tdec.intra.empresas.view.GruposEconomicosView;
 import br.com.tdec.intra.empresas.view.VerticaisView;
 import br.com.tdec.intra.views.about.AboutView;
 import br.com.tdec.intra.views.helloworld.HelloWorldView;
@@ -59,6 +60,8 @@ public class MainLayout extends AppLayout {
 
 		nav.addItem(new SideNavItem("Hello World", HelloWorldView.class, LineAwesomeIcon.GLOBE_SOLID.create()));
 		nav.addItem(new SideNavItem("About", AboutView.class, LineAwesomeIcon.FILE.create()));
+		nav.addItem(new SideNavItem("GruposEconômicos", GruposEconomicosView.class,
+				LineAwesomeIcon.ACQUISITIONS_INCORPORATED.create()));
 		nav.addItem(
 				new SideNavItem("Empresas", EmpresasView.class, LineAwesomeIcon.MONEY_BILL_WAVE_ALT_SOLID.create()));
 		nav.addItem(new SideNavItem("Verticais", VerticaisView.class, LineAwesomeIcon.BUILDING.create()));
