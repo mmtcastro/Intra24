@@ -16,7 +16,6 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 import br.com.tdec.intra.abs.AbstractService;
 import br.com.tdec.intra.config.WebClientConfig;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
-import br.com.tdec.intra.inter.ServiceInter;
 import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Mono;
@@ -25,7 +24,7 @@ import reactor.core.scheduler.Schedulers;
 @Service
 @Getter
 @Setter
-public class GrupoEconomicoService extends AbstractService implements ServiceInter {
+public class GrupoEconomicoService extends AbstractService {
 
 	public GrupoEconomicoService(WebClientConfig webClientConfig) {
 		super(webClientConfig);

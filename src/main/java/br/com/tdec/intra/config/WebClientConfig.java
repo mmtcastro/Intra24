@@ -1,15 +1,17 @@
 package br.com.tdec.intra.config;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.tdec.intra.views.helloworld.HelloWorldView.TokenData;
 import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Mono;
@@ -87,6 +89,34 @@ public class WebClientConfig {
 		// Now, tokenMono holds a reactive pipeline for fetching the token.
 		// To use the token, subscribe to this Mono or use it in further reactive
 		// chains.
+	}
+
+	@Getter
+	@Setter
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class TokenData {
+		private String bearer;
+		private Claims claims;
+		private int leeway;
+		@JsonProperty("expSeconds")
+		private int expSeconds;
+		@JsonProperty("issueDate")
+		private String issueDate;
+
+	}
+
+	@Getter
+	@Setter
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class Claims {
+		private String iss;
+		private String sub;
+		private long iat;
+		private long exp;
+		private List<String> aud;
+		private String CN;
+		private String scope;
+		private String email;
 	}
 
 }
