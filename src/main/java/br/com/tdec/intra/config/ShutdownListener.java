@@ -2,9 +2,7 @@ package br.com.tdec.intra.config;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.stereotype.Component;
 
-@Component
 public class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
 
 	private DominoServer dominoServer;

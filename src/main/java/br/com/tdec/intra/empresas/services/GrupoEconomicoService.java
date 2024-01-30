@@ -1,20 +1,22 @@
 package br.com.tdec.intra.empresas.services;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vaadin.flow.data.provider.QuerySortOrder;
 
+import br.com.tdec.intra.abs.AbstractService;
 import br.com.tdec.intra.config.WebClientConfig;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
+import br.com.tdec.intra.inter.ServiceInter;
 import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Mono;
@@ -23,15 +25,10 @@ import reactor.core.scheduler.Schedulers;
 @Service
 @Getter
 @Setter
-public class GrupoEconomicoService {
-	private final WebClient webClient;
-	private  String token;
-	private static ExecutorService executorService = Executors.newFixedThreadPool(10);
+public class GrupoEconomicoService extends AbstractService implements ServiceInter {
 
 	public GrupoEconomicoService(WebClientConfig webClientConfig) {
-		this.webClient = webClientConfig.getWebClient();
-		this.token = webClientConfig.getToken();
-		webClientConfig.getTokenMono().subscribe(t -> this.token = t);
+		super(webClientConfig);
 	}
 
 	public Mono<List<GrupoEconomico>> getGruposEconomicos() {
@@ -55,42 +52,75 @@ public class GrupoEconomicoService {
 			return grupoEconomico;
 		}).collectList();
 	}
-	
+
 	public List<GrupoEconomico> getGruposEconomicosSync() {
-	    return webClient.get()
-	            .uri("/lists/GruposEconomicos?dataSource=empresasscope&count=10")
-	            .header("Authorization", "Bearer " + token)
-	            .retrieve()
-	            .bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {})//
-	            .block();
-	           // .doOnNext(list -> System.out.println("Received GrupoEconomico list: " + list)); // Log the list
+		return webClient.get().uri("/lists/GruposEconomicos?dataSource=empresasscope&count=10")
+				.header("Authorization", "Bearer " + token).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
+				})//
+				.block();
+		// .doOnNext(list -> System.out.println("Received GrupoEconomico list: " +
+		// list)); // Log the list
 	}
-	
+
 	public List<GrupoEconomico> getGruposEconomicosSync(String count) {
 		long tempoInicio = System.nanoTime();
-		 List<GrupoEconomico> ret = webClient.get()
-	            .uri("/lists/GruposEconomicos?dataSource=empresasscope&count="+count)
-	            .header("Authorization", "Bearer " + token)
-	            .retrieve()
-	            .bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {})//
-	            .block();
-	           // .doOnNext(list -> System.out.println("Received GrupoEconomico list: " + list)); // Log the list
-		 long tempoFim = System.nanoTime();
-	        double duracaoSegundos = (tempoFim - tempoInicio) / 1_000_000_000.0; // Convertendo de nanossegundos para segundos
+		List<GrupoEconomico> ret = webClient.get()
+				.uri("/lists/GruposEconomicos?dataSource=empresasscope&count=" + count)
+				.header("Authorization", "Bearer " + token).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
+				})//
+				.block();
+		// .doOnNext(list -> System.out.println("Received GrupoEconomico list: " +
+		// list)); // Log the list
+		long tempoFim = System.nanoTime();
+		double duracaoSegundos = (tempoFim - tempoInicio) / 1_000_000_000.0; // Convertendo de nanossegundos para
+																				// segundos
 
-	        System.out.println("Tempo de execução: " + duracaoSegundos + " segundos");
-		 return ret;
+		System.out.println("Tempo de execução: " + duracaoSegundos + " segundos");
+		return ret;
 	}
-	
+
 	public Mono<List<GrupoEconomico>> getGruposEconomicosReactive() {
 		return (Mono<List<GrupoEconomico>>) webClient.get()
 				.uri("/lists/GruposEconomicos?dataSource=empresasscope&count=10")
 				.header("Authorization", "Bearer " + token).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {})//
+				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
+				})//
 				.publishOn(Schedulers.fromExecutor(executorService));
-				//.doOnNext(list -> System.out.println("Received GrupoEconomico list: " + list)); // Log the list
+		// .doOnNext(list -> System.out.println("Received GrupoEconomico list: " +
+		// list)); // Log the list
 	}
-	
-	
+
+	public List<GrupoEconomico> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders,
+			Optional<Void> filter, String search) {
+		List<GrupoEconomico> ret = new ArrayList<GrupoEconomico>();
+		count = 50; // nao consegui fazer funcionar o limit automaticamente.
+		String direction = "";
+		if (sortOrders != null) {
+			for (QuerySortOrder sortOrder : sortOrders) {
+				System.out.println("--- Sorting ----");
+				System.out.println("Sorted: " + sortOrder.getSorted());
+				System.out.println("Direction:  " + sortOrder.getDirection());
+			}
+			if (sortOrders.size() > 0) {
+				if (sortOrders.get(0).getDirection() != null && sortOrders.get(0).getDirection().equals("ASCENDING")) {
+					direction = "&direction=asc";
+				} else {
+					direction = "&direction=desc";
+				}
+			}
+		}
+
+		ret = webClient.get()
+				.uri("/lists/GruposEconomicos?dataSource=empresasscope&count=" + count + direction
+						+ "&column=Codigo&start=" + offset + "&startsWith=" + search)
+				.header("Authorization", "Bearer " + token).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
+				})//
+				.block();
+
+		return ret;
+	}
 
 }

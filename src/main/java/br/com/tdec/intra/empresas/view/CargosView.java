@@ -5,7 +5,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractViewLista;
-import br.com.tdec.intra.empresas.repositories.CargoRepository;
+import br.com.tdec.intra.empresas.services.CargoService;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import lombok.Data;
@@ -19,9 +19,10 @@ import lombok.EqualsAndHashCode;
 public class CargosView extends AbstractViewLista {
 
 	private static final long serialVersionUID = 1L;
+	private CargoService service;
 
-	public CargosView(CargoRepository repository) {
-		super(repository);
+	public CargosView(CargoService service) {
+		this.service = service;
 		Button sendMailButton = new Button("Send Mail", e -> sendMail());
 		add(sendMailButton);
 		initDefaultGrid();

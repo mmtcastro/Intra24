@@ -7,12 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.tdec.intra.views.helloworld.HelloWorldView.TokenData;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Mono;
@@ -58,48 +55,38 @@ public class WebClientConfig {
 //			e.printStackTrace();
 //		}
 //	}
-	
-	public WebClientConfig () {
+
+	public WebClientConfig(WebClientProperties webClientProperties) {
 		System.out.println("WebClientConfig - iniciando autenticacao");
-        long startTime = System.nanoTime();
+		long startTime = System.nanoTime();
 
-        webClient = WebClient.builder()
-                .baseUrl("http://zoloft.tdec.com.br:8880/api/v1/")
-                .codecs(clientCodecConfigurer -> {
-                    clientCodecConfigurer.defaultCodecs().maxInMemorySize(BUFFER_SIZE);
-                })
-                .build();
+		webClient = WebClient.builder().baseUrl(webClientProperties.getBaseUrl()).codecs(clientCodecConfigurer -> {
+			clientCodecConfigurer.defaultCodecs().maxInMemorySize(BUFFER_SIZE);
+		}).build();
 
-        Map<String, String> credentials = new HashMap<>();
-        credentials.put("username", "mcastro");
-        credentials.put("password", "Hodge$404");
+		Map<String, String> credentials = new HashMap<>();
+		credentials.put("username", webClientProperties.getUsername());
+		credentials.put("password", webClientProperties.getPassword());
 
-        tokenMono = webClient.post()
-                             .uri("/auth")
-                             .contentType(MediaType.APPLICATION_JSON)
-                             .bodyValue(credentials)
-                             .retrieve()
-                             .bodyToMono(String.class)
-                             .map(jsonString -> {
-                                 try {
-                                     ObjectMapper mapper = new ObjectMapper();
-                                     TokenData tokenData = mapper.readValue(jsonString, TokenData.class);
-                                     return tokenData.getBearer();
-                                 } catch (Exception e) {
-                                     throw new RuntimeException(e);
-                                 }
-                             })
-                             .doOnSuccess(token -> {
-                                 long endTime = System.nanoTime();
-                                 double durationSeconds = (endTime - startTime) / 1_000_000_000.0;
-                                 System.out.println("Fim autenticacao " + token);
-                                 System.out.println("Tempo de execução: " + durationSeconds + " segundos");
-                             })
-                             .doOnError(e -> e.printStackTrace());
+		tokenMono = webClient.post().uri("/auth").contentType(MediaType.APPLICATION_JSON).bodyValue(credentials)
+				.retrieve().bodyToMono(String.class).map(jsonString -> {
+					try {
+						ObjectMapper mapper = new ObjectMapper();
+						TokenData tokenData = mapper.readValue(jsonString, TokenData.class);
+						return tokenData.getBearer();
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				}).doOnSuccess(token -> {
+					long endTime = System.nanoTime();
+					double durationSeconds = (endTime - startTime) / 1_000_000_000.0;
+					System.out.println("Fim autenticacao " + token);
+					System.out.println("Tempo de execução: " + durationSeconds + " segundos");
+				}).doOnError(e -> e.printStackTrace());
 
-        // Now, tokenMono holds a reactive pipeline for fetching the token.
-        // To use the token, subscribe to this Mono or use it in further reactive chains.
+		// Now, tokenMono holds a reactive pipeline for fetching the token.
+		// To use the token, subscribe to this Mono or use it in further reactive
+		// chains.
 	}
-	
-	
+
 }

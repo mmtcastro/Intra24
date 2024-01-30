@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import br.com.tdec.intra.abs.AbstractViewLista.DefaultForm;
-
 public class Utils {
 
 	/**
@@ -301,7 +299,7 @@ public class Utils {
 
 	/**
 	 * Retorna a classe do form a partir da classe da lista - ex.
-	 * br.com.tdec.empresas.view.VerticaisView,
+	 * br.com.tdec.intra.empresas.view.VerticaisView,
 	 * br.com.tdec.intra.empresas.model.Vertical
 	 * 
 	 */
@@ -324,6 +322,28 @@ public class Utils {
 			e.printStackTrace();
 		}
 		return ret;
+	}
+
+	public static Class<?> getServiceClassFromViewClass(Class<?> viewListaClass) {
+		Class<?> ret = null;
+		String className = "";
+		try {
+			List<String> classeList = stringToArrayList(viewListaClass.getCanonicalName(), ".");
+			List<String> properCase = properCaseToArrayList(classeList.get(classeList.size() - 1));
+
+			className = removePlural(properCase.get(0));
+			className = className + "Service";
+
+			String classeModel = classeList.get(0) + "." + classeList.get(1) + "." + classeList.get(2) + "."
+					+ classeList.get(3) + "." + classeList.get(4) + ".model." + className;
+			ret = Class.forName(classeModel);
+
+		} catch (Exception e) {
+			print("Erro - Utils - getServiceClassFromViewClass - " + viewListaClass.getCanonicalName() + " - " + ret);
+			e.printStackTrace();
+		}
+		return ret;
+
 	}
 
 }

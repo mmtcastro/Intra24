@@ -1,23 +1,32 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.LazyDataView;
+import com.vaadin.flow.data.renderer.TextRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import br.com.tdec.intra.empresas.services.GrupoEconomicoService;
 import br.com.tdec.intra.views.MainLayout;
@@ -36,23 +45,40 @@ public class GruposEconomicosView extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
 	private GrupoEconomicoService grupoEconomicoService;
-	private Grid<GrupoEconomico> grid = new Grid<>(GrupoEconomico.class);
+	private Grid<GrupoEconomico> grid = new Grid<>(GrupoEconomico.class, false);
 	private Button setGruposEconomicosReactiveButton = new Button("Set Grupos Economicos Reactive");
 	private Button setGrupoEconomicoSyncButton = new Button("Set Grupo Economico Sync");
 	private Button clearButton = new Button("Clear");
 	private TextField count = new TextField("Count");
+	private TextField search = new TextField("Search");
 
 	public GruposEconomicosView(GrupoEconomicoService grupoEconomicoService) {
-		setSizeFull();
-		grid.setSizeFull();
+		setSizeFull();	
 		this.grupoEconomicoService = grupoEconomicoService;
+		setGrid();
+		updateGrid(grid, "");
+	}
+	
 
-		// List<GrupoEconomico> gruposEconomicos =
-		// grupoEconomicoService.getGruposEconomicosSync();
-		// gruposEconomicos.stream().forEach(e-> System.out.println(e.toString()));
-		// System.out.println("Grupos Economicos: " + gruposEconomicos.size());
-		// grid.addColumn(GrupoEconomico::getCodigo).setHeader("Código");
-		// grid.setItems(gruposEconomicos);
+	private void setGrid() {
+		grid.setSizeFull();
+		Column<GrupoEconomico> codigoColumn = grid.addColumn(GrupoEconomico::getCodigo).setHeader("Código")
+				.setSortable(true);
+		codigoColumn.setComparator(Comparator.comparing(GrupoEconomico::getCodigo)).setKey("codigo");
+		Column<GrupoEconomico> descricaoColumn = grid.addColumn(GrupoEconomico::getDescricao)
+				.setHeader("Descrição");
+		Grid.Column<GrupoEconomico> autorColumn = grid.addColumn(GrupoEconomico::getAutor)
+				.setHeader("Autor");
+		autorColumn.setComparator(Comparator.comparing(GrupoEconomico::getAutor)).setKey("autor");
+		//Grid.Column<GrupoEconomico> criacaoColumn = grid.addColumn(GrupoEconomico::getCriacao).setHeader("Criação");
+		Grid.Column<GrupoEconomico> criacaoColumn = grid.addColumn(new TextRenderer<>(item -> {
+			if (item.getCriacao() != null) {
+				return item.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+			} else {
+				return null; // Or any placeholder text you prefer
+			}
+		})).setHeader("Criação");
+		
 	}
 
 	protected void onAttach(AttachEvent attachEvent) {
@@ -62,9 +88,13 @@ public class GruposEconomicosView extends VerticalLayout {
 			setGrupoEconomicoSyncButton.addClickListener(event -> setGridValuesSync());
 			clearButton.addClickListener(event -> clearGrid());
 			count.addKeyPressListener(Key.ENTER, event -> setGridValuesSync(count.getValue()));
+			search.setPlaceholder("buscar...");
+			search.setClearButtonVisible(true);
+			search.setValueChangeMode(ValueChangeMode.LAZY);
+			search.addValueChangeListener(e -> updateGrid(grid, search.getValue()));
 
 			add(new HorizontalLayout(button, setGruposEconomicosReactiveButton, setGrupoEconomicoSyncButton, clearButton));
-			add(new HorizontalLayout(count));
+			add(new HorizontalLayout(count,search));
 			add(grid);
 
 		}
@@ -95,6 +125,7 @@ public class GruposEconomicosView extends VerticalLayout {
 	private GrupoEconomico convert() {
 		String grupo = "{\"@unid\":\"BC4E36F3BBE69F8C832580AE00631ECE\",\"@noteid\":149438,\"@index\":\"9\",\"Codigo\":\"2NET\",\"Tipo\":\"Cliente\",\"Status\":\"Ativo\",\"QuantNegocios\":\"4.0\",\"Criacao\":\"2000-05-29T16:56:54-03:00\",\"DataUltimoNegocio\":\"2000-07-18T16:46:02-03:00\",\"GerenteConta\":\"Cristina Serra\",\"ParceriaPrimeiroNegocio\":\"TDec\",\"Autor\":\"Marcelo Castro\",\"Descricao\":\"\"}";
 		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
 		GrupoEconomico grupoEconomico = null;
 		try {
 			grupoEconomico = objectMapper.readValue(grupo, GrupoEconomico.class);
@@ -102,6 +133,21 @@ public class GruposEconomicosView extends VerticalLayout {
 			e.printStackTrace();
 		}
 		return grupoEconomico;
+	}
+	
+	public void updateGrid(Grid<GrupoEconomico> grid, String searchText) {
+		System.out.println("Search eh " + searchText);
+		LazyDataView<GrupoEconomico> dataView = grid.setItems(q -> captureWildcard(this.grupoEconomicoService
+				.findAllByCodigo(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), searchText).stream()));
+
+		dataView.setItemCountEstimate(8000);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Stream<GrupoEconomico> captureWildcard(Stream<? extends AbstractModelDoc> stream) {
+		// This casting operation captures the wildcard and returns a stream of
+		// AbstractModelDoc - por causa do <E> no AbstractRepository
+		return (Stream<GrupoEconomico>) stream;
 	}
 
 }

@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.util.concurrent.Executors;
 
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 import com.hcl.domino.db.model.Database;
 import com.hcl.domino.db.model.Server;
@@ -13,7 +14,8 @@ import com.hcl.domino.db.model.Server;
 import lombok.Data;
 
 @Data
-@Component
+@ConfigurationProperties(prefix = "domino.properties")
+@Configuration
 public class DominoServer {
 	private LoggerFactory log;
 	private Server server;

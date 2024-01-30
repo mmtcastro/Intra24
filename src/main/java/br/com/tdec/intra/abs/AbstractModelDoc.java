@@ -1,7 +1,6 @@
 package br.com.tdec.intra.abs;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.TreeSet;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
@@ -52,11 +51,11 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	@JsonAlias({ "Sit", "sit" })
 	protected String sit;
 	@JsonAlias({ "Data", "data" })
-	protected Date data;
+	protected ZonedDateTime  data;
 	@JsonAlias({ "autor", "Autor" })
 	protected String autor;
 	@JsonAlias({ "Criacao", "criacao" })
-	protected Date criacao;
+	protected ZonedDateTime  criacao;
 	@JsonAlias({ "responsavel", "Responsavel" })
 	protected String responsavel;
 	@JsonAlias({ "Area", "area" })
@@ -65,7 +64,9 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected String nome;
 	@JsonAlias({ "descricao", "Descricao" })
 	protected String descricao;
-	protected ZonedDateTime dataMudancaStatus;
+	@JsonAlias({ "dataMudancaStatus", "DataMudancaStatus" })
+	protected ZonedDateTime  dataMudancaStatus;
+	@JsonAlias({ "responsavelMudancaStatus", "ResponsavelMudancaStatus" })
 	protected String responsavelMudancaStatus;
 	@JsonAlias({ "Tipo", "tipo" })
 	protected String tipo;

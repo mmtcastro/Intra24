@@ -21,35 +21,28 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
-import com.vaadin.flow.data.provider.LazyDataView;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 
 import br.com.tdec.intra.config.EmailService;
 import br.com.tdec.intra.utils.Utils;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
 public class AbstractViewLista extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
 
 	@Autowired
 	protected EmailService emailService;
-	protected AbstractRepository repository;
+	// protected AbstractRepository repository;
 	protected Grid<AbstractModelDoc> defaultGrid;
 	protected AbstractViewDoc form;
 	protected AbstractModelDoc model;
 	// protected FormLayout form = new FormLayout();
 	protected DefaultForm defaultForm;
-
-	public AbstractViewLista(AbstractRepository repository) {
-		addClassName("abstract-view-lista");
-		this.repository = repository;
-
-	}
 
 	public void initDefaultGrid() {
 		setSizeFull();
@@ -136,10 +129,10 @@ public class AbstractViewLista extends VerticalLayout {
 	 */
 	public void updateListDefault(Grid<AbstractModelDoc> grid, String searchText) {
 		System.out.println("Search eh " + searchText);
-		LazyDataView<AbstractModelDoc> dataView = grid.setItems(q -> captureWildcard(this.repository
-				.findAll(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), searchText).stream()));
-
-		dataView.setItemCountEstimate(8000);
+//		LazyDataView<Cargo> dataView = grid.setItems(q -> captureWildcard(this.service
+//				.findAllByCodigo(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), searchText).stream()));
+//
+//		dataView.setItemCountEstimate(8000);
 	}
 
 	@SuppressWarnings({ "unchecked" })
@@ -212,9 +205,9 @@ public class AbstractViewLista extends VerticalLayout {
 
 		}
 
-		private boolean save() {
-			return repository.saveModel(model, null);
-		}
+//		private boolean save() {
+//			return repository.saveModel(model, null);
+//		}
 
 		public void setModel(AbstractModelDoc model) {
 			binder.setBean(model);
