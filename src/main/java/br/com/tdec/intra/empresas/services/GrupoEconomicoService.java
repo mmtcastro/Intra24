@@ -7,27 +7,30 @@ import java.util.function.Function;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
-import br.com.tdec.intra.abs.AbstractService;
 import br.com.tdec.intra.config.WebClientConfig;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 @Service
 @Getter
 @Setter
-public class GrupoEconomicoService extends AbstractService {
+public class GrupoEconomicoService {
+
+	protected final WebClient webClient;
+	protected String token;
 
 	public GrupoEconomicoService(WebClientConfig webClientConfig) {
-		super(webClientConfig);
+		this.webClient = webClientConfig.getWebClient();
+		this.token = webClientConfig.getToken();
 	}
 
 	public Mono<List<GrupoEconomico>> getGruposEconomicos() {
@@ -78,17 +81,6 @@ public class GrupoEconomicoService extends AbstractService {
 
 		System.out.println("Tempo de execução: " + duracaoSegundos + " segundos");
 		return ret;
-	}
-
-	public Mono<List<GrupoEconomico>> getGruposEconomicosReactive() {
-		return (Mono<List<GrupoEconomico>>) webClient.get()
-				.uri("/lists/GruposEconomicos?dataSource=empresasscope&count=10")
-				.header("Authorization", "Bearer " + token).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
-				})//
-				.publishOn(Schedulers.fromExecutor(executorService));
-		// .doOnNext(list -> System.out.println("Received GrupoEconomico list: " +
-		// list)); // Log the list
 	}
 
 	public List<GrupoEconomico> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders,

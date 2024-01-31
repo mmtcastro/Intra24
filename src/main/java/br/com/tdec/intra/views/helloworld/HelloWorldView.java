@@ -1,6 +1,7 @@
 package br.com.tdec.intra.views.helloworld;
 
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -44,6 +45,10 @@ public class HelloWorldView extends HorizontalLayout {
 
 		setMargin(true);
 		setVerticalComponentAlignment(Alignment.END, name, sayHello);
+
+		Button button = new Button("nagevar para GruposEconomicos",
+				event -> UI.getCurrent().navigate("gruposeconomicos"));
+		add(button);
 
 		add(name, sayHello);
 	}

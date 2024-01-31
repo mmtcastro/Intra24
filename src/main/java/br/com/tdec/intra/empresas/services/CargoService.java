@@ -6,18 +6,25 @@ import java.util.Optional;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
-import br.com.tdec.intra.abs.AbstractService;
 import br.com.tdec.intra.config.WebClientConfig;
 import br.com.tdec.intra.empresas.model.Cargo;
+import lombok.Getter;
+import lombok.Setter;
 
 @Service
-public class CargoService extends AbstractService {
+@Getter
+@Setter
+public class CargoService {
+	protected final WebClient webClient;
+	protected String token;
 
 	public CargoService(WebClientConfig webClientConfig) {
-		super(webClientConfig);
+		this.webClient = webClientConfig.getWebClient();
+		this.token = webClientConfig.getToken();
 	}
 
 	public List<Cargo> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, Optional<Void> filter,
