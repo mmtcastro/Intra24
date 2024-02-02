@@ -114,15 +114,27 @@ public class GrupoEconomicoService {
 		return ret;
 	}
 
-//	public GrupoEconomico findById(String id) {
-//		
-//		
-//	}
-//	
-//	
-//	public GrupoEconomico findByUnid(String unid) {
-//		GrupoEconomico ret = new GrupoEconomico();
-//        
-//	}
+	public GrupoEconomico findById(String id) {
+		GrupoEconomico grupoEconomico = null;
+
+		return grupoEconomico;
+
+	}
+
+	public GrupoEconomico findByUnid(String unid) {
+		GrupoEconomico grupoEconomico = null;
+		// /document/+49E2429B9AD2507B832580AE0063377C?dataSource=empresasscope&computeWithForm=false&richTextAs=markdown&mode=default
+		try {
+			grupoEconomico = webClient.get()
+					.uri("/document/" + unid
+							+ "?dataSource=empresasscope&computeWithForm=false&richTextAs=markdown&mode=default")
+					.header("Authorization", "Bearer " + token).retrieve().bodyToMono(GrupoEconomico.class).block();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return grupoEconomico;
+
+	}
 
 }

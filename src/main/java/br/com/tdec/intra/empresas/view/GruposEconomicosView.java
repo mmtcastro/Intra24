@@ -83,8 +83,15 @@ public class GruposEconomicosView extends VerticalLayout {
 			}
 		})).setHeader("Criação");
 
-		grid.asSingleSelect().addValueChangeListener(evt -> editModel(evt.getValue()));
+		// grid.asSingleSelect().addValueChangeListener(evt ->
+		// editModel(evt.getValue()));
 
+		grid.asSingleSelect().addValueChangeListener(evt -> openPageGrupoEconomico(evt.getValue()));
+
+	}
+
+	public void openPageGrupoEconomico(GrupoEconomico grupoEconomico) {
+		getUI().ifPresent(ui -> ui.navigate("grupoeconomico/" + grupoEconomico.getUnid()));
 	}
 
 	public void editModel(GrupoEconomico model) {

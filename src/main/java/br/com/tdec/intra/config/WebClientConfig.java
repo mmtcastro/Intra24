@@ -11,7 +11,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Getter;
@@ -33,32 +32,33 @@ public class WebClientConfig {
 		webClient = WebClient.builder().baseUrl(webClientProperties.getBaseUrl()).codecs(clientCodecConfigurer -> {
 			clientCodecConfigurer.defaultCodecs().maxInMemorySize(BUFFER_SIZE);
 		}).build();
+
+		Map<String, String> credentials = new HashMap<>();
+		credentials.put("username", webClientProperties.getUsername());
+		credentials.put("password", webClientProperties.getPassword());
+
 		try {
-			Map<String, String> credentials = new HashMap<>();
-			credentials.put("username", webClientProperties.getUsername());
-			credentials.put("password", webClientProperties.getPassword());
-
-			// Send the POST request with authentication credentials
-
 			Mono<String> tokenResponse = webClient.post().uri("/auth").contentType(MediaType.APPLICATION_JSON)
 					.bodyValue(credentials).retrieve().bodyToMono(String.class);
 			String jsonString = tokenResponse.block();
 			System.out.println(jsonString);
 			ObjectMapper mapper = new ObjectMapper();
-			TokenData tokenData = mapper.readValue(jsonString, TokenData.class);
+			TokenData tokenData;
+
+			tokenData = mapper.readValue(jsonString, TokenData.class);
 			this.token = tokenData.getBearer();
 			System.out.println("Fim autenticacao " + tokenData.getBearer());
-			long endTime = System.nanoTime();
-			long durationNanos = endTime - startTime; // tempo de execução em nanossegundos
-			double durationSeconds = durationNanos / 1_000_000_000.0; // convertendo para segundos
-
-			System.out.println("Tempo de execução: " + durationSeconds + " segundos");
-
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
 		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		long endTime = System.nanoTime();
+		long durationNanos = endTime - startTime; // tempo de execução em nanossegundos
+		double durationSeconds = durationNanos / 1_000_000_000.0; // convertendo para segundos
+
+		System.out.println("Tempo de execução: " + durationSeconds + " segundos");
+
 	}
 
 //	public WebClientConfig(WebClientProperties webClientProperties) {
@@ -92,6 +92,16 @@ public class WebClientConfig {
 //		// Now, tokenMono holds a reactive pipeline for fetching the token.
 //		// To use the token, subscribe to this Mono or use it in further reactive
 //		// chains.
+//
+//		tokenMono.subscribe(token -> {
+//			this.token = token;
+//			System.out.println("Token recebido e autenticação concluída: " + token);
+//			// Execute qualquer lógica adicional que dependa do token aqui dentro
+//		}, error -> {
+//			// Lógica de tratamento de erro
+//			System.err.println("Erro na autenticação: " + error.getMessage());
+//		});
+//
 //	}
 
 	@Getter
