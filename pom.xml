@@ -102,33 +102,7 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Manually installed dependency 
-		mvn install:install-file -Dfile=lib/domino-db-1.6.7.jar
-		-DgroupId=appDevPack.hcl.com -DartifactId=domino-db -Dversion=1.6.7
-		-Dpackaging=jar	
-		-->
-		<dependency>
-			<groupId>appDevPack.hcl.com</groupId>
-			<artifactId>domino-db</artifactId>
-			<version>1.6.7</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-all</artifactId>
-			<version>1.30.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle.bcprov-jdk15on.1.57.org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.57</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
-			<version>1.50</version>
-
-		</dependency>
+		
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>

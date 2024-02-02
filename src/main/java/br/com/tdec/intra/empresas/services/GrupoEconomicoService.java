@@ -114,4 +114,15 @@ public class GrupoEconomicoService {
 		return ret;
 	}
 
+//	public GrupoEconomico findById(String id) {
+//		
+//		
+//	}
+//	
+//	
+//	public GrupoEconomico findByUnid(String unid) {
+//		GrupoEconomico ret = new GrupoEconomico();
+//        
+//	}
+
 }

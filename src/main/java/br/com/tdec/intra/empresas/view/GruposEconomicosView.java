@@ -10,7 +10,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
@@ -102,7 +101,8 @@ public class GruposEconomicosView extends VerticalLayout {
 	protected void onAttach(AttachEvent attachEvent) {
 		if (attachEvent.isInitialAttach()) {
 			Button button = new Button("Converte Grupo Economico", event -> convert());
-			setGruposEconomicosReactiveButton.addClickListener(event -> setGridValuesReactive());
+			// setGruposEconomicosReactiveButton.addClickListener(event ->
+			// setGridValuesReactive());
 			setGrupoEconomicoSyncButton.addClickListener(event -> setGridValuesSync());
 			clearButton.addClickListener(event -> clearGrid());
 			count.addKeyPressListener(Key.ENTER, event -> setGridValuesSync(count.getValue()));
@@ -127,13 +127,13 @@ public class GruposEconomicosView extends VerticalLayout {
 		grid.setItems(grupoEconomicoService.getGruposEconomicosSync(count));
 	}
 
-	private void setGridValuesReactive() {
-		UI ui = getUI().get();
-		System.out.println(grupoEconomicoService.getGruposEconomicosReactive().toString());
-		grupoEconomicoService.getGruposEconomicosReactive().subscribe(e -> System.out.println(e.toString()));
-		grupoEconomicoService.getGruposEconomicosReactive()
-				.subscribe(gruposEconomicos -> ui.access(() -> grid.setItems(gruposEconomicos)));
-	}
+//	private void setGridValuesReactive() {
+//		UI ui = getUI().get();
+//		System.out.println(grupoEconomicoService.getGruposEconomicosReactive().toString());
+//		grupoEconomicoService.getGruposEconomicosReactive().subscribe(e -> System.out.println(e.toString()));
+//		grupoEconomicoService.getGruposEconomicosReactive()
+//				.subscribe(gruposEconomicos -> ui.access(() -> grid.setItems(gruposEconomicos)));
+//	}
 
 	private void clearGrid() {
 		grid.setItems(Collections.emptyList());
