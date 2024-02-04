@@ -14,6 +14,7 @@ import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.abs.AbstractViewLista;
+import br.com.tdec.intra.config.MailService;
 import br.com.tdec.intra.empresas.model.Cargo;
 import br.com.tdec.intra.empresas.services.CargoService;
 import br.com.tdec.intra.views.MainLayout;
@@ -30,15 +31,22 @@ public class CargosView extends AbstractViewLista {
 
 	private static final long serialVersionUID = 1L;
 	private CargoService service;
+	private MailService mailService;
 	private Grid<Cargo> grid = new Grid<>(Cargo.class, false);
 
-	public CargosView(CargoService service) {
+	public CargosView(CargoService service, MailService mailService) {
 		setSizeFull();
 		this.service = service;
+		this.mailService = mailService;
 		Button sendMailButton = new Button("Send Mail", e -> sendMail());
 		setGrid();
 		updateGrid(grid, "");
 		add(sendMailButton, grid);
+	}
+
+	private void sendMail() {
+		mailService.sendSimpleMessage("mcastro@tdec.com.br", "Teste", "Conteudo de mensagem em texto simples.");
+
 	}
 
 	private void setGrid() {
@@ -70,12 +78,6 @@ public class CargosView extends AbstractViewLista {
 		// This casting operation captures the wildcard and returns a stream of
 		// AbstractModelDoc - por causa do <E> no AbstractRepository
 		return (Stream<Cargo>) stream;
-	}
-
-	public void sendMail() {
-		// sendMail("mcastro@tdec.com.br", "mcastro@tdec.com.br", "Subject Teste", "Body
-		// Teste");
-		emailService.sendSimpleMessage("mcastro@tdec.com.br", "mcastro@tdec.com.br", "Subject Teste", "Body Teste");
 	}
 
 }

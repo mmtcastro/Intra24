@@ -6,9 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -24,7 +21,6 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 
-import br.com.tdec.intra.config.EmailService;
 import br.com.tdec.intra.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,8 +31,6 @@ public class AbstractViewLista extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
 
-	@Autowired
-	protected EmailService emailService;
 	// protected AbstractRepository repository;
 	protected Grid<AbstractModelDoc> defaultGrid;
 	protected AbstractViewDoc form;
@@ -145,16 +139,6 @@ public class AbstractViewLista extends VerticalLayout {
 	public void closeFormDefault() {
 		removeClassName("editing");
 		// formLayoutDefault.setVisible(false);
-	}
-
-	public void sendMail(String from, String sendTo, String subject, String body) {
-		SimpleMailMessage message = new SimpleMailMessage();
-		message.setFrom(from);
-		message.setTo(sendTo);
-		message.setSubject(subject);
-		message.setText(body);
-		emailService.emailSender.send(message);
-
 	}
 
 	/**
