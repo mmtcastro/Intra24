@@ -8,8 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import br.com.tdec.intra.utils.Utils;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,6 +23,7 @@ public abstract class AbstractModel extends Abstract {
 	 * 
 	 * @return
 	 */
+	@JsonIgnore
 	public List<Field> getAllModelFields() {
 		List<Field> fields = new ArrayList<>();
 		Class<?> currentClass = this.getClass();
@@ -32,6 +34,7 @@ public abstract class AbstractModel extends Abstract {
 		return fields;
 	}
 
+	@JsonIgnore
 	public List<String> getAllModelFieldNames() {
 		List<String> fields = new ArrayList<>();
 		Class<?> currentClass = this.getClass();
@@ -50,6 +53,7 @@ public abstract class AbstractModel extends Abstract {
 	 * 
 	 * @return
 	 */
+	@JsonIgnore
 	public Map<String, Class<?>> getAllModelFieldNamesProperCase() {
 		Map<String, Class<?>> fields = new HashMap<>();
 		Class<?> currentClass = this.getClass();
@@ -65,7 +69,7 @@ public abstract class AbstractModel extends Abstract {
 	/**
 	 * Busca todos os metodos da classe e das superclasses
 	 */
-
+	@JsonIgnore
 	public static List<Method> findAllMethods(Class<?> clazz) {
 		List<Method> methods = new ArrayList<>();
 		for (Method method : clazz.getDeclaredMethods()) {

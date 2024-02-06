@@ -63,6 +63,12 @@ public class CargosView extends AbstractViewLista {
 				return null; // Or any placeholder text you prefer
 			}
 		})).setHeader("Criação");
+
+		grid.asSingleSelect().addValueChangeListener(evt -> openPageCargo(evt.getValue()));
+	}
+
+	private void openPageCargo(Cargo cargo) {
+		getUI().ifPresent(ui -> ui.navigate("cargo/" + cargo.getUnid()));
 	}
 
 	public void updateGrid(Grid<Cargo> grid, String searchText) {

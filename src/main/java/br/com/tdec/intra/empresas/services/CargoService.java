@@ -12,6 +12,7 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.config.WebClientConfig;
 import br.com.tdec.intra.empresas.model.Cargo;
+import br.com.tdec.intra.services.PostResponse;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,10 +22,12 @@ import lombok.Setter;
 public class CargoService {
 	protected final WebClient webClient;
 	protected String token;
+	protected final String scope = "empresas";
 
 	public CargoService(WebClientConfig webClientConfig) {
 		this.webClient = webClientConfig.getWebClient();
 		this.token = webClientConfig.getToken();
+
 	}
 
 	public List<Cargo> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, Optional<Void> filter,
@@ -48,8 +51,8 @@ public class CargoService {
 		}
 
 		ret = webClient.get()
-				.uri("/lists/Cargos?dataSource=empresasscope&count=" + count + direction + "&column=Codigo&start="
-						+ offset + "&startsWith=" + search)
+				.uri("/lists/Cargos?dataSource=empresas&count=" + count + direction + "&column=Codigo&start=" + offset
+						+ "&startsWith=" + search)
 				.header("Authorization", "Bearer " + token).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<Cargo>>() {
 				})//
@@ -58,4 +61,27 @@ public class CargoService {
 		return ret;
 	}
 
+	public Cargo findByUnid(String unid) {
+		Cargo cargo = null;
+		try {
+			cargo = webClient.get()
+					.uri("/document/" + unid + "?dataSource=" + scope
+							+ "&computeWithForm=false&richTextAs=markdown&mode=default")
+					.header("Authorization", "Bearer " + token).retrieve().bodyToMono(Cargo.class).block();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return cargo;
+
+	}
+
+	public PostResponse save(Cargo cargo) {
+		return null;
+	}
+
+	public void delete(Cargo cargo) {
+		// TODO Auto-generated method stub
+
+	}
 }

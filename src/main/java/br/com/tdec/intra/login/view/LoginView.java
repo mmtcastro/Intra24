@@ -12,24 +12,24 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 @Route("login")
 @PageTitle("Login | Intra")
 @AnonymousAllowed
-public class LoginView extends VerticalLayout implements BeforeEnterObserver{
+public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
 	/**
 	 * Meu login personalizado
 	 */
 	private static final long serialVersionUID = 1L;
 	private final LoginForm login = new LoginForm();
-	
+
 	public LoginView() {
 		addClassName("login-view");
 		setSizeFull();
 		setAlignItems(Alignment.CENTER);
 		setJustifyContentMode(JustifyContentMode.CENTER);
-		
+
 		login.setAction("login");
-		
-		add(new H1("Intranet TDec"),login);
-		
+
+		add(new H1("Intranet TDec"), login);
+
 	}
 
 	@Override

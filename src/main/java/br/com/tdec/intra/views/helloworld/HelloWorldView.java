@@ -51,6 +51,7 @@ public class HelloWorldView extends HorizontalLayout {
 		add(button);
 
 		add(name, sayHello);
+
 	}
 
 }

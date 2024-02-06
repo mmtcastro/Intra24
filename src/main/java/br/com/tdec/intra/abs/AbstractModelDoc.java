@@ -23,6 +23,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	@JsonProperty("@index")
 	private String index;
 	@JsonAlias({ "Id", "id" })
+	@NotNull
 	protected String id;
 	@JsonAlias({ "Uid", "uid" })
 	protected String uid;
@@ -51,11 +52,11 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	@JsonAlias({ "Sit", "sit" })
 	protected String sit;
 	@JsonAlias({ "Data", "data" })
-	protected ZonedDateTime  data;
+	protected ZonedDateTime data;
 	@JsonAlias({ "autor", "Autor" })
 	protected String autor;
 	@JsonAlias({ "Criacao", "criacao" })
-	protected ZonedDateTime  criacao;
+	protected ZonedDateTime criacao;
 	@JsonAlias({ "responsavel", "Responsavel" })
 	protected String responsavel;
 	@JsonAlias({ "Area", "area" })
@@ -65,7 +66,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	@JsonAlias({ "descricao", "Descricao" })
 	protected String descricao;
 	@JsonAlias({ "dataMudancaStatus", "DataMudancaStatus" })
-	protected ZonedDateTime  dataMudancaStatus;
+	protected ZonedDateTime dataMudancaStatus;
 	@JsonAlias({ "responsavelMudancaStatus", "ResponsavelMudancaStatus" })
 	protected String responsavelMudancaStatus;
 	@JsonAlias({ "Tipo", "tipo" })

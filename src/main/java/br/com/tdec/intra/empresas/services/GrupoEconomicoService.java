@@ -27,14 +27,16 @@ public class GrupoEconomicoService {
 
 	protected final WebClient webClient;
 	protected String token;
+	protected final String scope;
 
 	public GrupoEconomicoService(WebClientConfig webClientConfig) {
 		this.webClient = webClientConfig.getWebClient();
 		this.token = webClientConfig.getToken();
+		scope = "empresas";
 	}
 
 	public Mono<List<GrupoEconomico>> getGruposEconomicos() {
-		return webClient.get().uri("/lists/GruposEconomicos?dataSource=empresasscope&count=10")
+		return webClient.get().uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=10")
 				.header("Authorization", "Bearer " + token).retrieve().bodyToMono(String.class)
 				.doOnNext(json -> System.out.println("Received JSON: " + json)) // Log it
 				.map(json -> {
@@ -56,7 +58,7 @@ public class GrupoEconomicoService {
 	}
 
 	public List<GrupoEconomico> getGruposEconomicosSync() {
-		return webClient.get().uri("/lists/GruposEconomicos?dataSource=empresasscope&count=10")
+		return webClient.get().uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=10")
 				.header("Authorization", "Bearer " + token).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
 				})//
@@ -68,7 +70,7 @@ public class GrupoEconomicoService {
 	public List<GrupoEconomico> getGruposEconomicosSync(String count) {
 		long tempoInicio = System.nanoTime();
 		List<GrupoEconomico> ret = webClient.get()
-				.uri("/lists/GruposEconomicos?dataSource=empresasscope&count=" + count)
+				.uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=" + count)
 				.header("Authorization", "Bearer " + token).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
 				})//
@@ -104,7 +106,7 @@ public class GrupoEconomicoService {
 		}
 
 		ret = webClient.get()
-				.uri("/lists/GruposEconomicos?dataSource=empresasscope&count=" + count + direction
+				.uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=" + count + direction
 						+ "&column=Codigo&start=" + offset + "&startsWith=" + search)
 				.header("Authorization", "Bearer " + token).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
@@ -126,8 +128,8 @@ public class GrupoEconomicoService {
 		// /document/+49E2429B9AD2507B832580AE0063377C?dataSource=empresasscope&computeWithForm=false&richTextAs=markdown&mode=default
 		try {
 			grupoEconomico = webClient.get()
-					.uri("/document/" + unid
-							+ "?dataSource=empresasscope&computeWithForm=false&richTextAs=markdown&mode=default")
+					.uri("/document/" + unid + "?dataSource=" + scope
+							+ "&computeWithForm=false&richTextAs=markdown&mode=default")
 					.header("Authorization", "Bearer " + token).retrieve().bodyToMono(GrupoEconomico.class).block();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
