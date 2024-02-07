@@ -18,13 +18,14 @@ import br.com.tdec.intra.config.MailService;
 import br.com.tdec.intra.empresas.model.Cargo;
 import br.com.tdec.intra.empresas.services.CargoService;
 import br.com.tdec.intra.views.MainLayout;
-import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @PageTitle("Cargos")
 @Route(value = "cargos", layout = MainLayout.class)
-@PermitAll
+//@PermitAll
+@RolesAllowed("VENDAS")
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class CargosView extends AbstractViewLista {
