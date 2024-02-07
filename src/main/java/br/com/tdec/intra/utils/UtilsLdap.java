@@ -1,4 +1,4 @@
-package br.com.tdec.intra.config;
+package br.com.tdec.intra.utils;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -10,63 +10,39 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.query.LdapQueryBuilder;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.ldap.LdapBindAuthenticationManagerFactory;
 
 import lombok.Getter;
 import lombok.Setter;
 
-@Configuration
 @Getter
 @Setter
-public class LdapConfig {
-
-	private LdapProperties ldapProperties;
+public class UtilsLdap {
+	private LdapContextSource contextSource;
 	private LdapTemplate ldapTemplate;
 
-	public LdapConfig(LdapProperties ldapProperties) {
-		this.setLdapProperties(ldapProperties);
-
-	}
-
-	@Bean
-	LdapContextSource contextSource() {
-
-		LdapContextSource contextSource = new LdapContextSource();
-		// contextSource.setUrl("ldap://luvox.tdec.com.br");
-		// contextSource.setBase("O=TDec");
-		contextSource.setUrl(ldapProperties.getUrl());
-		// contextSource.setUserDn("mcastro");
-		contextSource.setUserDn(ldapProperties.getManagerDn());
-		// contextSource.setPassword("xxxx");
-		contextSource.setPassword(ldapProperties.getManagerPassword());
-		contextSource.setPooled(true);
-
+	public UtilsLdap(LdapContextSource contextSource) {
+		this.contextSource = contextSource;
 		this.ldapTemplate = new LdapTemplate(contextSource);
-
-		return contextSource;
-
 	}
 
-	@Bean
-	AuthenticationManager authenticationManager(BaseLdapPathContextSource contextSource) {
-		LdapBindAuthenticationManagerFactory factory = new LdapBindAuthenticationManagerFactory(contextSource);
-		factory.setUserSearchBase("O=TDec");
-		factory.setUserSearchFilter("(|(cn={0})(uid={0}))"); // Marcelo Castro OU mcastro
-
-		return factory.createAuthenticationManager();
-
-	}
-
-	// UtilsLdap
+//	public List<String> findGroupsForUser(String userDn) {
+//		LdapQuery query = LdapQueryBuilder.query().attributes("CN") // Specify the attribute to return, typically "cn"
+//																	// for group names
+//				.where("objectClass").is("dominoGroup").and("member").is(userDn); // Adjust based on your
+//																					// LDAP schema
+//
+//		return ldapTemplate.search(query, new AttributesMapper<String>() {
+//			@Override
+//			public String mapFromAttributes(Attributes attributes) throws NamingException {
+//				return attributes.get("cn").get().toString();
+//			}
+//		});
+//	}
 
 	public List<String> findGroups() {
 		LdapQuery query = LdapQueryBuilder.query().attributes("CN") // Specify the attribute to return, typically "cn"
@@ -138,5 +114,4 @@ public class LdapConfig {
 
 		return userGroups;
 	}
-
 }

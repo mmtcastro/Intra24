@@ -12,7 +12,7 @@ public class SecurityService {
 	 * Aqui eu preciso para pegar o athentication context (nome do usuario, etc).
 	 */
 
-	private final AuthenticationContext authenticationContext;
+	private final transient AuthenticationContext authenticationContext;
 
 	public SecurityService(AuthenticationContext autenticationContext) {
 		this.authenticationContext = autenticationContext;

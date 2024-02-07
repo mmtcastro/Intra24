@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import br.com.tdec.intra.abs.AbstractService;
+
 public class Utils {
 
 	/**
@@ -344,6 +346,16 @@ public class Utils {
 		}
 		return ret;
 
+	}
+
+	/**
+	 * a partir de uma classe view (VerticalView, VerticaisView, Vertical,
+	 * Verticais) retornar o scope (empresas)
+	 */
+
+	public static String getScopeFromClass(Class<? extends AbstractService> viewClass) {
+		List<String> classeList = stringToArrayList(viewClass.getCanonicalName(), ".");
+		return classeList.get(4);
 	}
 
 }

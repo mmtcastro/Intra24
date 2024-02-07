@@ -1,5 +1,7 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.lang.reflect.InvocationTargetException;
+
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -14,6 +16,7 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.services.VerticalService;
 import br.com.tdec.intra.views.MainLayout;
@@ -73,7 +76,30 @@ public class VerticalView extends VerticalLayout implements HasUrlParameter<Stri
 	}
 
 	private void findVertical(String unid) {
-		this.vertical = service.findByUnid(unid);
+		try {
+			Class<?> clazz = AbstractModelDoc.class;
+			// Ensure clazz is actually a subclass of AbstractModelDoc to safely cast
+			if (AbstractModelDoc.class.isAssignableFrom(clazz)) {
+				AbstractModelDoc model = (AbstractModelDoc) clazz.getDeclaredConstructor().newInstance();
+				model = service.findByUnid(unid);
+				this.vertical = (Vertical) model;
+			} else {
+				throw new IllegalArgumentException("Class does not extend AbstractModelDoc");
+			}
+		} catch (InstantiationException e) {
+			// Handle the case where the class is abstract or an interface
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// Handle the case where the constructor is inaccessible
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			// Handle the case where no default constructor is available
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// Handle constructor exceptions
+			e.printStackTrace();
+		}
+
 	}
 
 	private void save() {
