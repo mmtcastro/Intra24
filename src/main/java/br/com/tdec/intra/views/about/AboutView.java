@@ -12,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -22,6 +21,9 @@ import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 
 import br.com.tdec.intra.config.LdapConfig;
+import br.com.tdec.intra.config.WebClientProperties;
+import br.com.tdec.intra.directory.model.User;
+import br.com.tdec.intra.utils.UtilsAuthentication;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
@@ -36,14 +38,17 @@ public class AboutView extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
 	private final br.com.tdec.intra.config.SecurityService securityService;
-	private final LdapConfig ldapConfig;;
+	private final LdapConfig ldapConfig;
+	private final WebClientProperties webClientProperties;
 
-	public AboutView(br.com.tdec.intra.config.SecurityService securityService, LdapConfig ldapConfig) {
+	public AboutView(br.com.tdec.intra.config.SecurityService securityService, LdapConfig ldapConfig,
+			WebClientProperties webClientProperties) {
 		this.securityService = securityService;
 		this.ldapConfig = ldapConfig;
+		this.webClientProperties = webClientProperties;
 		setSpacing(false);
 
-		checkAuthentication();
+		// checkAuthentication();
 
 		Image img = new Image("images/empty-plant.png", "placeholder plant");
 		img.setWidth("200px");
@@ -63,8 +68,18 @@ public class AboutView extends VerticalLayout {
 
 		VaadinSession.getCurrent().setAttribute("grupos", ldapConfig.findGroupsForUser(username));
 
-		H3 pwd = new H3("Grupos:  " + UI.getCurrent().getSession().getAttribute("grupos"));
-		add(pwd);
+		User user = (User) UI.getCurrent().getSession().getAttribute("user");
+		System.out.println(user);
+
+//		H1 teste = new H1("TOKEN " + UtilsWebClient.getRestApiToken(webClientProperties));
+//		add(teste);
+//		H3 pwd = new H3("Grupos:  " + UI.getCurrent().getSession().getAttribute("grupos"));
+		H2 roles = new H2("Roles:  " + UtilsAuthentication.getRoles());
+		add(roles);
+//		H2 names = new H2("Nomes:  " + user.getNames());
+//		H2 namesRoles = new H2("Names Roles:  " + user.getNames() + " - Roles: " + user.getRoles());
+//
+//		add(new VerticalLayout(roles, pwd, names, namesRoles));
 		Button logout = new Button("Logout " + username, e -> securityService.logout());
 		add(logout);
 	}
@@ -75,7 +90,7 @@ public class AboutView extends VerticalLayout {
 
 	public void checkAuthentication() {
 		// Fetch additional authorities for the user from an external source
-		List<GrantedAuthority> additionalAuthorities = fetchAdditionalAuthorities("Marcelo Castro");
+		List<GrantedAuthority> additionalAuthorities = fetchAdditionalAuthorities("Marcelo Castro", "ROLE_TECNICA");
 
 		// Get the current authentication object
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -99,12 +114,13 @@ public class AboutView extends VerticalLayout {
 
 	}
 
-	private List<GrantedAuthority> fetchAdditionalAuthorities(String username) {
+	private List<GrantedAuthority> fetchAdditionalAuthorities(String username, String role) {
 		// Fetch additional authorities for the user from an external source
 		// This could be querying a database, LDAP, or another service
 		// For demonstration purposes, we'll return a hardcoded list of authorities
 		List<GrantedAuthority> authorities = new ArrayList<>();
-		authorities.add(new SimpleGrantedAuthority("ROLE_VENDAS"));
+		authorities.add(new SimpleGrantedAuthority(role));
 		return authorities;
 	}
+
 }

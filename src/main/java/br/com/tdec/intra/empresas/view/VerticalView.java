@@ -16,9 +16,8 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.empresas.model.Vertical;
-import br.com.tdec.intra.empresas.services.VerticalService;
+import br.com.tdec.intra.empresas.services.VerticalService2;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
@@ -33,7 +32,8 @@ public class VerticalView extends VerticalLayout implements HasUrlParameter<Stri
 
 	private static final long serialVersionUID = 1L;
 
-	private VerticalService service;
+	// private VerticalService service;
+	private VerticalService2 service = new VerticalService2();
 	private String unid;
 	private Vertical vertical;
 	private Binder<Vertical> binder = new Binder<>(Vertical.class, false);
@@ -45,8 +45,8 @@ public class VerticalView extends VerticalLayout implements HasUrlParameter<Stri
 	private Button deleteButton = new Button("Excluir", e -> delete());
 	private Button cancelButton = new Button("Cancelar", e -> cancel());
 
-	public VerticalView(VerticalService service) {
-		this.service = service;
+	public VerticalView() {
+
 	}
 
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
@@ -77,10 +77,10 @@ public class VerticalView extends VerticalLayout implements HasUrlParameter<Stri
 
 	private void findVertical(String unid) {
 		try {
-			Class<?> clazz = AbstractModelDoc.class;
+			Class<?> clazz = Vertical.class;
 			// Ensure clazz is actually a subclass of AbstractModelDoc to safely cast
-			if (AbstractModelDoc.class.isAssignableFrom(clazz)) {
-				AbstractModelDoc model = (AbstractModelDoc) clazz.getDeclaredConstructor().newInstance();
+			if (Vertical.class.isAssignableFrom(clazz)) {
+				Vertical model = (Vertical) clazz.getDeclaredConstructor().newInstance();
 				model = service.findByUnid(unid);
 				this.vertical = (Vertical) model;
 			} else {

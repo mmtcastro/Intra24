@@ -1,9 +1,12 @@
 package br.com.tdec.intra.views.helloworld;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.ldap.core.support.LdapContextSource;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
@@ -37,6 +40,8 @@ public class HelloWorldView extends HorizontalLayout {
 	private Button ldap = new Button("LDAP Search");
 	private TextField ldapUser = new TextField("Usuário");
 	private Button gruposLdap = new Button("Grupos LDAP");
+	private TextField roleField = new TextField("Role");
+	private Button roleButton = new Button("Set Role");
 
 	private LdapContextSource contextSource;
 
@@ -62,6 +67,11 @@ public class HelloWorldView extends HorizontalLayout {
 				event -> UI.getCurrent().navigate("gruposeconomicos"));
 		add(button);
 
+		roleButton.addClickListener(e -> {
+			List<GrantedAuthority> authorities = fetchAdditionalAuthorities(name.getValue(), roleField.getValue());
+			Notification.show("Authorities: " + authorities);
+		});
+
 		ldap.addClickListener(e -> {
 			findGroupsForUser();
 		});
@@ -85,6 +95,15 @@ public class HelloWorldView extends HorizontalLayout {
 		Map<String, List<String>> ret = utilsLdap.findGroupsAndMembers();
 		System.out.println(ret);
 
+	}
+
+	private List<GrantedAuthority> fetchAdditionalAuthorities(String username, String role) {
+		// Fetch additional authorities for the user from an external source
+		// This could be querying a database, LDAP, or another service
+		// For demonstration purposes, we'll return a hardcoded list of authorities
+		List<GrantedAuthority> authorities = new ArrayList<>();
+		authorities.add(new SimpleGrantedAuthority(role));
+		return authorities;
 	}
 
 }

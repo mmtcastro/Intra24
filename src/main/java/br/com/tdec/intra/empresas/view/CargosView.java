@@ -25,7 +25,7 @@ import lombok.EqualsAndHashCode;
 @PageTitle("Cargos")
 @Route(value = "cargos", layout = MainLayout.class)
 //@PermitAll
-@RolesAllowed("VENDAS")
+@RolesAllowed("ROLE_EVERYONE")
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class CargosView extends AbstractViewLista {
