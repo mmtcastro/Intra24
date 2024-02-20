@@ -5,8 +5,17 @@ import java.util.Optional;
 
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
-public interface ServiceInter {
+import br.com.tdec.intra.abs.AbstractModel;
 
-	public List<?> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, Optional<Void> filter,
+public interface ServiceInter<T extends AbstractModel> {
+
+	public List<T> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, Optional<Void> filter,
 			String search);
+
+	public T findByCodigo(String codigo);
+
+	public T findById(String id);
+
+	public T findByUnid(String unid);
+
 }
