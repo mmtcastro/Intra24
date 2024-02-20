@@ -5,15 +5,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
-import br.com.tdec.intra.directory.model.User;
+import br.com.tdec.intra.abs.AbstractService;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.services.PostResponse;
 import lombok.Getter;
@@ -21,12 +19,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class VerticalService2 {
+public class VerticalService2 extends AbstractService {
 
-	protected WebClient webClient = (WebClient) UI.getCurrent().getSession().getAttribute("webClient");
-	protected User user = (User) UI.getCurrent().getSession().getAttribute("user");
-	// protected String token;
-	protected final String scope = "empresas";
+//	protected WebClient webClient = (WebClient) UI.getCurrent().getSession().getAttribute("webClient");
+//	protected User user = (User) UI.getCurrent().getSession().getAttribute("user");
+//	// protected String token;
+//	protected final String scope = "empresas";
 
 //	public VerticalService2() {
 //		this.webClient = (WebClient) UI.getCurrent().getSession().getAttribute("webClient");

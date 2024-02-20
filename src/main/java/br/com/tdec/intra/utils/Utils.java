@@ -353,9 +353,36 @@ public class Utils {
 	 * Verticais) retornar o scope (empresas)
 	 */
 
-	public static String getScopeFromClass(Class<? extends AbstractService> viewClass) {
+	public static String getScopeFromClass(Class<?> viewClass) {
 		List<String> classeList = stringToArrayList(viewClass.getCanonicalName(), ".");
 		return classeList.get(4);
+	}
+
+	/**
+	 * Utilizado no AbstractService para criar o modelo correto para colocar nos
+	 * metodos abstratos
+	 * 
+	 * @param class1
+	 * @return
+	 */
+	public static Class<?> getModelClassFromServiceClass(Class<? extends AbstractService> serviceClass) {
+		Class<?> ret = null;
+		String className = "";
+		try {
+			List<String> classeList = stringToArrayList(serviceClass.getCanonicalName(), ".");
+			List<String> properCase = properCaseToArrayList(classeList.get(classeList.size() - 1));
+
+			className = removePlural(properCase.get(0));
+
+			String classeModel = classeList.get(0) + "." + classeList.get(1) + "." + classeList.get(2) + "."
+					+ classeList.get(3) + "." + classeList.get(4) + ".model." + className;
+			ret = Class.forName(classeModel);
+
+		} catch (Exception e) {
+			print("Erro - Utils - getModelClassFromServiceClass - " + serviceClass.getCanonicalName() + " - " + ret);
+			e.printStackTrace();
+		}
+		return ret;
 	}
 
 }

@@ -86,11 +86,11 @@ public class GruposEconomicosView extends VerticalLayout {
 		// grid.asSingleSelect().addValueChangeListener(evt ->
 		// editModel(evt.getValue()));
 
-		grid.asSingleSelect().addValueChangeListener(evt -> openPageGrupoEconomico(evt.getValue()));
+		grid.asSingleSelect().addValueChangeListener(evt -> openPage(evt.getValue()));
 
 	}
 
-	public void openPageGrupoEconomico(GrupoEconomico grupoEconomico) {
+	public void openPage(GrupoEconomico grupoEconomico) {
 		getUI().ifPresent(ui -> ui.navigate("grupoeconomico/" + grupoEconomico.getUnid()));
 	}
 

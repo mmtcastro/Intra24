@@ -55,10 +55,10 @@ public class VerticaisView extends VerticalLayout {
 			}
 		})).setHeader("Criação");
 
-		grid.asSingleSelect().addValueChangeListener(evt -> openPageVertical(evt.getValue()));
+		grid.asSingleSelect().addValueChangeListener(evt -> openPage(evt.getValue()));
 	}
 
-	private void openPageVertical(Vertical Vertical) {
+	private void openPage(Vertical Vertical) {
 		getUI().ifPresent(ui -> ui.navigate("vertical/" + Vertical.getUnid()));
 	}
 
