@@ -29,7 +29,7 @@ import lombok.Setter;
 public class CargoView extends VerticalLayout implements HasUrlParameter<String> {
 
 	private static final long serialVersionUID = 1L;
-	private CargoService service;
+	private CargoService service = new CargoService();
 	private String unid;
 	private Cargo cargo;
 	private FormLayout form = new FormLayout();
@@ -41,8 +41,8 @@ public class CargoView extends VerticalLayout implements HasUrlParameter<String>
 	private Button deleteButton = new Button("Excluir", e -> delete());
 	private Button cancelButton = new Button("Cancelar", e -> cancel());
 
-	public CargoView(CargoService service) {
-		this.service = service;
+	public CargoView() {
+		// this.service = service;
 	}
 
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {

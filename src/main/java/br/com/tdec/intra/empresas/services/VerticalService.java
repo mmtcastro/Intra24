@@ -5,35 +5,31 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
-import br.com.tdec.intra.config.WebClientConfig;
+import br.com.tdec.intra.abs.AbstractService;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.services.PostResponse;
 import lombok.Getter;
 import lombok.Setter;
 
-@Service
 @Getter
 @Setter
-public class VerticalService {
-	protected final WebClient webClient;
-	protected String token;
-	protected final String scope = "empresas";
+public class VerticalService extends AbstractService {
 
-	public VerticalService(WebClientConfig webClientConfig) {
+//	protected WebClient webClient = (WebClient) UI.getCurrent().getSession().getAttribute("webClient");
+//	protected User user = (User) UI.getCurrent().getSession().getAttribute("user");
+//	// protected String token;
+//	protected final String scope = "empresas";
+
+//	public VerticalService2() {
 //		this.webClient = (WebClient) UI.getCurrent().getSession().getAttribute("webClient");
 //		this.token = (String) UI.getCurrent().getSession().getAttribute("token");
-		this.webClient = webClientConfig.getWebClient();
-		this.token = webClientConfig.getToken();
-		// this.scope = "empresas";
-	}
+//	}
 
 	public List<Vertical> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, Optional<Void> filter,
 			String search) {
@@ -58,7 +54,7 @@ public class VerticalService {
 		ret = webClient.get()
 				.uri("/lists/Verticais?dataSource=" + scope + "&count=" + count + direction + "&column=Codigo&start="
 						+ offset + "&startsWith=" + search)
-				.header("Authorization", "Bearer " + token).retrieve()
+				.header("Authorization", "Bearer " + user.getToken()).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<Vertical>>() {
 				})//
 				.block();
@@ -67,18 +63,18 @@ public class VerticalService {
 	}
 
 	public Vertical findByUnid(String unid) {
-		Vertical vertical = null;
+		Vertical ret = null;
 		try {
-			vertical = webClient.get()
+			ret = webClient.get()
 					.uri("/document/" + unid + "?dataSource=" + scope
 							+ "&computeWithForm=false&richTextAs=markdown&mode=default")
-					.header("Authorization", "Bearer " + token).retrieve().bodyToMono(Vertical.class).block();
+					.header("Authorization", "Bearer " + user.getToken()).retrieve().bodyToMono(Vertical.class).block();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		return vertical;
+		return ret;
 	}
 
 	public PostResponse save(Vertical vertical) {

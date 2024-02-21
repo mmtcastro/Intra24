@@ -8,10 +8,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.login.AbstractLogin;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -36,8 +34,7 @@ import reactor.core.publisher.Mono;
 @AnonymousAllowed
 @Getter
 @Setter
-public class LoginView extends VerticalLayout
-		implements BeforeEnterObserver, ComponentEventListener<AbstractLogin.LoginEvent> {
+public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
 	private static final long serialVersionUID = 1L;
 	private final LdapConfig ldapConfig;
@@ -45,6 +42,7 @@ public class LoginView extends VerticalLayout
 	private static final String LOGIN_SUCCESS_URL = "/";
 	private final WebClientProperties webClientProperties;
 	private WebClient webClient;
+	private boolean authenticated = false;
 
 	public LoginView(LdapConfig ldapConfig, WebClientProperties webClientProperties) {
 		this.webClientProperties = webClientProperties;
@@ -59,12 +57,10 @@ public class LoginView extends VerticalLayout
 		add(new H1("Intranet TDec"), login);
 
 		login.addLoginListener(e -> {
-			// System.out.println("LoginEvent - " + e.getUsername() + " - " +
-			// e.getPassword());
 
-			boolean authenticated = SecurityUtils.authenticate(e.getUsername(), e.getPassword());
+			authenticated = SecurityUtils.authenticate(e.getUsername(), e.getPassword());
 			if (authenticated) {
-				UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL);
+
 				// VaadinSession.getCurrent().setAttribute("grupos",
 				// ldapConfig.findGroupsForUser(e.getUsername()));
 
@@ -72,8 +68,12 @@ public class LoginView extends VerticalLayout
 
 				User user = new User();
 				user.setUsername(e.getUsername());
+
 				setUserInVaadinSession(user, e.getPassword());
 				setRolesInAuthority(user);
+
+				UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL);
+
 			} else {
 				login.setError(true);
 			}
@@ -88,10 +88,11 @@ public class LoginView extends VerticalLayout
 		for (String role : user.getRoles()) {
 			UtilsAuthentication.setRole(user.getUsername(), role);
 		}
+		UtilsAuthentication.setRole(user.getUsername(), "USER");
 	}
 
 	private void setWebClientInVaadinSession() {
-		System.out.println("WebClientConfig - iniciando autenticacao");
+		System.out.println("LoginView - setWebClientInVaadinSession - WebClientConfig - iniciando autenticacao");
 		long startTime = System.nanoTime();
 
 		int BUFFER_SIZE = 16 * 1024 * 1024; // aumentar a quantidade de registros retornados pelo API.
@@ -137,34 +138,17 @@ public class LoginView extends VerticalLayout
 			user.addAddicionalUserInformation(tempUser);
 
 			VaadinSession.getCurrent().setAttribute("user", user);
-			System.out.println("Fim autenticacao " + tokenData);
+			System.out.println("setUserInVaadinSession - Fim autenticacao " + tokenData);
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-//	@Override
-//	public void beforeEnter(BeforeEnterEvent event) {
-//		// TODO Auto-generated method stub
-//
-//	}
-
 	@Override
 	public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
 
 		if (beforeEnterEvent.getLocation().getQueryParameters().getParameters().containsKey("error")) {
-			login.setError(true);
-		}
-	}
-
-	@Override
-	public void onComponentEvent(AbstractLogin.LoginEvent loginEvent) {
-		System.out.println("LoginEvent - " + loginEvent.getUsername() + " - " + loginEvent.getPassword());
-		boolean authenticated = SecurityUtils.authenticate(loginEvent.getUsername(), loginEvent.getPassword());
-		if (authenticated) {
-			UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL);
-		} else {
 			login.setError(true);
 		}
 	}

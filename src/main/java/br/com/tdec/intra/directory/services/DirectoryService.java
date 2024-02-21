@@ -1,13 +1,12 @@
 package br.com.tdec.intra.directory.services;
 
-import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import br.com.tdec.intra.config.WebClientConfig;
 import lombok.Getter;
 import lombok.Setter;
 
-@Service
+//@Service
 @Getter
 @Setter
 public class DirectoryService {

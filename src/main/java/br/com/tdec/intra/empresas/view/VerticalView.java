@@ -17,7 +17,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.empresas.model.Vertical;
-import br.com.tdec.intra.empresas.services.VerticalService2;
+import br.com.tdec.intra.empresas.services.VerticalService;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
@@ -33,7 +33,7 @@ public class VerticalView extends VerticalLayout implements HasUrlParameter<Stri
 	private static final long serialVersionUID = 1L;
 
 	// private VerticalService service;
-	private VerticalService2 service = new VerticalService2();
+	private VerticalService service = new VerticalService();
 	private String unid;
 	private Vertical vertical;
 	private Binder<Vertical> binder = new Binder<>(Vertical.class, false);

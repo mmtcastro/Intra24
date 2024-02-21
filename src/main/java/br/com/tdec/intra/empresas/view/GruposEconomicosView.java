@@ -39,7 +39,7 @@ import lombok.Setter;
 public class GruposEconomicosView extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
-	private GrupoEconomicoService grupoEconomicoService;
+	private GrupoEconomicoService service = new GrupoEconomicoService();
 	private Grid<GrupoEconomico> grid = new Grid<>(GrupoEconomico.class, false);
 	private Button setGruposEconomicosReactiveButton = new Button("Set Grupos Economicos Reactive");
 	private Button setGrupoEconomicoSyncButton = new Button("Set Grupo Economico Sync");
@@ -49,9 +49,9 @@ public class GruposEconomicosView extends VerticalLayout {
 	private DefaultForm defaultForm;
 	private GrupoEconomico model;
 
-	public GruposEconomicosView(GrupoEconomicoService grupoEconomicoService) {
+	public GruposEconomicosView() {
 		// setSizeFull();
-		this.grupoEconomicoService = grupoEconomicoService;
+		// this.grupoEconomicoService = grupoEconomicoService;
 		setGrid();
 		updateGrid(grid, "");
 		defaultForm = new DefaultForm(grid);
@@ -127,11 +127,11 @@ public class GruposEconomicosView extends VerticalLayout {
 	}
 
 	private void setGridValuesSync() {
-		grid.setItems(grupoEconomicoService.getGruposEconomicosSync());
+		grid.setItems(service.getGruposEconomicosSync());
 	}
 
 	private void setGridValuesSync(String count) {
-		grid.setItems(grupoEconomicoService.getGruposEconomicosSync(count));
+		grid.setItems(service.getGruposEconomicosSync(count));
 	}
 
 //	private void setGridValuesReactive() {
@@ -161,7 +161,7 @@ public class GruposEconomicosView extends VerticalLayout {
 
 	public void updateGrid(Grid<GrupoEconomico> grid, String searchText) {
 		System.out.println("Search eh " + searchText);
-		LazyDataView<GrupoEconomico> dataView = grid.setItems(q -> captureWildcard(this.grupoEconomicoService
+		LazyDataView<GrupoEconomico> dataView = grid.setItems(q -> captureWildcard(this.service
 				.findAllByCodigo(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), searchText).stream()));
 
 		dataView.setItemCountEstimate(8000);

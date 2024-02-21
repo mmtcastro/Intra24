@@ -14,7 +14,7 @@ import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.empresas.model.Vertical;
-import br.com.tdec.intra.empresas.services.VerticalService2;
+import br.com.tdec.intra.empresas.services.VerticalService;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
@@ -28,7 +28,7 @@ import lombok.Setter;
 public class VerticaisView extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
-	private VerticalService2 service = new VerticalService2();
+	private VerticalService service = new VerticalService();
 	private Grid<Vertical> grid = new Grid<>(Vertical.class, false);
 
 	public VerticaisView() {
@@ -58,8 +58,8 @@ public class VerticaisView extends VerticalLayout {
 		grid.asSingleSelect().addValueChangeListener(evt -> openPage(evt.getValue()));
 	}
 
-	private void openPage(Vertical Vertical) {
-		getUI().ifPresent(ui -> ui.navigate("vertical/" + Vertical.getUnid()));
+	private void openPage(Vertical vertical) {
+		getUI().ifPresent(ui -> ui.navigate("vertical/" + vertical.getUnid()));
 	}
 
 	public void updateGrid(Grid<Vertical> grid, String searchText) {

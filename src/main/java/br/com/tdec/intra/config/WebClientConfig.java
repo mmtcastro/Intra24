@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -17,7 +16,7 @@ import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Mono;
 
-@Configuration
+//@Configuration
 @Getter
 @Setter
 public class WebClientConfig {

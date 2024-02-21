@@ -31,13 +31,13 @@ import lombok.Setter;
 public class CargosView extends AbstractViewLista {
 
 	private static final long serialVersionUID = 1L;
-	private CargoService service;
+	private CargoService service = new CargoService();
 	private MailService mailService;
 	private Grid<Cargo> grid = new Grid<>(Cargo.class, false);
 
-	public CargosView(CargoService service, MailService mailService) {
+	public CargosView(MailService mailService) {
 		setSizeFull();
-		this.service = service;
+		// this.service = service;
 		this.mailService = mailService;
 		Button sendMailButton = new Button("Send Mail", e -> sendMail());
 		setGrid();
@@ -50,6 +50,7 @@ public class CargosView extends AbstractViewLista {
 
 	}
 
+	@SuppressWarnings("unused")
 	private void setGrid() {
 		grid.setSizeFull();
 		Column<Cargo> codigoColumn = grid.addColumn(Cargo::getCodigo).setHeader("Código").setSortable(true);

@@ -2,6 +2,8 @@ package br.com.tdec.intra.empresas.model;
 
 import java.time.ZonedDateTime;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import br.com.tdec.intra.abs.AbstractModelDoc;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,11 +21,13 @@ public class Empresa extends AbstractModelDoc implements Comparable<AbstractMode
 	private String complemento;
 	private String bairro;
 	private String cidade;
+	@JsonProperty("estado")
 	private String estado;
 	private String pais;
 	private String cep;
 	private String tipoInscricao;
 	private String cpf;
+	@JsonProperty("cgc")
 	private String cgc;
 	private String inscricao;
 	private String cnae;

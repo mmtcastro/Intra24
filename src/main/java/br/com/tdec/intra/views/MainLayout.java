@@ -4,10 +4,13 @@ import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Header;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
@@ -28,8 +31,10 @@ public class MainLayout extends AppLayout {
 
 	private static final long serialVersionUID = 1L;
 	private H2 viewTitle;
+	private final br.com.tdec.intra.config.SecurityService securityService;
 
-	public MainLayout() {
+	public MainLayout(br.com.tdec.intra.config.SecurityService securityService) {
+		this.securityService = securityService;
 		setPrimarySection(Section.DRAWER);
 		addDrawerContent();
 		addHeaderContent();
@@ -43,6 +48,20 @@ public class MainLayout extends AppLayout {
 		viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
 
 		addToNavbar(true, toggle, viewTitle);
+
+		String username = securityService.getAuthenticatedUser().getUsername();
+
+		Button logout = new Button("Log out " + username, e -> securityService.logout());
+
+		var header = new HorizontalLayout(new DrawerToggle(), logout);
+
+		header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+
+		header.setWidthFull();
+		header.addClassNames(LumoUtility.Padding.Vertical.NONE, LumoUtility.Padding.Horizontal.MEDIUM);
+
+		addToNavbar(header);
+
 	}
 
 	private void addDrawerContent() {

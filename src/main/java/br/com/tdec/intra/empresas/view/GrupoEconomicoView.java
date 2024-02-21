@@ -24,7 +24,7 @@ import lombok.Setter;
 @PageTitle("Grupo Econômico")
 public class GrupoEconomicoView extends VerticalLayout implements HasUrlParameter<String> {
 	private static final long serialVersionUID = 1L;
-	private GrupoEconomicoService service;
+	private GrupoEconomicoService service = new GrupoEconomicoService();
 	private String unid;
 	private GrupoEconomico grupoEconomico;
 	private FormLayout form = new FormLayout();
@@ -32,8 +32,8 @@ public class GrupoEconomicoView extends VerticalLayout implements HasUrlParamete
 	private TextField codigoField = new TextField("Código");
 	private Binder<GrupoEconomico> binder = new Binder<>(GrupoEconomico.class, false);
 
-	public GrupoEconomicoView(GrupoEconomicoService service) {
-		this.service = service;
+	public GrupoEconomicoView() {
+		// this.service = service;
 
 	}
 
