@@ -69,6 +69,12 @@ public class AboutView extends VerticalLayout {
 		VaadinSession.getCurrent().setAttribute("grupos", ldapConfig.findGroupsForUser(username));
 
 		User user = (User) UI.getCurrent().getSession().getAttribute("user");
+		// H3 token = new H3("Token: " + user.getToken());
+		// add(token);
+
+		// H3 usuario = new H3("Usuário é: " +
+		// VaadinSession.getCurrent().getAttribute("user").toString());
+		// add(usuario);
 		System.out.println(user);
 
 //		H1 teste = new H1("TOKEN " + UtilsWebClient.getRestApiToken(webClientProperties));

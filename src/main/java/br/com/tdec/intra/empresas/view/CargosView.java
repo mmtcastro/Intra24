@@ -24,10 +24,9 @@ import lombok.Setter;
 
 @PageTitle("Cargos")
 @Route(value = "cargos", layout = MainLayout.class)
-//@PermitAll
-@RolesAllowed("ROLE_EVERYONE")
 @Getter
 @Setter
+@RolesAllowed("ROLE_EVERYONE")
 public class CargosView extends AbstractViewLista {
 
 	private static final long serialVersionUID = 1L;

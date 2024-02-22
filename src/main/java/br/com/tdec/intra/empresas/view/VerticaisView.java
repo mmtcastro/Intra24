@@ -16,15 +16,15 @@ import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.services.VerticalService;
 import br.com.tdec.intra.views.MainLayout;
-import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import lombok.Setter;
 
 @PageTitle("Verticais")
 @Route(value = "verticais", layout = MainLayout.class)
-@PermitAll
 @Getter
 @Setter
+@RolesAllowed("ROLE_EVERYONE")
 public class VerticaisView extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;

@@ -27,7 +27,7 @@ import br.com.tdec.intra.components.DefaultForm;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import br.com.tdec.intra.empresas.services.GrupoEconomicoService;
 import br.com.tdec.intra.views.MainLayout;
-import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,7 +35,7 @@ import lombok.Setter;
 @Setter
 @Route(value = "gruposeconomicos", layout = MainLayout.class)
 @PageTitle("Grupos Econômicos")
-@PermitAll
+@RolesAllowed("ROLE_EVERYONE")
 public class GruposEconomicosView extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;

@@ -19,7 +19,7 @@ import com.vaadin.flow.router.Route;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.services.VerticalService;
 import br.com.tdec.intra.views.MainLayout;
-import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +27,7 @@ import lombok.Setter;
 @Setter
 @PageTitle("Vertical")
 @Route(value = "vertical", layout = MainLayout.class)
-@PermitAll
+@RolesAllowed("ROLE_EVERYONE")
 public class VerticalView extends VerticalLayout implements HasUrlParameter<String> {
 
 	private static final long serialVersionUID = 1L;

@@ -76,7 +76,7 @@ public class EmpresasView extends AbstractViewLista {
 	}
 
 	private void openPage(Empresa empresa) {
-		getUI().ifPresent(ui -> ui.navigate("vertical/" + empresa.getUnid()));
+		getUI().ifPresent(ui -> ui.navigate("empresa/" + empresa.getUnid()));
 	}
 
 	public void updateGrid(Grid<Empresa> grid, String searchText) {

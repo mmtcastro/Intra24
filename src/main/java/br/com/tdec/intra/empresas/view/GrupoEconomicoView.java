@@ -13,15 +13,15 @@ import com.vaadin.flow.router.Route;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import br.com.tdec.intra.empresas.services.GrupoEconomicoService;
 import br.com.tdec.intra.views.MainLayout;
-import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import lombok.Setter;
 
-@PermitAll
 @Getter
 @Setter
 @Route(value = "grupoeconomico", layout = MainLayout.class)
 @PageTitle("Grupo Econômico")
+@RolesAllowed("ROLE_EVERYONE")
 public class GrupoEconomicoView extends VerticalLayout implements HasUrlParameter<String> {
 	private static final long serialVersionUID = 1L;
 	private GrupoEconomicoService service = new GrupoEconomicoService();

@@ -11,14 +11,15 @@ import com.vaadin.flow.component.map.Map;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.HasUrlParameter;
 
 import br.com.tdec.intra.utils.Utils;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
-public abstract class AbstractViewDoc extends FormLayout {
+@Getter
+@Setter
+public abstract class AbstractViewDoc extends FormLayout implements HasUrlParameter<String> {
 
 	private static final long serialVersionUID = 1L;
 	protected AbstractModelDoc model;
@@ -29,7 +30,6 @@ public abstract class AbstractViewDoc extends FormLayout {
 	private Button delete;
 	private Button edit;
 	private HorizontalLayout buttons;
-	
 
 	public AbstractViewDoc() {
 		// initModel();
@@ -107,8 +107,5 @@ public abstract class AbstractViewDoc extends FormLayout {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	
-	
-}
 
+}

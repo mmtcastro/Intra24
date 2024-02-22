@@ -17,15 +17,15 @@ import com.vaadin.flow.router.Route;
 import br.com.tdec.intra.empresas.model.Cargo;
 import br.com.tdec.intra.empresas.services.CargoService;
 import br.com.tdec.intra.views.MainLayout;
-import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import lombok.Setter;
 
-@PermitAll
 @Getter
 @Setter
 @Route(value = "cargo", layout = MainLayout.class)
 @PageTitle("Cargo")
+@RolesAllowed("ROLE_EVERYONE")
 public class CargoView extends VerticalLayout implements HasUrlParameter<String> {
 
 	private static final long serialVersionUID = 1L;
