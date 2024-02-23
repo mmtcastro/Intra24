@@ -9,8 +9,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.tdec.intra.config.WebClientService.TokenData;
 import br.com.tdec.intra.config.WebClientProperties;
+import br.com.tdec.intra.directory.model.TokenData;
 import reactor.core.publisher.Mono;
 
 public class UtilsWebClient {

@@ -2,8 +2,6 @@ package br.com.tdec.intra.login.view;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -47,14 +45,17 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 	private final WebClientService webClientService;
 	private final WebClient webClient;
 	private boolean authenticated = false;
-	private ExecutorService executor = Executors.newSingleThreadExecutor();
+	// private ExecutorService executor = Executors.newSingleThreadExecutor();
+	private User user;
 
 	public LoginView(WebClientService webClientService, LdapConfig ldapConfig,
 			WebClientProperties webClientProperties) {
+
 		this.webClientService = webClientService;
 		this.webClient = webClientService.getWebClient();
 		this.webClientProperties = webClientProperties;
 		this.ldapConfig = ldapConfig;
+
 		addClassName("login-view");
 		setSizeFull();
 		setAlignItems(Alignment.CENTER);
@@ -72,14 +73,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 				// VaadinSession.getCurrent().setAttribute("grupos",
 				// ldapConfig.findGroupsForUser(e.getUsername()));
 
-				// setWebClientInVaadinSession();
-
-				User user = new User();
-				user.setUsername(e.getUsername());
-
-				setUserInVaadinSession(user, e.getPassword());
-				setRolesInAuthority(user);
-
+				setUserInVaadinSession(e.getUsername(), e.getPassword());
 				UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL);
 
 			} else {
@@ -89,26 +83,10 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
 	}
 
-//	private void setWebClientInVaadinSession() {
-//		System.out.println("LoginView - setWebClientInVaadinSession - WebClientConfig - iniciando autenticacao");
-//		long startTime = System.nanoTime();
-//
-//		int BUFFER_SIZE = 16 * 1024 * 1024; // aumentar a quantidade de registros retornados pelo API.
-//
-//		WebClient webClient = WebClient.builder().baseUrl(webClientProperties.getBaseUrl())
-//				.codecs(clientCodecConfigurer -> {
-//					clientCodecConfigurer.defaultCodecs().maxInMemorySize(BUFFER_SIZE);
-//				}).build();
-//		this.webClient = webClient;
-//		VaadinSession.getCurrent().setAttribute("webClient", webClient);
-//		long endTime = System.nanoTime();
-//		long durationNanos = endTime - startTime; // tempo de execução em nanossegundos
-//		double durationSeconds = durationNanos / 1_000_000_000.0; // convertendo para segundos
-//
-//		System.out.println("Tempo de execução: " + durationSeconds + " segundos");
-//	}
+	private void setUserInVaadinSession(String username, String pw) {
 
-	private void setUserInVaadinSession(User user, String pw) {
+		user = new User();
+		user.setUsername(username);
 		Map<String, String> credentials = new HashMap<>();
 		// credentials.put("username", webClientProperties.getUsername());
 		// credentials.put("password", webClientProperties.getPassword());
@@ -136,6 +114,8 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 			user.addAddicionalUserInformation(tempUser);
 
 			VaadinSession.getCurrent().setAttribute("user", user);
+			setRolesInAuthority(user);
+
 			System.out.println("setUserInVaadinSession - Fim autenticacao " + tokenData);
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
