@@ -2,6 +2,7 @@ package br.com.tdec.intra;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.theme.Theme;
@@ -14,6 +15,7 @@ import com.vaadin.flow.theme.Theme;
  *
  */
 @SpringBootApplication
+@EnableAsync
 @Theme(value = "intra24")
 public class Application implements AppShellConfigurator {
 

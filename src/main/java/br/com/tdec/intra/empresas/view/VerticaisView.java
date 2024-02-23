@@ -28,12 +28,12 @@ import lombok.Setter;
 public class VerticaisView extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
-	private VerticalService service = new VerticalService();
+	private final VerticalService service;
 	private Grid<Vertical> grid = new Grid<>(Vertical.class, false);
 
-	public VerticaisView() {
+	public VerticaisView(VerticalService service) {
 		setSizeFull();
-		// this.service = service;
+		this.service = service;
 		setGrid();
 		updateGrid(grid, "");
 		add(grid);

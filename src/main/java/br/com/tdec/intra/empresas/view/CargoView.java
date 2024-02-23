@@ -5,15 +5,14 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEvent;
-import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.Cargo;
 import br.com.tdec.intra.empresas.services.CargoService;
 import br.com.tdec.intra.views.MainLayout;
@@ -26,10 +25,10 @@ import lombok.Setter;
 @Route(value = "cargo", layout = MainLayout.class)
 @PageTitle("Cargo")
 @RolesAllowed("ROLE_EVERYONE")
-public class CargoView extends VerticalLayout implements HasUrlParameter<String> {
+public class CargoView extends AbstractViewDoc {
 
 	private static final long serialVersionUID = 1L;
-	private CargoService service = new CargoService();
+	private final CargoService service;
 	private String unid;
 	private Cargo cargo;
 	private FormLayout form = new FormLayout();
@@ -41,8 +40,8 @@ public class CargoView extends VerticalLayout implements HasUrlParameter<String>
 	private Button deleteButton = new Button("Excluir", e -> delete());
 	private Button cancelButton = new Button("Cancelar", e -> cancel());
 
-	public CargoView() {
-		// this.service = service;
+	public CargoView(CargoService service) {
+		this.service = service;
 	}
 
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {

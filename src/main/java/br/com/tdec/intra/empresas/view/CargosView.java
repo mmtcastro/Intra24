@@ -30,13 +30,13 @@ import lombok.Setter;
 public class CargosView extends AbstractViewLista {
 
 	private static final long serialVersionUID = 1L;
-	private CargoService service = new CargoService();
+	private final CargoService service;
 	private MailService mailService;
 	private Grid<Cargo> grid = new Grid<>(Cargo.class, false);
 
-	public CargosView(MailService mailService) {
+	public CargosView(MailService mailService, CargoService service) {
 		setSizeFull();
-		// this.service = service;
+		this.service = service;
 		this.mailService = mailService;
 		Button sendMailButton = new Button("Send Mail", e -> sendMail());
 		setGrid();

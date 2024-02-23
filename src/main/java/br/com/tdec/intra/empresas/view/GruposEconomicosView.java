@@ -39,7 +39,7 @@ import lombok.Setter;
 public class GruposEconomicosView extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
-	private GrupoEconomicoService service = new GrupoEconomicoService();
+	private final GrupoEconomicoService service;
 	private Grid<GrupoEconomico> grid = new Grid<>(GrupoEconomico.class, false);
 	private Button setGruposEconomicosReactiveButton = new Button("Set Grupos Economicos Reactive");
 	private Button setGrupoEconomicoSyncButton = new Button("Set Grupo Economico Sync");
@@ -49,7 +49,8 @@ public class GruposEconomicosView extends VerticalLayout {
 	private DefaultForm defaultForm;
 	private GrupoEconomico model;
 
-	public GruposEconomicosView() {
+	public GruposEconomicosView(GrupoEconomicoService service) {
+		this.service = service;
 		// setSizeFull();
 		// this.grupoEconomicoService = grupoEconomicoService;
 		setGrid();

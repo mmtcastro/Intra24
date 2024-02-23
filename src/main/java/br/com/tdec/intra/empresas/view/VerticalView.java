@@ -7,15 +7,14 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEvent;
-import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.services.VerticalService;
 import br.com.tdec.intra.views.MainLayout;
@@ -28,12 +27,11 @@ import lombok.Setter;
 @PageTitle("Vertical")
 @Route(value = "vertical", layout = MainLayout.class)
 @RolesAllowed("ROLE_EVERYONE")
-public class VerticalView extends VerticalLayout implements HasUrlParameter<String> {
+public class VerticalView extends AbstractViewDoc {
 
 	private static final long serialVersionUID = 1L;
 
-	// private VerticalService service;
-	private VerticalService service = new VerticalService();
+	private final VerticalService service;
 	private String unid;
 	private Vertical vertical;
 	private Binder<Vertical> binder = new Binder<>(Vertical.class, false);
@@ -45,8 +43,9 @@ public class VerticalView extends VerticalLayout implements HasUrlParameter<Stri
 	private Button deleteButton = new Button("Excluir", e -> delete());
 	private Button cancelButton = new Button("Cancelar", e -> cancel());
 
-	public VerticalView() {
-
+	public VerticalView(VerticalService service) {
+		super();
+		this.service = service;
 	}
 
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {

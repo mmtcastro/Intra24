@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -13,12 +14,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.abs.AbstractService;
+import br.com.tdec.intra.config.WebClientService;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Mono;
 
-//@Service
+@Service
 @Getter
 @Setter
 public class GrupoEconomicoService extends AbstractService {
@@ -33,9 +35,13 @@ public class GrupoEconomicoService extends AbstractService {
 //		scope = "empresas";
 //	}
 
+	public GrupoEconomicoService(WebClientService webClientService) {
+		super(webClientService);
+	}
+
 	public Mono<List<GrupoEconomico>> getGruposEconomicos() {
 		return webClient.get().uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=10")
-				.header("Authorization", "Bearer " + user.getToken()).retrieve().bodyToMono(String.class)
+				.header("Authorization", "Bearer " + getUser().getToken()).retrieve().bodyToMono(String.class)
 				.doOnNext(json -> System.out.println("Received JSON: " + json)) // Log it
 				.map(json -> {
 					try {
@@ -57,7 +63,7 @@ public class GrupoEconomicoService extends AbstractService {
 
 	public List<GrupoEconomico> getGruposEconomicosSync() {
 		return webClient.get().uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=10")
-				.header("Authorization", "Bearer " + user.getToken()).retrieve()
+				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
 				})//
 				.block();
@@ -69,7 +75,7 @@ public class GrupoEconomicoService extends AbstractService {
 		long tempoInicio = System.nanoTime();
 		List<GrupoEconomico> ret = webClient.get()
 				.uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=" + count)
-				.header("Authorization", "Bearer " + user.getToken()).retrieve()
+				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
 				})//
 				.block();
@@ -106,7 +112,7 @@ public class GrupoEconomicoService extends AbstractService {
 		ret = webClient.get()
 				.uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=" + count + direction
 						+ "&column=Codigo&start=" + offset + "&startsWith=" + search)
-				.header("Authorization", "Bearer " + user.getToken()).retrieve()
+				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
 				})//
 				.block();
@@ -128,8 +134,8 @@ public class GrupoEconomicoService extends AbstractService {
 			grupoEconomico = webClient.get()
 					.uri("/document/" + unid + "?dataSource=" + scope
 							+ "&computeWithForm=false&richTextAs=markdown&mode=default")
-					.header("Authorization", "Bearer " + user.getToken()).retrieve().bodyToMono(GrupoEconomico.class)
-					.block();
+					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
+					.bodyToMono(GrupoEconomico.class).block();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

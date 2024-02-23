@@ -2,6 +2,8 @@ package br.com.tdec.intra.login.view;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,6 +23,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 import br.com.tdec.intra.config.LdapConfig;
 import br.com.tdec.intra.config.WebClientProperties;
+import br.com.tdec.intra.config.WebClientService;
 import br.com.tdec.intra.directory.model.TokenData;
 import br.com.tdec.intra.directory.model.User;
 import br.com.tdec.intra.utils.SecurityUtils;
@@ -41,10 +44,15 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 	private final LoginForm login = new LoginForm();
 	private static final String LOGIN_SUCCESS_URL = "/";
 	private final WebClientProperties webClientProperties;
-	private WebClient webClient;
+	private final WebClientService webClientService;
+	private final WebClient webClient;
 	private boolean authenticated = false;
+	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-	public LoginView(LdapConfig ldapConfig, WebClientProperties webClientProperties) {
+	public LoginView(WebClientService webClientService, LdapConfig ldapConfig,
+			WebClientProperties webClientProperties) {
+		this.webClientService = webClientService;
+		this.webClient = webClientService.getWebClient();
 		this.webClientProperties = webClientProperties;
 		this.ldapConfig = ldapConfig;
 		addClassName("login-view");
@@ -64,7 +72,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 				// VaadinSession.getCurrent().setAttribute("grupos",
 				// ldapConfig.findGroupsForUser(e.getUsername()));
 
-				setWebClientInVaadinSession();
+				// setWebClientInVaadinSession();
 
 				User user = new User();
 				user.setUsername(e.getUsername());
@@ -81,34 +89,24 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
 	}
 
-	private void setRolesInAuthority(User user) {
-
-		// List<String> grupos = (List<String>)
-		// UI.getCurrent().getSession().getAttribute("grupos");
-		for (String role : user.getRoles()) {
-			UtilsAuthentication.setRole(user.getUsername(), role);
-		}
-		UtilsAuthentication.setRole(user.getUsername(), "USER");
-	}
-
-	private void setWebClientInVaadinSession() {
-		System.out.println("LoginView - setWebClientInVaadinSession - WebClientConfig - iniciando autenticacao");
-		long startTime = System.nanoTime();
-
-		int BUFFER_SIZE = 16 * 1024 * 1024; // aumentar a quantidade de registros retornados pelo API.
-
-		WebClient webClient = WebClient.builder().baseUrl(webClientProperties.getBaseUrl())
-				.codecs(clientCodecConfigurer -> {
-					clientCodecConfigurer.defaultCodecs().maxInMemorySize(BUFFER_SIZE);
-				}).build();
-		this.webClient = webClient;
-		VaadinSession.getCurrent().setAttribute("webClient", webClient);
-		long endTime = System.nanoTime();
-		long durationNanos = endTime - startTime; // tempo de execução em nanossegundos
-		double durationSeconds = durationNanos / 1_000_000_000.0; // convertendo para segundos
-
-		System.out.println("Tempo de execução: " + durationSeconds + " segundos");
-	}
+//	private void setWebClientInVaadinSession() {
+//		System.out.println("LoginView - setWebClientInVaadinSession - WebClientConfig - iniciando autenticacao");
+//		long startTime = System.nanoTime();
+//
+//		int BUFFER_SIZE = 16 * 1024 * 1024; // aumentar a quantidade de registros retornados pelo API.
+//
+//		WebClient webClient = WebClient.builder().baseUrl(webClientProperties.getBaseUrl())
+//				.codecs(clientCodecConfigurer -> {
+//					clientCodecConfigurer.defaultCodecs().maxInMemorySize(BUFFER_SIZE);
+//				}).build();
+//		this.webClient = webClient;
+//		VaadinSession.getCurrent().setAttribute("webClient", webClient);
+//		long endTime = System.nanoTime();
+//		long durationNanos = endTime - startTime; // tempo de execução em nanossegundos
+//		double durationSeconds = durationNanos / 1_000_000_000.0; // convertendo para segundos
+//
+//		System.out.println("Tempo de execução: " + durationSeconds + " segundos");
+//	}
 
 	private void setUserInVaadinSession(User user, String pw) {
 		Map<String, String> credentials = new HashMap<>();
@@ -143,6 +141,16 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	private void setRolesInAuthority(User user) {
+
+		// List<String> grupos = (List<String>)
+		// UI.getCurrent().getSession().getAttribute("grupos");
+		for (String role : user.getRoles()) {
+			UtilsAuthentication.setRole(user.getUsername(), role);
+		}
+		UtilsAuthentication.setRole(user.getUsername(), "USER");
 	}
 
 	@Override

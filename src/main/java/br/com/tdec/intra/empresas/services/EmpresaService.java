@@ -5,14 +5,21 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
 
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.abs.AbstractService;
+import br.com.tdec.intra.config.WebClientService;
 import br.com.tdec.intra.empresas.model.Empresa;
 import br.com.tdec.intra.inter.ServiceInter;
 
+@Service
 public class EmpresaService extends AbstractService implements ServiceInter<Empresa> {
+
+	public EmpresaService(WebClientService webClientService) {
+		super(webClientService);
+	}
 
 	@Override
 	public List<Empresa> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, Optional<Void> filter,
@@ -38,7 +45,7 @@ public class EmpresaService extends AbstractService implements ServiceInter<Empr
 		ret = webClient.get()
 				.uri("/lists/Empresas?dataSource=" + scope + "&count=" + count + direction + "&column=Codigo&start="
 						+ offset + "&startsWith=" + search)
-				.header("Authorization", "Bearer " + user.getToken()).retrieve()
+				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<Empresa>>() {
 				})//
 				.block();
@@ -65,7 +72,8 @@ public class EmpresaService extends AbstractService implements ServiceInter<Empr
 			ret = webClient.get()
 					.uri("/document/" + unid + "?dataSource=" + scope
 							+ "&computeWithForm=false&richTextAs=markdown&mode=default")
-					.header("Authorization", "Bearer " + user.getToken()).retrieve().bodyToMono(Empresa.class).block();
+					.header("Authorization", "Bearer " + getUser().getToken()).retrieve().bodyToMono(Empresa.class)
+					.block();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

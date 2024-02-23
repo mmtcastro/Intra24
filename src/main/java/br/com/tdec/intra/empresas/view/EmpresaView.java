@@ -24,7 +24,7 @@ import lombok.Setter;
 public class EmpresaView extends AbstractViewDoc {
 
 	private static final long serialVersionUID = 1L;
-	private EmpresaService service = new EmpresaService();
+	private final EmpresaService service;
 	private String unid;
 	private Empresa empresa;
 	private FormLayout form = new FormLayout();
@@ -36,8 +36,9 @@ public class EmpresaView extends AbstractViewDoc {
 //	private Button deleteButton = new Button("Excluir", e -> delete());
 //	private Button cancelButton = new Button("Cancelar", e -> cancel());
 
-	public EmpresaView() {
-		super();
+	public EmpresaView(EmpresaService service) {
+		this.service = service;
+		// super();
 	}
 
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {

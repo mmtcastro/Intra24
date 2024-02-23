@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -16,16 +17,16 @@ import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Mono;
 
-//@Configuration
+@Configuration
 @Getter
 @Setter
-public class WebClientConfig {
+public class WebClientService {
 	private WebClient webClient;
 	private String token;
 	private Mono<String> tokenMono;
 	private static final int BUFFER_SIZE = 16 * 1024 * 1024; // aumentar a quantidade de registros retornados pelo API.
 
-	public WebClientConfig(WebClientProperties webClientProperties) {
+	public WebClientService(WebClientProperties webClientProperties) {
 		System.out.println("WebClientConfig - iniciando autenticacao");
 		long startTime = System.nanoTime();
 		webClient = WebClient.builder().baseUrl(webClientProperties.getBaseUrl()).codecs(clientCodecConfigurer -> {

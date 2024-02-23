@@ -30,13 +30,13 @@ import lombok.Setter;
 public class EmpresasView extends AbstractViewLista {
 
 	private static final long serialVersionUID = 1L;
-	private EmpresaService service = new EmpresaService();
+	private final EmpresaService service;
 	private Grid<Empresa> grid = new Grid<>(Empresa.class, false);
 	private TextField search = new TextField("Buscar");
 
-	public EmpresasView() {
+	public EmpresasView(EmpresaService service) {
 		setSizeFull();
-		// this.service = service;
+		this.service = service;
 		setSearch();
 		setGrid();
 		updateGrid(grid, "");

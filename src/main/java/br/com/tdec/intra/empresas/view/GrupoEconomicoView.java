@@ -1,15 +1,14 @@
 package br.com.tdec.intra.empresas.view;
 
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEvent;
-import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import br.com.tdec.intra.empresas.services.GrupoEconomicoService;
 import br.com.tdec.intra.views.MainLayout;
@@ -22,9 +21,9 @@ import lombok.Setter;
 @Route(value = "grupoeconomico", layout = MainLayout.class)
 @PageTitle("Grupo Econômico")
 @RolesAllowed("ROLE_EVERYONE")
-public class GrupoEconomicoView extends VerticalLayout implements HasUrlParameter<String> {
+public class GrupoEconomicoView extends AbstractViewDoc {
 	private static final long serialVersionUID = 1L;
-	private GrupoEconomicoService service = new GrupoEconomicoService();
+	private final GrupoEconomicoService service;
 	private String unid;
 	private GrupoEconomico grupoEconomico;
 	private FormLayout form = new FormLayout();
@@ -32,8 +31,8 @@ public class GrupoEconomicoView extends VerticalLayout implements HasUrlParamete
 	private TextField codigoField = new TextField("Código");
 	private Binder<GrupoEconomico> binder = new Binder<>(GrupoEconomico.class, false);
 
-	public GrupoEconomicoView() {
-		// this.service = service;
+	public GrupoEconomicoView(GrupoEconomicoService service) {
+		this.service = service;
 
 	}
 

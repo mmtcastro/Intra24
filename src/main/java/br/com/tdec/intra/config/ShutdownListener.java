@@ -8,9 +8,9 @@ import lombok.Setter;
 
 public class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
 
-	private WebClientConfig webClientConfig;
+	private WebClientService webClientConfig;
 
-	public ShutdownListener(WebClientConfig webConfig) {
+	public ShutdownListener(WebClientService webConfig) {
 		this.setWebClientConfig(webConfig);
 	}
 
@@ -41,11 +41,11 @@ public class ShutdownListener implements ApplicationListener<ContextClosedEvent>
 
 	}
 
-	public WebClientConfig getWebClientConfig() {
+	public WebClientService getWebClientConfig() {
 		return webClientConfig;
 	}
 
-	public void setWebClientConfig(WebClientConfig webClientConfig) {
+	public void setWebClientConfig(WebClientService webClientConfig) {
 		this.webClientConfig = webClientConfig;
 	}
 
