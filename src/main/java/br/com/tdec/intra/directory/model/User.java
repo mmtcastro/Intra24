@@ -65,6 +65,14 @@ public class User {
 		}
 	}
 
+	public String getCommonName() {
+		return this.givenName + " " + this.familyName;
+	}
+
+	public String getFullName() {
+		return this.givenName + " " + this.familyName;
+	}
+
 	public List<String> getRoles() {
 		return names.stream().map(this::convertGroupNameToRole).toList();
 	}

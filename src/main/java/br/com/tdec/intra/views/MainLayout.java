@@ -21,6 +21,7 @@ import br.com.tdec.intra.empresas.view.CargosView;
 import br.com.tdec.intra.empresas.view.EmpresasView;
 import br.com.tdec.intra.empresas.view.GruposEconomicosView;
 import br.com.tdec.intra.empresas.view.VerticaisView;
+import br.com.tdec.intra.utils.UtilsSession;
 import br.com.tdec.intra.views.about.AboutView;
 import br.com.tdec.intra.views.helloworld.HelloWorldView;
 
@@ -49,7 +50,8 @@ public class MainLayout extends AppLayout {
 
 		addToNavbar(true, toggle, viewTitle);
 
-		String username = securityService.getAuthenticatedUser().getUsername();
+		// String username = securityService.getAuthenticatedUser().getUsername();
+		String username = UtilsSession.getCurrentUserName();
 
 		Button logout = new Button("Log out " + username, e -> securityService.logout());
 

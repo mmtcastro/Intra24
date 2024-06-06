@@ -5,10 +5,19 @@ import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.VaadinSession;
 
 import jakarta.servlet.ServletException;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class SecurityUtils {
 
+	private br.com.tdec.intra.config.SecurityService securityService;
 	private static final String LOGOUT_SUCCESS_URL = "/";
+
+	public SecurityUtils(br.com.tdec.intra.config.SecurityService securityService) {
+		this.securityService = securityService;
+	}
 
 	public static boolean isAuthenticated() {
 		VaadinServletRequest request = VaadinServletRequest.getCurrent();
@@ -37,4 +46,8 @@ public class SecurityUtils {
 		UI.getCurrent().getPage().setLocation(LOGOUT_SUCCESS_URL);
 		VaadinSession.getCurrent().getSession().invalidate();
 	}
+
+//	public String getCurrentUser() {
+//		return securityService.getAuthenticatedUser().getUsername();
+//	}
 }

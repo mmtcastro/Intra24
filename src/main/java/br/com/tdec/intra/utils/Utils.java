@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import br.com.tdec.intra.abs.AbstractService;
 
@@ -380,6 +381,17 @@ public class Utils {
 
 		} catch (Exception e) {
 			print("Erro - Utils - getModelClassFromServiceClass - " + serviceClass.getCanonicalName() + " - " + ret);
+			e.printStackTrace();
+		}
+		return ret;
+	}
+
+	public String generateNewModelId() {
+		String ret = "";
+		try {
+			List<String> classe = Utils.stringToArrayList(this.getClass().getCanonicalName(), ".");
+			ret = classe.get(4) + "_" + classe.get(6) + "_" + UUID.randomUUID().toString();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return ret;

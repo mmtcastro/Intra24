@@ -55,8 +55,18 @@ public class EmpresaService extends AbstractService implements ServiceInter<Empr
 
 	@Override
 	public Empresa findByCodigo(String codigo) {
-		// TODO Auto-generated method stub
-		return null;
+		Empresa ret = null;
+		List<Empresa> empresas = webClient.get()
+				.uri("/lists/Empresas?dataSource=" + scope + "&column=Codigo&startsWith=" + codigo)
+				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<Empresa>>() {
+				})//
+				.block();
+		if (empresas.size() > 0) {
+			ret = empresas.get(0);
+		}
+		return ret;
+
 	}
 
 	@Override

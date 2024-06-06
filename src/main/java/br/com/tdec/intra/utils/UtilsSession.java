@@ -11,7 +11,13 @@ import javax.naming.directory.SearchResult;
 
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import com.vaadin.flow.server.VaadinSession;
+
+import br.com.tdec.intra.directory.model.User;
 import jakarta.servlet.http.HttpSession;
 
 public class UtilsSession {
@@ -61,6 +67,27 @@ public class UtilsSession {
 						return null;
 					}
 				});
+	}
+
+	public static String getCurrentUsername2() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		if (authentication != null && authentication.isAuthenticated()) {
+			Object principal = authentication.getPrincipal();
+
+			if (principal instanceof UserDetails) {
+				return ((UserDetails) principal).getUsername();
+			} else if (principal instanceof String) {
+				return (String) principal;
+			}
+		}
+		return null; // No user is authenticated
+	}
+
+	public static String getCurrentUserName() {
+		User user = (User) VaadinSession.getCurrent().getAttribute("user");
+		return user.getCommonName();
+
 	}
 
 }

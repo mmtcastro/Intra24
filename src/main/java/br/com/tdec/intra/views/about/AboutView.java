@@ -76,6 +76,12 @@ public class AboutView extends VerticalLayout {
 		// VaadinSession.getCurrent().getAttribute("user").toString());
 		// add(usuario);
 		System.out.println(user);
+		System.out.println(user.getUsername());
+		System.out.println(user.getName());
+		System.out.println(user.getNames());
+		System.out.println(user.getFamilyName());
+		System.out.println(user.getGivenName());
+		System.out.println(user.getFullName());
 
 //		H1 teste = new H1("TOKEN " + UtilsWebClient.getRestApiToken(webClientProperties));
 //		add(teste);

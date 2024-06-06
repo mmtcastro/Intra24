@@ -85,6 +85,21 @@ public class VerticalService extends AbstractService {
 		return ret;
 	}
 
+	public Vertical findByCodigo(String codigo) {
+		Vertical ret = null;
+		List<Vertical> verticais = webClient.get()
+				.uri("/lists/Verticais?dataSource=" + scope + "&column=Codigo&startsWith=" + codigo)
+				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<Vertical>>() {
+				})//
+				.block();
+		if (verticais.size() > 0) {
+			ret = verticais.get(0);
+		}
+		return ret;
+
+	}
+
 	public PostResponse save(Vertical vertical) {
 		PostResponse ret = new PostResponse();
 		ObjectMapper objectMapper = new ObjectMapper();

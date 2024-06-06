@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 public class Cnpj extends AbstractModelDoc {
 	private String message;
 	private String cnpj;
@@ -53,4 +53,5 @@ public class Cnpj extends AbstractModelDoc {
 									// representantes.
 
 	private String ultima_atualizacao;
+
 }

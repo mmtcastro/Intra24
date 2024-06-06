@@ -1,12 +1,16 @@
 package br.com.tdec.intra.abs;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import br.com.tdec.intra.utils.Utils;
+import br.com.tdec.intra.utils.UtilsSession;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -85,11 +89,32 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected String uri; // para guardar a identificacao de um determinado documento. Ex.
 							// intra.tdec.com.br/intra.nsf/empresas_contato.xsp?id=empresas_Contato_asdasd_asdsad_sdas
 
+	public AbstractModelDoc() {
+
+	}
+
+	public void init() {
+		this.id = generateNewModelId();
+		this.autor = UtilsSession.getCurrentUserName();
+		this.criacao = ZonedDateTime.now();
+	}
+
 	public int compareTo(AbstractModelDoc outro) {
 		if (getCodigo() != null) {
 			return getCodigo().compareTo(outro.getCodigo());
 		} else {
 			return 0;
 		}
+	}
+
+	public String generateNewModelId() {
+		String ret = "";
+		try {
+			List<String> classe = Utils.stringToArrayList(this.getClass().getCanonicalName(), ".");
+			ret = classe.get(4) + "_" + classe.get(6) + "_" + UUID.randomUUID().toString();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
 	}
 }

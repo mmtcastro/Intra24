@@ -4,11 +4,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.LazyDataView;
 import com.vaadin.flow.data.renderer.TextRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -29,15 +33,31 @@ public class VerticaisView extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
 	private final VerticalService service;
+	private Button novoButton = new Button("Nova Vertical", e -> novo());
 	private Grid<Vertical> grid = new Grid<>(Vertical.class, false);
+	private TextField search = new TextField("Buscar");
 
 	public VerticaisView(VerticalService service) {
 		setSizeFull();
 		this.service = service;
+		setSearch();
 		setGrid();
 		updateGrid(grid, "");
-		add(grid);
+	}
 
+	private void setSearch() {
+		search.setPlaceholder("buscar...");
+		search.setClearButtonVisible(true);
+		search.setValueChangeMode(ValueChangeMode.LAZY);
+		search.addValueChangeListener(e -> updateGrid(grid, search.getValue()));
+		var horizontalLayout = new HorizontalLayout();
+		horizontalLayout.add(search, novoButton);
+		horizontalLayout.setVerticalComponentAlignment(Alignment.END, novoButton);
+		add(horizontalLayout, grid);
+	}
+
+	private void novo() {
+		getUI().ifPresent(ui -> ui.navigate("vertical/"));
 	}
 
 	private void setGrid() {

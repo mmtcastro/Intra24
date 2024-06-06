@@ -5,8 +5,12 @@ import lombok.Data;
 
 @Data
 public class Vertical extends AbstractModelDoc {
-	
-	//private String body;
+
+	// private String body;
+
+	public Vertical() {
+		super();
+	}
 
 	public int compareTo(AbstractModelDoc outro) {
 		if (getCodigo() != null) {

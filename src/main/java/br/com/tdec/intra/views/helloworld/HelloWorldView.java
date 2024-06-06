@@ -11,8 +11,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.charts.model.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -80,7 +82,25 @@ public class HelloWorldView extends HorizontalLayout {
 		});
 
 		add(name, sayHello, new HorizontalLayout(ldapUser, ldap, gruposLdap));
+		repeat();
 
+	}
+
+	public void repeat() {
+		int numeroDeTabelas = 4;
+		for (int i = 0; i < numeroDeTabelas; i++) {
+			VerticalLayout tableLayout = new VerticalLayout();
+			for (int row = 0; row < 2; row++) {
+				HorizontalLayout rowLayout = new HorizontalLayout();
+				Label cell1 = new Label("Célula " + (row * 2 + 1));
+				Label cell2 = new Label("Célula " + (row * 2 + 2));
+				Button button1 = new Button("Botão " + (row * 2 + 1));
+				Button button2 = new Button("Botão " + (row * 2 + 2));
+				rowLayout.add(button1, button2);
+				tableLayout.add(rowLayout);
+			}
+			add(tableLayout);
+		}
 	}
 
 	public void findGroupsForUser() {

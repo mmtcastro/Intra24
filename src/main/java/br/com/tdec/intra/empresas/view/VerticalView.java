@@ -13,10 +13,16 @@ import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility.Display;
+import com.vaadin.flow.theme.lumo.LumoUtility.Flex;
+import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
+import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 
 import br.com.tdec.intra.abs.AbstractViewDoc;
+import br.com.tdec.intra.converters.StringToZonedDateTimeConverter;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.services.VerticalService;
+import br.com.tdec.intra.empresas.validator.CodigoValidator;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -36,6 +42,8 @@ public class VerticalView extends AbstractViewDoc {
 	private Vertical vertical;
 	private Binder<Vertical> binder = new Binder<>(Vertical.class, false);
 	private TextField idField = new TextField("Id");
+	private TextField autorField = new TextField("Autor");
+	private TextField criacaoField = new TextField("Criação");
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
 	private FormLayout form = new FormLayout();
@@ -46,23 +54,37 @@ public class VerticalView extends AbstractViewDoc {
 	public VerticalView(VerticalService service) {
 		super();
 		this.service = service;
+		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
 	}
 
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
 		this.unid = parameter;
 		if (parameter == null || parameter.isEmpty()) {
+			isNovo = true;
 			this.vertical = new Vertical();
+			vertical.init();
+
 			System.out.println("VerticalView.setParameter() - New Vertical");
 		} else {
 			findVertical(unid);
 		}
-		binder.forField(codigoField).asRequired("Entre com um código").bind(Vertical::getCodigo, Vertical::setCodigo);
+		binder.forField(codigoField).asRequired("Entre com um código")//
+				.withValidator(new CodigoValidator(service))//
+				.bind(Vertical::getCodigo, Vertical::setCodigo);
 
 		binder.bind(idField, Vertical::getId, Vertical::setId);
+		binder.bind(autorField, Vertical::getAutor, Vertical::setAutor);
 		binder.bind(descricaoField, Vertical::getDescricao, Vertical::setDescricao);
+		binder.forField(criacaoField).withConverter(new StringToZonedDateTimeConverter()).bind(Vertical::getCriacao,
+				Vertical::setCriacao);
 		idField.setReadOnly(true);
+		criacaoField.setReadOnly(true);
+		autorField.setReadOnly(true);
+		if (!isNovo) {
+			codigoField.setReadOnly(true);
+		}
 		binder.readBean(vertical);
-		form.add(codigoField, descricaoField, idField);
+		form.add(codigoField, descricaoField, idField, autorField, criacaoField);
 		addButtons();
 		add(form);
 	}

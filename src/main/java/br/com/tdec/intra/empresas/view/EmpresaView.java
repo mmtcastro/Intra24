@@ -7,6 +7,10 @@ import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility.Display;
+import com.vaadin.flow.theme.lumo.LumoUtility.Flex;
+import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
+import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.Empresa;
@@ -38,6 +42,7 @@ public class EmpresaView extends AbstractViewDoc {
 
 	public EmpresaView(EmpresaService service) {
 		this.service = service;
+		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
 		// super();
 	}
 

@@ -12,6 +12,10 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.theme.lumo.LumoUtility.Display;
+import com.vaadin.flow.theme.lumo.LumoUtility.Flex;
+import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
+import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 
 import br.com.tdec.intra.utils.Utils;
 import lombok.Getter;
@@ -23,6 +27,7 @@ public abstract class AbstractViewDoc extends FormLayout implements HasUrlParame
 
 	private static final long serialVersionUID = 1L;
 	protected AbstractModelDoc model;
+	protected boolean isNovo;
 	protected Map queryParams;
 	private H1 title;
 	private Button save;
@@ -36,10 +41,13 @@ public abstract class AbstractViewDoc extends FormLayout implements HasUrlParame
 	}
 
 	public AbstractViewDoc(AbstractModelDoc model) {
-		addClassName("abstract-view-doc");
+		// addClassName("abstract-view-doc");
+		addClassNames("formlayout-view", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
 		this.model = model;
 		title = new H1(this.model.getClass().getSimpleName());
 		this.setTitle(title);
+		setWidth("100%");
+		getStyle().set("flex-grow", "1");
 
 	}
 
