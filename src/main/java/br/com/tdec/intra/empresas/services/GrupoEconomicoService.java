@@ -1,6 +1,5 @@
 package br.com.tdec.intra.empresas.services;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -14,7 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.abs.AbstractService;
-import br.com.tdec.intra.config.WebClientService;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,20 +21,10 @@ import reactor.core.publisher.Mono;
 @Service
 @Getter
 @Setter
-public class GrupoEconomicoService extends AbstractService {
+public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 
-//	protected final WebClient webClient;
-//	protected String token;
-//	protected final String scope;
-//
-//	public GrupoEconomicoService(WebClientConfig webClientConfig) {
-//		this.webClient = webClientConfig.getWebClient();
-//		this.token = webClientConfig.getToken();
-//		scope = "empresas";
-//	}
-
-	public GrupoEconomicoService(WebClientService webClientService) {
-		super(webClientService);
+	public GrupoEconomicoService() {
+		super(GrupoEconomico.class);
 	}
 
 	public Mono<List<GrupoEconomico>> getGruposEconomicos() {
@@ -89,36 +77,36 @@ public class GrupoEconomicoService extends AbstractService {
 		return ret;
 	}
 
-	public List<GrupoEconomico> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders,
-			Optional<Void> filter, String search) {
-		List<GrupoEconomico> ret = new ArrayList<GrupoEconomico>();
-		count = 50; // nao consegui fazer funcionar o limit automaticamente.
-		String direction = "";
-		if (sortOrders != null) {
-			for (QuerySortOrder sortOrder : sortOrders) {
-				System.out.println("--- Sorting ----");
-				System.out.println("Sorted: " + sortOrder.getSorted());
-				System.out.println("Direction:  " + sortOrder.getDirection());
-			}
-			if (sortOrders.size() > 0) {
-				if (sortOrders.get(0).getDirection() != null && sortOrders.get(0).getDirection().equals("ASCENDING")) {
-					direction = "&direction=asc";
-				} else {
-					direction = "&direction=desc";
-				}
-			}
-		}
-
-		ret = webClient.get()
-				.uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=" + count + direction
-						+ "&column=Codigo&start=" + offset + "&startsWith=" + search)
-				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
-				})//
-				.block();
-
-		return ret;
-	}
+//	public List<GrupoEconomico> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders,
+//			Optional<Void> filter, String search) {
+//		List<GrupoEconomico> ret = new ArrayList<GrupoEconomico>();
+//		count = 50; // nao consegui fazer funcionar o limit automaticamente.
+//		String direction = "";
+//		if (sortOrders != null) {
+//			for (QuerySortOrder sortOrder : sortOrders) {
+//				System.out.println("--- Sorting ----");
+//				System.out.println("Sorted: " + sortOrder.getSorted());
+//				System.out.println("Direction:  " + sortOrder.getDirection());
+//			}
+//			if (sortOrders.size() > 0) {
+//				if (sortOrders.get(0).getDirection() != null && sortOrders.get(0).getDirection().equals("ASCENDING")) {
+//					direction = "&direction=asc";
+//				} else {
+//					direction = "&direction=desc";
+//				}
+//			}
+//		}
+//
+//		ret = webClient.get()
+//				.uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=" + count + direction
+//						+ "&column=Codigo&start=" + offset + "&startsWith=" + search)
+//				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
+//				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
+//				})//
+//				.block();
+//
+//		return ret;
+//	}
 
 	public GrupoEconomico findById(String id) {
 		GrupoEconomico grupoEconomico = null;
@@ -127,21 +115,58 @@ public class GrupoEconomicoService extends AbstractService {
 
 	}
 
-	public GrupoEconomico findByUnid(String unid) {
-		GrupoEconomico grupoEconomico = null;
-		// /document/+49E2429B9AD2507B832580AE0063377C?dataSource=empresasscope&computeWithForm=false&richTextAs=markdown&mode=default
-		try {
-			grupoEconomico = webClient.get()
-					.uri("/document/" + unid + "?dataSource=" + scope
-							+ "&computeWithForm=false&richTextAs=markdown&mode=default")
-					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
-					.bodyToMono(GrupoEconomico.class).block();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return grupoEconomico;
+	@Override
+	public GrupoEconomico createModel() {
+		return new GrupoEconomico();
+	}
 
+	@Override
+	public SaveResponse save(GrupoEconomico model) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void edit(GrupoEconomico model) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public DeleteResponse delete(GrupoEconomico model) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DeleteResponse delete(String unid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public GrupoEconomico findByCodigo(String unid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<GrupoEconomico> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders,
+			Optional<Void> filter, String search) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public GrupoEconomico findByUnid(String unid) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

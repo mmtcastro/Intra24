@@ -6,7 +6,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 
-import br.com.tdec.intra.login.view.LoginView;
+import br.com.tdec.intra.login.view.LoginViewAsync;
 
 
 @EnableWebSecurity
@@ -17,6 +17,6 @@ public class SecurityConfiguration extends VaadinWebSecurity {
 	 */
 	protected void configure(HttpSecurity http) throws Exception {
 		super.configure(http);
-		setLoginView(http, LoginView.class);
+		setLoginView(http, LoginViewAsync.class);
 	}
 }

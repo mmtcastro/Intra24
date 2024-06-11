@@ -85,8 +85,12 @@ public class UtilsSession {
 	}
 
 	public static String getCurrentUserName() {
+		String ret = "User não encontrado em VaadinSession";
 		User user = (User) VaadinSession.getCurrent().getAttribute("user");
-		return user.getCommonName();
+		if (user != null) {
+			ret = user.getCommonName();
+		}
+		return ret;
 
 	}
 

@@ -1,5 +1,7 @@
 package br.com.tdec.intra.abs;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.TreeSet;
@@ -116,5 +118,41 @@ public abstract class AbstractModelDoc extends AbstractModel {
 			e.printStackTrace();
 		}
 		return ret;
+	}
+
+	/**
+	 * Cria um AbstractModelDoc sem argumentos
+	 * 
+	 * @param <T>
+	 * @param modelClass
+	 * @return
+	 */
+	public <T extends AbstractModelDoc> T createModelDoc(Class<T> modelClass) {
+		T model = null;
+		try {
+			// Accessible constructor might be required
+			Constructor<T> constructor = modelClass.getDeclaredConstructor();
+			constructor.setAccessible(true); // Make private constructor accessible if needed
+			model = constructor.newInstance();
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return model;
 	}
 }

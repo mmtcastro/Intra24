@@ -1,6 +1,5 @@
 package br.com.tdec.intra.empresas.view;
 
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEvent;
@@ -25,34 +24,47 @@ import lombok.Setter;
 @Route(value = "grupoeconomico", layout = MainLayout.class)
 @PageTitle("Grupo Econômico")
 @RolesAllowed("ROLE_EVERYONE")
-public class GrupoEconomicoView extends AbstractViewDoc {
+public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
 	private static final long serialVersionUID = 1L;
-	private final GrupoEconomicoService service;
-	private String unid;
-	private GrupoEconomico grupoEconomico;
-	private FormLayout form = new FormLayout();
+	// private final GrupoEconomicoService service;
+	// private String unid;
+	// private GrupoEconomico grupoEconomico;
+	// private FormLayout form = new FormLayout();
 	private TextField idField = new TextField("Id");
 	private TextField codigoField = new TextField("Código");
 	private Binder<GrupoEconomico> binder = new Binder<>(GrupoEconomico.class, false);
 
 	public GrupoEconomicoView(GrupoEconomicoService service) {
-		this.service = service;
+		super(GrupoEconomico.class, service);
 		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
 
 	}
 
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
 		this.unid = parameter;
-		findGrupoEconomico(unid);
+		if (parameter == null || parameter.isEmpty()) {
+			isNovo = true;
+			// model = createModel(Vertical.class); - ele já cria automaticamente para setar
+			// o Binder em AbtractViewDoc
+			model.init();
+		} else {
+			model = service.findByUnid(unid);
+		}
 		binder.bind(codigoField, GrupoEconomico::getCodigo, GrupoEconomico::setCodigo);
 		binder.bind(idField, GrupoEconomico::getId, GrupoEconomico::setId);
-		binder.readBean(grupoEconomico);
+		binder.readBean(model);
 		form.add(idField, codigoField);
 		add(form);
 	}
 
-	private void findGrupoEconomico(String unid) {
-		this.grupoEconomico = service.findByUnid(unid);
+//	private void findGrupoEconomico(String unid) {
+//		this.grupoEconomico = service.findByUnid(unid);
+//
+//	}
+
+	@Override
+	protected void save() {
+		// TODO Auto-generated method stub
 
 	}
 

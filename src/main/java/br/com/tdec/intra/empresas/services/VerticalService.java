@@ -7,35 +7,20 @@ import java.util.Optional;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.abs.AbstractService;
-import br.com.tdec.intra.config.WebClientService;
 import br.com.tdec.intra.empresas.model.Vertical;
-import br.com.tdec.intra.services.PostResponse;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Service
-public class VerticalService extends AbstractService {
+public class VerticalService extends AbstractService<Vertical> {
 
-//	protected WebClient webClient = (WebClient) UI.getCurrent().getSession().getAttribute("webClient");
-//	protected User user = (User) UI.getCurrent().getSession().getAttribute("user");
-//	// protected String token;
-//	protected final String scope = "empresas";
-
-//	public VerticalService2() {
-//		this.webClient = (WebClient) UI.getCurrent().getSession().getAttribute("webClient");
-//		this.token = (String) UI.getCurrent().getSession().getAttribute("token");
-//	}
-
-	public VerticalService(WebClientService webClientService) {
-		super(webClientService);
+	public VerticalService() {
+		super(Vertical.class);
 	}
 
 	public List<Vertical> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, Optional<Void> filter,
@@ -65,7 +50,6 @@ public class VerticalService extends AbstractService {
 				.bodyToMono(new ParameterizedTypeReference<List<Vertical>>() {
 				})//
 				.block();
-
 		return ret;
 	}
 
@@ -81,56 +65,91 @@ public class VerticalService extends AbstractService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 		return ret;
 	}
 
-	public Vertical findByCodigo(String codigo) {
-		Vertical ret = null;
-		List<Vertical> verticais = webClient.get()
-				.uri("/lists/Verticais?dataSource=" + scope + "&column=Codigo&startsWith=" + codigo)
-				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<Vertical>>() {
-				})//
-				.block();
-		if (verticais.size() > 0) {
-			ret = verticais.get(0);
-		}
-		return ret;
+//	public Vertical findByCodigo(String codigo) {
+//		Vertical ret = null;
+//		List<Vertical> verticais = webClient.get()
+//				.uri("/lists/Verticais?dataSource=" + scope + "&column=Codigo&startsWith=" + codigo)
+//				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
+//				.bodyToMono(new ParameterizedTypeReference<List<Vertical>>() {
+//				})//
+//				.block();
+//		if (verticais.size() > 0) {
+//			ret = verticais.get(0);
+//		}
+//		return ret;
+//
+//	}
 
-	}
-
-	public PostResponse save(Vertical vertical) {
-		PostResponse ret = new PostResponse();
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.registerModule(new JavaTimeModule());
-		String json = "";
-		try {
-			json = objectMapper.writeValueAsString(vertical);
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println(json);
+//	public PostResponse save(Vertical vertical) {
+//		PostResponse ret = new PostResponse();
+//		ObjectMapper objectMapper = new ObjectMapper();
+//		objectMapper.registerModule(new JavaTimeModule());
+//		String json = "";
 //		try {
-//			vertical = webClient.get()
-//					.uri("/document/" + unid + "?dataSource=" + scope
-//							+ "&computeWithForm=false&richTextAs=markdown&mode=default")
-//					.header("Authorization", "Bearer " + token).retrieve().bodyToMono(Cargo.class).block();
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
+//			json = objectMapper.writeValueAsString(vertical);
+//		} catch (JsonProcessingException e) {
 //			e.printStackTrace();
 //		}
-		return ret;
+//		System.out.println(json);
+//		try {
+//			webClient.get().uri("/document?dataSource=" + scope)
+//					.header("Authorization", "Bearer " + getUser().getToken()).retrieve().bodyToMono(Vertical.class)
+//					.block();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		return ret;
+//	}
+//
+//	public String update(Vertical vertical) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+
+	public DeleteResponse delete(String unid) {
+		DeleteResponse deleteResponse = webClient.get()
+				.uri("/document/" + unid + "?dataSource=" + scope + "&mode=" + mode)
+				.header("Authorization", "Bearer " + getUser().getToken()).retrieve().bodyToMono(DeleteResponse.class)
+				.block();
+		return deleteResponse;
 	}
 
-	public String update(Vertical vertical) {
+	@Override
+	public SaveResponse save(Vertical model) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public String delete(String unid) {
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void edit(Vertical model) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public DeleteResponse delete(Vertical model) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public Vertical createModel() {
+		return new Vertical();
+	}
+
+	@Override
+	public Vertical findByCodigo(String unid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

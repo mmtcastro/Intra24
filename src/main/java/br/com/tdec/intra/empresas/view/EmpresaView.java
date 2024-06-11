@@ -25,10 +25,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @RolesAllowed("ROLE_EVERYONE")
-public class EmpresaView extends AbstractViewDoc {
+public class EmpresaView extends AbstractViewDoc<Empresa> {
 
 	private static final long serialVersionUID = 1L;
-	private final EmpresaService service;
 	private String unid;
 	private Empresa empresa;
 	private FormLayout form = new FormLayout();
@@ -41,9 +40,8 @@ public class EmpresaView extends AbstractViewDoc {
 //	private Button cancelButton = new Button("Cancelar", e -> cancel());
 
 	public EmpresaView(EmpresaService service) {
-		this.service = service;
+		super(Empresa.class, service);
 		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
-		// super();
 	}
 
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
@@ -57,6 +55,12 @@ public class EmpresaView extends AbstractViewDoc {
 		form.add(codigoField, nomeField, idField);
 		// addButtons();
 		add(form);
+	}
+
+	@Override
+	protected void save() {
+		// TODO Auto-generated method stub
+
 	}
 
 }

@@ -1,5 +1,11 @@
 package br.com.tdec.intra.abs;
 
-public class AbstractValidator extends Abstract {
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
+public class AbstractValidator<T> extends Abstract {
+
+	private T model;
 }

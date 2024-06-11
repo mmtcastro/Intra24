@@ -1,9 +1,10 @@
 package br.com.tdec.intra.converters;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Locale;
 
 import com.vaadin.flow.data.binder.Result;
 import com.vaadin.flow.data.binder.ValueContext;
@@ -12,18 +13,19 @@ import com.vaadin.flow.data.converter.Converter;
 public class StringToZonedDateTimeConverter implements Converter<String, ZonedDateTime> {
 
 	private static final long serialVersionUID = 1L;
-	private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss", new Locale("pt", "BR"));
+	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
 	@Override
 	public Result<ZonedDateTime> convertToModel(String value, ValueContext context) {
-		if (value == null) {
-			return Result.ok(null);
+		if (value == null || value.isEmpty()) {
+			return Result.error("String is null or empty");
 		}
 		try {
-			ZonedDateTime zonedDateTime = ZonedDateTime.parse(value, formatter);
+			LocalDateTime localDateTime = LocalDateTime.parse(value, formatter);
+			ZonedDateTime zonedDateTime = ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
 			return Result.ok(zonedDateTime);
 		} catch (DateTimeParseException e) {
-			return Result.error("Data e hora inválidas");
+			return Result.error("Invalid date format. Please use dd/MM/yyyy HH:mm");
 		}
 	}
 
@@ -33,14 +35,6 @@ public class StringToZonedDateTimeConverter implements Converter<String, ZonedDa
 			return "";
 		}
 		return value.format(formatter);
-	}
-
-	public DateTimeFormatter getFormatter() {
-		return formatter;
-	}
-
-	public void setFormatter(DateTimeFormatter formatter) {
-		this.formatter = formatter;
 	}
 
 }

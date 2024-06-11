@@ -4,7 +4,7 @@ import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
-import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
@@ -53,7 +53,10 @@ public class MainLayout extends AppLayout {
 		// String username = securityService.getAuthenticatedUser().getUsername();
 		String username = UtilsSession.getCurrentUserName();
 
-		Button logout = new Button("Log out " + username, e -> securityService.logout());
+		// Button logout = new Button("Log out " + username, e ->
+		// securityService.logout());
+		Anchor logout = new Anchor("logout", "Log out " + username);
+		logout.getElement().addEventListener("click", event -> securityService.logout());
 
 		var header = new HorizontalLayout(new DrawerToggle(), logout);
 

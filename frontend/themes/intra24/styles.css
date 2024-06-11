@@ -1,5 +1,6 @@
 
 @import url('./views/abstract-view-doc.css');
+@import url('./views/abstract-view-doc-footer.css');
 @import url('./main-layout.css');    html {
       --lumo-font-size: 1rem;
       --lumo-font-size-xxxl: 1.75rem;
