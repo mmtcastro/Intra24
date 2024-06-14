@@ -1,13 +1,18 @@
 package br.com.tdec.intra.empresas.view;
 
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import br.com.tdec.intra.abs.AbstractService.DeleteResponse;
+import br.com.tdec.intra.abs.AbstractService.SaveResponse;
 import br.com.tdec.intra.abs.AbstractViewDoc;
-import br.com.tdec.intra.converters.StringToZonedDateTimeConverter;
+import br.com.tdec.intra.converters.LocalDateToZonedDateTimeConverter;
+import br.com.tdec.intra.converters.UpperCaseConverter;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.services.VerticalService;
 import br.com.tdec.intra.empresas.validator.VerticalValidator;
@@ -32,8 +37,10 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 	private TextField idField = new TextField("Id");
 	private TextField autorField = new TextField("Autor");
 	private TextField criacaoField = new TextField("Criação");
+	private DatePicker dataField = new DatePicker("Data");
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
+	private TextField unidField = new TextField("Unid");
 	// private FormLayout form = new FormLayout();
 	// private Button saveButton = new Button("Salvar", e -> save());
 	// private Button deleteButton = new Button("Excluir", e -> delete());
@@ -41,6 +48,7 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 
 	public VerticalView(VerticalService service) {
 		super(Vertical.class, service);
+		addClassNames("abstract-view-doc");
 	}
 
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
@@ -50,40 +58,39 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 			// model = createModel(Vertical.class); - ele já cria automaticamente para setar
 			// o Binder em AbtractViewDoc
 			model.init();
-
-			System.out.println("VerticalView.setParameter() - New Vertical");
+			isEditable = true;
 		} else {
 			model = service.findByUnid(unid);
+			isEditable = false;
 		}
+		// binder.setReadOnly(isEditable);
 		binder.forField(codigoField).asRequired("Entre com um código")//
+				.withNullRepresentation("") // Handle null values no campo texto
 				.withValidator(new VerticalValidator.CodigoValidator(service))//
+				.withConverter(new UpperCaseConverter())//
 				.bind(Vertical::getCodigo, Vertical::setCodigo);
 		if (!isNovo) {
 			codigoField.setReadOnly(true);
 		}
+		// dataField.setHelperText("Formato esperado: DD/MM/AAAA");
+		binder.forField(dataField)//
+				.asRequired("Formato esperado: DD/MM/AAAA")//
+				.withConverter(new LocalDateToZonedDateTimeConverter())//
+				.bind(Vertical::getData, Vertical::setData);
 		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(Vertical::getDescricao,
 				Vertical::setDescricao);
-		binder.bind(idField, Vertical::getId, Vertical::setId);
-		binder.bind(autorField, Vertical::getAutor, Vertical::setAutor);
-
-		binder.forField(criacaoField).withConverter(new StringToZonedDateTimeConverter()).bind(Vertical::getCriacao,
-				Vertical::setCriacao);
-
-		idField.setReadOnly(true);
-		// criacaoField.setReadOnly(true);
-		autorField.setReadOnly(true);
+		binder.forField(unidField).bind(vertical -> vertical.getMeta().getUnid(), // ValueProvider para ler o valor
+				(vertical, unid) -> vertical.getMeta().setUnid(unid) // Setter para definir o valor
+		);
+//		binder.bind(idField, Vertical::getId, Vertical::setId);
+//		binder.bind(autorField, Vertical::getAutor, Vertical::setAutor);
+//		binder.forField(criacaoField).withConverter(new StringToZonedDateTimeConverter()).bind(Vertical::getCriacao,
+//				Vertical::setCriacao);
 
 		binder.readBean(model);
-		form.add(codigoField, descricaoField, idField, autorField, criacaoField);
-		// addButtons();
+		add(codigoField, dataField, descricaoField, unidField);
 		initButtons();
-		add(form);
-	}
-
-	@Override
-	protected void save() {
-		// TODO Auto-generated method stub
-
+		initFooter();
 	}
 
 //	public void addButtons() {
@@ -120,16 +127,29 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 //
 //	}
 
-//	private void save() {
-//		binder.validate();
-//
-//		// Stream through the fields and perform some operation on each field
-//		binder.getFields().forEach(field -> {
-//			// Process each field here
-//			System.out.println("Field Name: " + field.getValue());
-//			System.out.println("Field Value: " + field.isEmpty());
-//		});
-//		SaveResponse response = service.save(vertical);
-//	}
+	public SaveResponse save() {
+		binder.validate();
+
+		// Stream through the fields and perform some operation on each field
+		binder.getFields().forEach(field -> {
+			// Process each field here
+			System.out.println("Field Name: " + field.getValue());
+			System.out.println("Field Value: " + field.isEmpty());
+		});
+		SaveResponse response = service.save(model);
+		Notification.show("Salvo com Sucesso!");
+		return response;
+	}
+
+	public DeleteResponse delete() {
+		System.out.println("Unid: " + model.getUnid());
+		return service.delete(model.getUnid());
+	}
+
+	@Override
+	protected SaveResponse update() {
+		return null;
+
+	}
 
 }

@@ -1,5 +1,7 @@
 package br.com.tdec.intra.abs;
 
+import java.time.format.DateTimeFormatter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vaadin.flow.component.Key;
@@ -21,6 +23,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 
 import br.com.tdec.intra.abs.AbstractService.DeleteResponse;
+import br.com.tdec.intra.abs.AbstractService.SaveResponse;
 import br.com.tdec.intra.config.MailService;
 import lombok.Getter;
 import lombok.Setter;
@@ -60,10 +63,13 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		model = createModel(); // vai ser substituido pelo setParameter
 		binder = new Binder<>(modelType);
 		binder.setBean(model);
-		isEditable = false;
-		binder.setReadOnly(isEditable);
+		isEditable = true;
 
-		addClassNames("formlayout-view", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
+		// addClassNames("formlayout-view", Width.FULL, Display.FLEX, Flex.AUTO,
+		// Margin.LARGE);
+
+		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
+
 		// title = new H1(this.model.getClass().getSimpleName());
 		this.setTitle(title);
 		setWidth("100%");
@@ -84,32 +90,6 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		}
 	}
 
-//	public void initModel() {
-//		Class<?> clazz = Utils.getViewDocClassFromViewListaClass(this.getClass());
-//		try {
-//			model = (AbstractModelDoc) clazz.getDeclaredConstructor().newInstance();
-//		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-//				| NoSuchMethodException | SecurityException e) {
-//			e.printStackTrace();
-//		}
-//	}
-
-//	public void initDefaultForm(AbstractModelDoc model) {
-//		TextField codigoField = new TextField("codigo");
-//		TextField descricaoField = new TextField("descricao");
-//		// DatePicker criacaoField = new DatePicker("criacao");
-//		add(codigoField);
-//		Binder<AbstractModelDoc> binder = new Binder<>(AbstractModelDoc.class);
-//		binder.forField(codigoField).bind(AbstractModelDoc::getCodigo, AbstractModelDoc::setCodigo);
-//
-//		binder.forField(descricaoField).bind(AbstractModelDoc::getDescricao, AbstractModelDoc::setDescricao);
-//
-//		binder.setBean(model);
-//
-//		// add(formLayout);
-//		initButtons();
-//	}
-
 	public void initButtons() {
 		saveButton = new Button("Salvar");
 		cancelButton = new Button("Cancelar");
@@ -118,9 +98,12 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 		cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 		deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-		editButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+		editButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 		cancelButton.addClickShortcut(Key.ESCAPE);
 		saveButton.addClickShortcut(Key.ENTER);
+		saveButton.setVisible(isEditable);
+		editButton.setVisible(!isEditable);
+
 		horizontalLayoutButtons = new HorizontalLayout(saveButton, editButton, deleteButton, cancelButton);
 
 		saveButton.addClickListener(e -> save());
@@ -135,9 +118,14 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 			footer = new HorizontalLayout();
 			footer.addClassName("abstract-view-doc-footer");
 			autorSpan = new Span("Autor: " + model.getAutor());
-			criacaoSpan = new Span("Criação: " + model.getCriacao());
-			idSpan = new Span("Id: " + model.getId());
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+			if (model.getCriacao() != null) {
+				criacaoSpan = new Span("Criação: " + model.getCriacao().format(formatter));
+			} else {
+				criacaoSpan = new Span("");
+			}
 
+			idSpan = new Span("Id: " + model.getId());
 			footer.add(autorSpan, criacaoSpan, idSpan);
 			add(footer, 3);
 		}
@@ -145,12 +133,12 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 
 	private void openConfirmDeleteDialog() {
 		Dialog dialog = new Dialog();
-
 		Span message = new Span("Tem certeza que deseja apagar " + model.getForm() + " - " + model.getCodigo() + "?");
 		Button confirmButton = new Button("Confirmar", event -> {
-			DeleteResponse deleteResponse = service.delete(model.getUnid());
+			DeleteResponse deleteResponse = delete();
 			dialog.close();
 			Notification.show(deleteResponse.getMessage());
+			UI.getCurrent().getPage().getHistory().back();
 		});
 		confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
@@ -163,7 +151,11 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		dialog.open();
 	}
 
-	protected abstract void save();
+	protected abstract SaveResponse save();
+
+	protected abstract SaveResponse update();
+
+	protected abstract DeleteResponse delete();
 
 	protected void edit() {
 		if (isEditable) {
@@ -173,6 +165,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 			isEditable = true;
 			binder.setReadOnly(isEditable);
 		}
+		saveButton.setVisible(isEditable);
+		editButton.setVisible(!isEditable);
+		horizontalLayoutButtons.removeAll();
+		horizontalLayoutButtons.add(saveButton, editButton, deleteButton, cancelButton);
 		this.binder.setReadOnly(isEditable);
 	}
 

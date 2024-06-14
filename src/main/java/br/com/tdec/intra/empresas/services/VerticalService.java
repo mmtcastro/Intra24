@@ -13,6 +13,7 @@ import br.com.tdec.intra.abs.AbstractService;
 import br.com.tdec.intra.empresas.model.Vertical;
 import lombok.Getter;
 import lombok.Setter;
+import reactor.core.publisher.Mono;
 
 @Getter
 @Setter
@@ -50,6 +51,7 @@ public class VerticalService extends AbstractService<Vertical> {
 				.bodyToMono(new ParameterizedTypeReference<List<Vertical>>() {
 				})//
 				.block();
+
 		return ret;
 	}
 
@@ -61,6 +63,12 @@ public class VerticalService extends AbstractService<Vertical> {
 							+ "&computeWithForm=false&richTextAs=markdown&mode=default")
 					.header("Authorization", "Bearer " + getUser().getToken()).retrieve().bodyToMono(Vertical.class)
 					.block();
+			// Verificar se a meta foi carregada
+			if (ret != null && ret.getMeta() != null) {
+				System.out.println("Meta unid: " + ret.getMeta().getUnid());
+			} else {
+				System.out.println("Meta is null");
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -110,27 +118,34 @@ public class VerticalService extends AbstractService<Vertical> {
 //	}
 
 	public DeleteResponse delete(String unid) {
-		DeleteResponse deleteResponse = webClient.get()
+		System.out.println("Delete unid: " + unid);
+		DeleteResponse deleteResponse = webClient.delete()
 				.uri("/document/" + unid + "?dataSource=" + scope + "&mode=" + mode)
 				.header("Authorization", "Bearer " + getUser().getToken()).retrieve().bodyToMono(DeleteResponse.class)
 				.block();
 		return deleteResponse;
 	}
 
-	@Override
 	public SaveResponse save(Vertical model) {
-		// TODO Auto-generated method stub
-		return null;
+		SaveResponse saveResponse = webClient.post().uri("/document?dataSource=" + scope)
+				.header("Content-Type", "application/json")//
+				.header("Authorization", "Bearer " + getUser().getToken())//
+				.body(Mono.just(model), Vertical.class).retrieve()//
+				.bodyToMono(SaveResponse.class).block();
+		return saveResponse;
+	}
+
+	public SaveResponse update(Vertical model) {
+		SaveResponse saveResponse = webClient.put().uri("/document?dataSource=" + scope)
+				.header("Content-Type", "application/json")//
+				.header("Authorization", "Bearer " + getUser().getToken())//
+				.body(Mono.just(model), Vertical.class).retrieve()//
+				.bodyToMono(SaveResponse.class).block();
+		return saveResponse;
 	}
 
 	@Override
 	public void cancel() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void edit(Vertical model) {
 		// TODO Auto-generated method stub
 
 	}
@@ -148,6 +163,18 @@ public class VerticalService extends AbstractService<Vertical> {
 
 	@Override
 	public Vertical findByCodigo(String unid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SaveResponse put(Vertical model) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SaveResponse patch(Vertical model) {
 		// TODO Auto-generated method stub
 		return null;
 	}

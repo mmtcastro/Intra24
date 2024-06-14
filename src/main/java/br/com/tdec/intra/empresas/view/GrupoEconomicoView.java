@@ -53,8 +53,8 @@ public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
 		binder.bind(codigoField, GrupoEconomico::getCodigo, GrupoEconomico::setCodigo);
 		binder.bind(idField, GrupoEconomico::getId, GrupoEconomico::setId);
 		binder.readBean(model);
-		form.add(idField, codigoField);
-		add(form);
+		add(idField, codigoField);
+
 	}
 
 //	private void findGrupoEconomico(String unid) {

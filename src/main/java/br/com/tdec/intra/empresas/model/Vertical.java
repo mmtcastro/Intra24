@@ -1,9 +1,11 @@
 package br.com.tdec.intra.empresas.model;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class Vertical extends AbstractModelDoc {
 
 	// private String body;

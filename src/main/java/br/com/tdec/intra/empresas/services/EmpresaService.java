@@ -1,9 +1,12 @@
 package br.com.tdec.intra.empresas.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
+
+import com.vaadin.flow.data.provider.QuerySortOrder;
 
 import br.com.tdec.intra.abs.AbstractService;
 import br.com.tdec.intra.empresas.model.Empresa;
@@ -117,6 +120,19 @@ public class EmpresaService extends AbstractService<Empresa> {
 
 	@Override
 	public DeleteResponse delete(String unid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Empresa findByUnid(String unid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Empresa> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, Optional<Void> filter,
+			String search) {
 		// TODO Auto-generated method stub
 		return null;
 	}

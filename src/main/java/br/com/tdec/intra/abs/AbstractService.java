@@ -60,9 +60,11 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	public abstract SaveResponse save(T model);
 
-	public abstract void cancel();
+	public abstract SaveResponse put(T model);
 
-	public abstract void edit(T model);
+	public abstract SaveResponse patch(T model);
+
+	public abstract void cancel();
 
 	public abstract DeleteResponse delete(T model);
 
@@ -94,37 +96,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	@Getter
 	@Setter
-	public static class Meta {
-		@JsonProperty("noteid")
-		private int noteId;
-		@JsonProperty("unid")
-		private String unid;
-		@JsonProperty("created")
-		private String created;
-		@JsonProperty("lastmodified")
-		private String lastModified;
-		@JsonProperty("lastaccessed")
-		private String lastAccessed;
-		@JsonProperty("lastmodifiedinfile")
-		private String lastModifiedInFile;
-		@JsonProperty("addedtofile")
-		private String addedToFile;
-		@JsonProperty("noteclass")
-		private String[] noteClass;
-		@JsonProperty("unread")
-		private boolean unread;
-		@JsonProperty("editable")
-		private boolean editable;
-		@JsonProperty("revision")
-		private String revision;
-		@JsonProperty("etag")
-		private String etag;
-		@JsonProperty("size")
-		private int size;
-	}
-
-	@Getter
-	@Setter
 	public static class SaveResponse {
 		@JsonProperty("@meta")
 		private Meta meta;
@@ -139,6 +110,52 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 		// Getters and Setters
 		// (omitted for brevity)
+	}
+
+	@Getter
+	@Setter
+	public static class DeleteResponse {
+		@JsonProperty("statusText")
+		private String statusText;
+		@JsonProperty("status")
+		private int status;
+		@JsonProperty("message")
+		private String message;
+		@JsonProperty("unid")
+		private String unid;
+	}
+
+	@Getter
+	@Setter
+	public static class Meta {
+		@JsonProperty("noteid")
+		protected int noteId;
+		@JsonProperty("unid")
+		protected String unid;
+		@JsonProperty("created")
+		protected String created;
+		@JsonProperty("lastmodified")
+		protected String lastModified;
+		@JsonProperty("lastaccessed")
+		protected String lastAccessed;
+		@JsonProperty("lastmodifiedinfile")
+		protected String lastModifiedInFile;
+		@JsonProperty("addedtofile")
+		protected String addedToFile;
+		@JsonProperty("noteclass")
+		protected String[] noteClass;
+		@JsonProperty("unread")
+		protected boolean unread;
+		@JsonProperty("editable")
+		protected boolean editable;
+		@JsonProperty("revision")
+		protected String revision;
+		@JsonProperty("etag")
+		protected String etag;
+		@JsonProperty("size")
+		protected int size;
+		@JsonProperty("warnings")
+		protected List<String> warnings;
 	}
 
 //	public T findByUnid(String unid) {
@@ -215,21 +232,5 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 //		}
 //		return model;
 //	}
-
-	@Getter
-	@Setter
-	public static class DeleteResponse {
-		@JsonProperty("statusText")
-		private String statusText;
-
-		@JsonProperty("status")
-		private int status;
-
-		@JsonProperty("message")
-		private String message;
-
-		@JsonProperty("unid")
-		private String unid;
-	}
 
 }

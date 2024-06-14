@@ -73,6 +73,7 @@ public class VerticaisView extends AbstractViewLista<Vertical> {
 				return null; // Or any placeholder text you prefer
 			}
 		})).setHeader("Criação");
+		Grid.Column<Vertical> unidColumn = grid.addColumn(Vertical::getUnid).setHeader("Unid");
 
 //		grid.asSingleSelect().addValueChangeListener(evt -> openPage(evt.getValue()));
 		// add(grid);

@@ -1,4 +1,5 @@
-.margin-left {
-    margin-left: 20px
-    
-    }
+
+.margined-form-layout {
+    margin-left: 10px;
+    margin-right: 10px;
+}

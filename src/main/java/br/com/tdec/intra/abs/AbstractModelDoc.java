@@ -14,20 +14,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import br.com.tdec.intra.utils.Utils;
 import br.com.tdec.intra.utils.UtilsSession;
 import jakarta.validation.constraints.NotNull;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
+@EqualsAndHashCode(of = { "id" }) // Gera equals e hashCode baseados no campo 'id'
 public abstract class AbstractModelDoc extends AbstractModel {
 
+	@JsonProperty("@meta")
+	protected Meta meta;
 	@JsonProperty("@unid")
 	protected String unid;
 	@JsonProperty("@noteid")
-	private int noteid;
+	protected int noteid;
 	@JsonProperty("@index")
-	private String index;
+	protected String index;
 	@JsonAlias({ "Id", "id" })
 	@NotNull
 	protected String id;
@@ -42,8 +46,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	@JsonAlias({ "CodigoRaiz", "codigoRaiz" })
 	protected String codigoRaiz;
 	@JsonAlias({ "CampoOrigem", "campoOrigem" })
-	protected String campoOrigem; // utilizado por AbstractModelLista para saber em qual campo fazer o load da
-									// lista (saveModel)
+	protected String campoOrigem;
 	@JsonAlias({ "IdNegocio", "idNegocio" })
 	protected String idNegocio;
 	@JsonAlias({ "CodigoNegocio", "codigoNegocio" })
@@ -79,8 +82,6 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected String tipo;
 	@JsonAlias({ "valor", "Valor" })
 	protected Double valor;
-//	// protected MimeMultipart obs; retirado pois nao se deve usar RTF/MIME à
-//	// vontade. Apenas um por documento é recomendado.
 	protected Boolean podeDeletar; // proteção contra ser apagado por agente ou vista
 	protected String mensagemPorDeletar; // para explicar por que nao apagou o doc
 	protected String userAgent;
@@ -155,4 +156,41 @@ public abstract class AbstractModelDoc extends AbstractModel {
 		}
 		return model;
 	}
+
+	/**
+	 * O Domino Restapi retorna a consulta do documento por UNID com este objeto
+	 * meta
+	 * 
+	 */
+	@Getter
+	@Setter
+	public class Meta {
+		@JsonProperty("noteid")
+		private int noteid;
+		@JsonProperty("unid")
+		private String unid;
+		@JsonProperty("created")
+		private ZonedDateTime created;
+		@JsonProperty("lastmodified")
+		private ZonedDateTime lastmodified;
+		@JsonProperty("lastaccessed")
+		private ZonedDateTime lastaccessed;
+		@JsonProperty("lastmodifiedinfile")
+		private ZonedDateTime lastmodifiedinfile;
+		@JsonProperty("addedtofile")
+		private ZonedDateTime addedtofile;
+		@JsonProperty("noteclass")
+		private List<String> noteclass;
+		@JsonProperty("unread")
+		private boolean unread;
+		@JsonProperty("editable")
+		private boolean editable;
+		@JsonProperty("revision")
+		private String revision;
+		@JsonProperty("etag")
+		private String etag;
+		@JsonProperty("size")
+		private int size;
+	}
+
 }
