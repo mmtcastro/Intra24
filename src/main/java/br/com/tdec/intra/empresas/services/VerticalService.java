@@ -60,7 +60,7 @@ public class VerticalService extends AbstractService<Vertical> {
 		try {
 			ret = webClient.get()
 					.uri("/document/" + unid + "?dataSource=" + scope
-							+ "&computeWithForm=false&richTextAs=markdown&mode=default")
+							+ "&computeWithForm=false&richTextAs=markdown&mode=" + mode)
 					.header("Authorization", "Bearer " + getUser().getToken()).retrieve().bodyToMono(Vertical.class)
 					.block();
 			// Verificar se a meta foi carregada
@@ -117,15 +117,6 @@ public class VerticalService extends AbstractService<Vertical> {
 //		return null;
 //	}
 
-	public DeleteResponse delete(String unid) {
-		System.out.println("Delete unid: " + unid);
-		DeleteResponse deleteResponse = webClient.delete()
-				.uri("/document/" + unid + "?dataSource=" + scope + "&mode=" + mode)
-				.header("Authorization", "Bearer " + getUser().getToken()).retrieve().bodyToMono(DeleteResponse.class)
-				.block();
-		return deleteResponse;
-	}
-
 	public SaveResponse save(Vertical model) {
 		SaveResponse saveResponse = webClient.post().uri("/document?dataSource=" + scope)
 				.header("Content-Type", "application/json")//
@@ -142,18 +133,6 @@ public class VerticalService extends AbstractService<Vertical> {
 				.body(Mono.just(model), Vertical.class).retrieve()//
 				.bodyToMono(SaveResponse.class).block();
 		return saveResponse;
-	}
-
-	@Override
-	public void cancel() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public DeleteResponse delete(Vertical model) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override

@@ -14,14 +14,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import br.com.tdec.intra.utils.Utils;
 import br.com.tdec.intra.utils.UtilsSession;
 import jakarta.validation.constraints.NotNull;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
+@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
-@EqualsAndHashCode(of = { "id" }) // Gera equals e hashCode baseados no campo 'id'
+
 public abstract class AbstractModelDoc extends AbstractModel {
 
 	@JsonProperty("@meta")
@@ -32,6 +33,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected int noteid;
 	@JsonProperty("@index")
 	protected String index;
+	@NotNull
 	@JsonAlias({ "Id", "id" })
 	@NotNull
 	protected String id;
@@ -164,7 +166,8 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	 */
 	@Getter
 	@Setter
-	public class Meta {
+	@ToString
+	public static class Meta {
 		@JsonProperty("noteid")
 		private int noteid;
 		@JsonProperty("unid")
@@ -191,6 +194,23 @@ public abstract class AbstractModelDoc extends AbstractModel {
 		private String etag;
 		@JsonProperty("size")
 		private int size;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		AbstractModelDoc that = (AbstractModelDoc) o;
+
+		return id != null ? id.equals(that.id) : that.id == null;
+	}
+
+	@Override
+	public int hashCode() {
+		return id != null ? id.hashCode() : 0;
 	}
 
 }

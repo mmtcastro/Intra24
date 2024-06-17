@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.data.provider.QuerySortOrder;
@@ -16,6 +17,7 @@ import br.com.tdec.intra.directory.model.User;
 import br.com.tdec.intra.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -64,11 +66,23 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	public abstract SaveResponse patch(T model);
 
-	public abstract void cancel();
+	// public abstract DeleteResponse delete(T model);
 
-	public abstract DeleteResponse delete(T model);
+	// public abstract DeleteResponse delete(String unid);
 
-	public abstract DeleteResponse delete(String unid);
+	public DeleteResponse delete(String unid) {
+		DeleteResponse deleteResponse = new DeleteResponse();
+		try {
+			deleteResponse = webClient.delete().uri("/document/" + unid + "?dataSource=" + scope + "&mode=" + mode)
+					.header("Content-Type", "application/json")//
+					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
+					.bodyToMono(DeleteResponse.class).block();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return deleteResponse;
+	}
 
 	protected User getUser() {
 		User user = null;
@@ -81,24 +95,23 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		return user;
 	}
 
-	/* Durante o LoginView eu crio o webClient e o user e seto na sessao */
-	// protected WebClient webClient = (WebClient)
-	// UI.getCurrent().getSession().getAttribute("webClient");
-
-	/** Nao é utilizado no momento */
-//	private T createModel(Class<T> modelType) {
-//		try {
-//			return modelType.getDeclaredConstructor().newInstance();
-//		} catch (Exception e) {
-//			throw new RuntimeException("Nao foi possivel criar o modelo - " + modelType, e);
-//		}
-//	}
-
 	@Getter
 	@Setter
+	@ToString
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class SaveResponse {
+		// Inicio em caso de erro
+		@JsonProperty("details")
+		private String details;
+		@JsonProperty("message")
+		private String message;
+		@JsonProperty("status")
+		private String status; // 500, 403, 406
+		// Fim em caso de erro
 		@JsonProperty("@meta")
 		private Meta meta;
+		@JsonProperty("Id")
+		private String id;
 		@JsonProperty("Codigo")
 		private String codigo;
 		@JsonProperty("Descricao")
@@ -107,18 +120,17 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		private String form;
 		@JsonProperty("@warnings")
 		private List<String> warnings;
-
-		// Getters and Setters
-		// (omitted for brevity)
 	}
 
 	@Getter
 	@Setter
+	@ToString
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class DeleteResponse {
 		@JsonProperty("statusText")
-		private String statusText;
+		private String statusCode;
 		@JsonProperty("status")
-		private int status;
+		private String status;
 		@JsonProperty("message")
 		private String message;
 		@JsonProperty("unid")
@@ -127,6 +139,12 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	@Getter
 	@Setter
+	@ToString
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	/**
+	 * O Restapi retorna dois metas. Um deles está em AbstractModelDoc
+	 * 
+	 */
 	public static class Meta {
 		@JsonProperty("noteid")
 		protected int noteId;

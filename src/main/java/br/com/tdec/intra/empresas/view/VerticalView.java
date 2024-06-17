@@ -1,7 +1,7 @@
 package br.com.tdec.intra.empresas.view;
 
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.OptionalParameter;
@@ -40,7 +40,6 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 	private DatePicker dataField = new DatePicker("Data");
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
-	private TextField unidField = new TextField("Unid");
 	// private FormLayout form = new FormLayout();
 	// private Button saveButton = new Button("Salvar", e -> save());
 	// private Button deleteButton = new Button("Excluir", e -> delete());
@@ -55,8 +54,7 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		this.unid = parameter;
 		if (parameter == null || parameter.isEmpty()) {
 			isNovo = true;
-			// model = createModel(Vertical.class); - ele já cria automaticamente para setar
-			// o Binder em AbtractViewDoc
+			model = createModel(); // - ele já cria automaticamente para seta o Binder em AbtractViewDoc
 			model.init();
 			isEditable = true;
 		} else {
@@ -79,17 +77,16 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 				.bind(Vertical::getData, Vertical::setData);
 		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(Vertical::getDescricao,
 				Vertical::setDescricao);
-		binder.forField(unidField).bind(vertical -> vertical.getMeta().getUnid(), // ValueProvider para ler o valor
-				(vertical, unid) -> vertical.getMeta().setUnid(unid) // Setter para definir o valor
-		);
-//		binder.bind(idField, Vertical::getId, Vertical::setId);
-//		binder.bind(autorField, Vertical::getAutor, Vertical::setAutor);
-//		binder.forField(criacaoField).withConverter(new StringToZonedDateTimeConverter()).bind(Vertical::getCriacao,
-//				Vertical::setCriacao);
 
 		binder.readBean(model);
-		add(codigoField, dataField, descricaoField, unidField);
+		add(codigoField, dataField, descricaoField);
 		initButtons();
+		H2 isNovo = new H2("IsNovo: " + this.isNovo);
+		add(isNovo);
+		if (model.getMeta() != null) {
+			H2 meta = new H2(model.getMeta().getUnid());
+			add(meta);
+		}
 		initFooter();
 	}
 
@@ -127,29 +124,23 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 //
 //	}
 
-	public SaveResponse save() {
-		binder.validate();
-
-		// Stream through the fields and perform some operation on each field
-		binder.getFields().forEach(field -> {
-			// Process each field here
-			System.out.println("Field Name: " + field.getValue());
-			System.out.println("Field Value: " + field.isEmpty());
-		});
-		SaveResponse response = service.save(model);
-		Notification.show("Salvo com Sucesso!");
-		return response;
-	}
-
-	public DeleteResponse delete() {
-		System.out.println("Unid: " + model.getUnid());
-		return service.delete(model.getUnid());
-	}
+//	public SaveResponse save() {
+//		binder.validate();
+//		SaveResponse response = service.save(model);
+//		Notification.show("Salvo com Sucesso!");
+//		return response;
+//	}
 
 	@Override
 	protected SaveResponse update() {
 		return null;
 
+	}
+
+	@Override
+	protected DeleteResponse delete() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

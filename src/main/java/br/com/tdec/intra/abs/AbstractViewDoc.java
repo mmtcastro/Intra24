@@ -14,6 +14,7 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.map.Map;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.HasUrlParameter;
@@ -103,8 +104,11 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		saveButton.addClickShortcut(Key.ENTER);
 		saveButton.setVisible(isEditable);
 		editButton.setVisible(!isEditable);
-
-		horizontalLayoutButtons = new HorizontalLayout(saveButton, editButton, deleteButton, cancelButton);
+		if (isNovo) {
+			horizontalLayoutButtons = new HorizontalLayout(saveButton, cancelButton);
+		} else {
+			horizontalLayoutButtons = new HorizontalLayout(saveButton, editButton, deleteButton, cancelButton);
+		}
 
 		saveButton.addClickListener(e -> save());
 		cancelButton.addClickListener(e -> cancel());
@@ -135,14 +139,26 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		Dialog dialog = new Dialog();
 		Span message = new Span("Tem certeza que deseja apagar " + model.getForm() + " - " + model.getCodigo() + "?");
 		Button confirmButton = new Button("Confirmar", event -> {
-			DeleteResponse deleteResponse = delete();
+			DeleteResponse deleteResponse = service.delete(model.getMeta().getUnid());
+			System.out.println("DeleteResponse: " + deleteResponse);
+			if (deleteResponse != null) {
+				if (deleteResponse.getStatusCode().equals("200")) {
+					Notification notification = Notification.show(deleteResponse.getMessage());
+					notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+				} else if (deleteResponse.getStatusCode().equals("403")) {
+					Notification notification = Notification.show(deleteResponse.getMessage());
+					notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+				} else {
+					Notification notification = Notification.show(deleteResponse.getMessage());
+					notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+				}
+			}
 			dialog.close();
-			Notification.show(deleteResponse.getMessage());
 			UI.getCurrent().getPage().getHistory().back();
 		});
 		confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
 		Button cancelButton = new Button("Cancelar", event -> dialog.close());
+
 		cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 		HorizontalLayout cancelButtonsLayout = new HorizontalLayout(confirmButton, cancelButton);
 		cancelButtonsLayout.getStyle().set("padding-top", "10px");
@@ -151,7 +167,24 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		dialog.open();
 	}
 
-	protected abstract SaveResponse save();
+	// protected abstract SaveResponse save();
+
+	public void save() {
+		binder.validate();
+		SaveResponse saveResponse = service.save(model);
+		if (saveResponse != null) {
+			if (saveResponse.getStatus().equals("200")) {
+				Notification notification = Notification.show("Documento Salvo com Sucesso!");
+				notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+			} else if (saveResponse.getStatus().equals("403")) {
+				Notification notification = Notification.show(saveResponse.getMessage());
+				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+			} else {
+				Notification notification = Notification.show(saveResponse.getMessage());
+				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+			}
+		}
+	}
 
 	protected abstract SaveResponse update();
 
