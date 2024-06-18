@@ -44,13 +44,12 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	protected boolean isNovo;
 	protected Map queryParams;
 	protected H1 title;
-	// protected FormLayout form = new FormLayout();
 	protected Button saveButton;
 	protected Button cancelButton;
 	protected Button editButton;
 	protected Button deleteButton;
 	protected Dialog deleteDialog;
-	protected boolean isEditable;
+	protected boolean isReadOnly;
 
 	protected HorizontalLayout horizontalLayoutButtons;
 	protected HorizontalLayout footer;
@@ -61,10 +60,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	public AbstractViewDoc(Class<T> modelType, AbstractService<T> service) {
 		this.service = service;
 		this.modelType = modelType;
-		model = createModel(); // vai ser substituido pelo setParameter
 		binder = new Binder<>(modelType);
-		binder.setBean(model);
-		isEditable = true;
 
 		// addClassNames("formlayout-view", Width.FULL, Display.FLEX, Flex.AUTO,
 		// Margin.LARGE);
@@ -102,19 +98,29 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		editButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 		cancelButton.addClickShortcut(Key.ESCAPE);
 		saveButton.addClickShortcut(Key.ENTER);
-		saveButton.setVisible(isEditable);
-		editButton.setVisible(!isEditable);
-		if (isNovo) {
-			horizontalLayoutButtons = new HorizontalLayout(saveButton, cancelButton);
-		} else {
-			horizontalLayoutButtons = new HorizontalLayout(saveButton, editButton, deleteButton, cancelButton);
-		}
-
 		saveButton.addClickListener(e -> save());
 		cancelButton.addClickListener(e -> cancel());
 		deleteButton.addClickListener(e -> openConfirmDeleteDialog());
 		editButton.addClickListener(e -> edit());
-		add(horizontalLayoutButtons, 2);
+		showButtons();
+	}
+
+	protected void showButtons() {
+		if (horizontalLayoutButtons == null) {
+			horizontalLayoutButtons = new HorizontalLayout();
+		} else {
+			horizontalLayoutButtons.removeAll();
+		}
+		if (isNovo) {
+			horizontalLayoutButtons.add(saveButton, cancelButton);
+		} else if (!isNovo && !isReadOnly) {
+			horizontalLayoutButtons.add(saveButton, deleteButton, cancelButton);
+		} else if (!isNovo && isReadOnly) {
+			horizontalLayoutButtons.add(editButton, cancelButton);
+		} else {
+			Notification.show("Erro mostrando os botoes de ação.");
+		}
+		add(horizontalLayoutButtons);
 	}
 
 	public void initFooter() {
@@ -170,19 +176,32 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	// protected abstract SaveResponse save();
 
 	public void save() {
-		binder.validate();
-		SaveResponse saveResponse = service.save(model);
-		if (saveResponse != null) {
-			if (saveResponse.getStatus().equals("200")) {
-				Notification notification = Notification.show("Documento Salvo com Sucesso!");
-				notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-			} else if (saveResponse.getStatus().equals("403")) {
-				Notification notification = Notification.show(saveResponse.getMessage());
-				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+		try {
+			SaveResponse saveResponse = null;
+			binder.validate();
+			if (isNovo) {
+				saveResponse = service.save(model);
 			} else {
-				Notification notification = Notification.show(saveResponse.getMessage());
-				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+				saveResponse = service.put(model.getMeta().getUnid());
 			}
+
+			if (saveResponse != null) {
+				if (saveResponse.getStatus() == null) {
+					Notification notification = Notification.show("Documento Salvo com Sucesso!");
+					notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+					return;
+				} else if (saveResponse.getStatus().equals("403")) {
+					Notification notification = Notification.show(saveResponse.getMessage());
+					notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+					return;
+				} else {
+					Notification notification = Notification.show(saveResponse.getMessage());
+					notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+					return;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -191,18 +210,9 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	protected abstract DeleteResponse delete();
 
 	protected void edit() {
-		if (isEditable) {
-			isEditable = false;
-			binder.setReadOnly(isEditable);
-		} else {
-			isEditable = true;
-			binder.setReadOnly(isEditable);
-		}
-		saveButton.setVisible(isEditable);
-		editButton.setVisible(!isEditable);
-		horizontalLayoutButtons.removeAll();
-		horizontalLayoutButtons.add(saveButton, editButton, deleteButton, cancelButton);
-		this.binder.setReadOnly(isEditable);
+		isReadOnly = false;
+		binder.setReadOnly(isReadOnly);
+		showButtons();
 	}
 
 	protected void cancel() {

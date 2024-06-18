@@ -62,9 +62,9 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	public abstract SaveResponse save(T model);
 
-	public abstract SaveResponse put(T model);
+	public abstract SaveResponse put(String unid);
 
-	public abstract SaveResponse patch(T model);
+	public abstract SaveResponse patch(String unid);
 
 	// public abstract DeleteResponse delete(T model);
 

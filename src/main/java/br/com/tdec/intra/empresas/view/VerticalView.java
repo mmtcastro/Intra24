@@ -2,6 +2,8 @@ package br.com.tdec.intra.empresas.view;
 
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.OptionalParameter;
@@ -12,6 +14,7 @@ import br.com.tdec.intra.abs.AbstractService.DeleteResponse;
 import br.com.tdec.intra.abs.AbstractService.SaveResponse;
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.converters.LocalDateToZonedDateTimeConverter;
+import br.com.tdec.intra.converters.RemoveSpacesConverter;
 import br.com.tdec.intra.converters.UpperCaseConverter;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.services.VerticalService;
@@ -39,6 +42,7 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 	private TextField criacaoField = new TextField("Criação");
 	private DatePicker dataField = new DatePicker("Data");
 	private TextField codigoField = new TextField("Código");
+	private H3 tituloCodigo;
 	private TextField descricaoField = new TextField("Descrição");
 	// private FormLayout form = new FormLayout();
 	// private Button saveButton = new Button("Salvar", e -> save());
@@ -54,21 +58,27 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		this.unid = parameter;
 		if (parameter == null || parameter.isEmpty()) {
 			isNovo = true;
-			model = createModel(); // - ele já cria automaticamente para seta o Binder em AbtractViewDoc
+			model = createModel();
 			model.init();
-			isEditable = true;
+			isReadOnly = false;
 		} else {
 			model = service.findByUnid(unid);
-			isEditable = false;
+			isReadOnly = true;
 		}
-		// binder.setReadOnly(isEditable);
-		binder.forField(codigoField).asRequired("Entre com um código")//
-				.withNullRepresentation("") // Handle null values no campo texto
-				.withValidator(new VerticalValidator.CodigoValidator(service))//
-				.withConverter(new UpperCaseConverter())//
-				.bind(Vertical::getCodigo, Vertical::setCodigo);
-		if (!isNovo) {
-			codigoField.setReadOnly(true);
+
+		binder.setReadOnly(isReadOnly);
+		if (isNovo) {
+			binder.forField(codigoField).asRequired("Entre com um código")//
+					.withNullRepresentation("") // Handle null values no campo texto
+					.withValidator(new VerticalValidator.CodigoValidator(service))//
+					.withConverter(new UpperCaseConverter())//
+					.withConverter(new RemoveSpacesConverter())//
+					.bind(Vertical::getCodigo, Vertical::setCodigo);
+//		if (!isNovo) {
+//			codigoField.setReadOnly(true);
+//		}
+		} else {
+			tituloCodigo = new H3("Vertical: " + model.getCodigo());
 		}
 		// dataField.setHelperText("Formato esperado: DD/MM/AAAA");
 		binder.forField(dataField)//
@@ -78,63 +88,28 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(Vertical::getDescricao,
 				Vertical::setDescricao);
 
-		binder.readBean(model);
-		add(codigoField, dataField, descricaoField);
-		initButtons();
+		binder.setBean(model);
+		if (isNovo) {
+			add(codigoField, dataField, descricaoField);
+		} else {
+			add(tituloCodigo, dataField, descricaoField);
+		}
 		H2 isNovo = new H2("IsNovo: " + this.isNovo);
-		add(isNovo);
+		H2 isEditable = new H2("IsReadOnly: " + this.isReadOnly);
+		add(isNovo, isEditable);
 		if (model.getMeta() != null) {
 			H2 meta = new H2(model.getMeta().getUnid());
 			add(meta);
 		}
+		dataField.addValueChangeListener(e -> Notification.show("Data: " + model.getData()));
+		initButtons();
 		initFooter();
 	}
 
-//	public void addButtons() {
-//		saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-//		deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-//		cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-//		form.add(new HorizontalLayout(saveButton, deleteButton, cancelButton));
-//	}
-
-//	private void findByUnid(String unid) {
-//		try {
-//			Class<?> clazz = Vertical.class;
-//			// Ensure clazz is actually a subclass of AbstractModelDoc to safely cast
-//			if (Vertical.class.isAssignableFrom(clazz)) {
-//				Vertical model = (Vertical) clazz.getDeclaredConstructor().newInstance();
-//				model = service.findByUnid(unid);
-//				this.vertical = (Vertical) model;
-//			} else {
-//				throw new IllegalArgumentException("Class does not extend AbstractModelDoc");
-//			}
-//		} catch (InstantiationException e) {
-//			// Handle the case where the class is abstract or an interface
-//			e.printStackTrace();
-//		} catch (IllegalAccessException e) {
-//			// Handle the case where the constructor is inaccessible
-//			e.printStackTrace();
-//		} catch (NoSuchMethodException e) {
-//			// Handle the case where no default constructor is available
-//			e.printStackTrace();
-//		} catch (InvocationTargetException e) {
-//			// Handle constructor exceptions
-//			e.printStackTrace();
-//		}
-//
-//	}
-
-//	public SaveResponse save() {
-//		binder.validate();
-//		SaveResponse response = service.save(model);
-//		Notification.show("Salvo com Sucesso!");
-//		return response;
-//	}
-
 	@Override
 	protected SaveResponse update() {
+		// TODO Auto-generated method stub
 		return null;
-
 	}
 
 	@Override

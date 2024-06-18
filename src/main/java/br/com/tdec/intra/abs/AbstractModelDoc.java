@@ -22,6 +22,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
+//@JsonInclude(Include.NON_NULL) // nao mostrar campos nulos na conversao Jackson
 
 public abstract class AbstractModelDoc extends AbstractModel {
 
@@ -54,6 +55,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	@JsonAlias({ "CodigoNegocio", "codigoNegocio" })
 	protected String codigoNegocio;
 	@JsonAlias({ "Form", "form" })
+	@JsonProperty("Form")
 	protected String form;
 	@NotNull
 	@JsonAlias({ "Codigo", "codigo" })
@@ -99,6 +101,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	}
 
 	public void init() {
+		this.form = this.getClass().getSimpleName();
 		this.id = generateNewModelId();
 		this.autor = UtilsSession.getCurrentUserName();
 		this.criacao = ZonedDateTime.now();
