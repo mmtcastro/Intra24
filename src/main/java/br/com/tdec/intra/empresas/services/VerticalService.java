@@ -104,6 +104,7 @@ public class VerticalService extends AbstractService<Vertical> {
 
 	@Override
 	public SaveResponse save(Vertical model) {
+		System.out.println("Save: " + model.toString());
 		try {
 			SaveResponse saveResponse = webClient.post().uri("/document?dataSource=" + scope)
 					.header("Accept: application/json")//

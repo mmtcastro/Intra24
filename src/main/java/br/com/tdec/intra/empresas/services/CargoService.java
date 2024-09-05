@@ -156,4 +156,16 @@ public class CargoService extends AbstractService<Cargo> {
 		return model;
 	}
 
+	@Override
+	public SaveResponse put(String unid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SaveResponse patch(String unid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -90,7 +90,7 @@ public class CargoView extends AbstractViewDoc<Cargo> {
 //	}
 
 	@Override
-	protected void save() {
+	public void save() {
 		// TODO Auto-generated method stub
 
 	}

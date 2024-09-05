@@ -58,7 +58,7 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 	}
 
 	@Override
-	protected void save() {
+	public void save() {
 		// TODO Auto-generated method stub
 
 	}

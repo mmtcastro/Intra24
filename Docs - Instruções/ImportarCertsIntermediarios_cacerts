@@ -1,0 +1,9 @@
+"C:\Program Files\Java\jdk-21\bin\keytool" -importcert -keystore "%JAVA_HOME%\lib\security\cacerts" -storepass changeit -noprompt -alias cheapssl_cert -file "D:\Download Director\CheapSSL_202505\Intermed\DigiCertG5RSA4096SHA3842021CA1-1.crt.pem"
+
+
+"C:\Program Files\Java\jdk-21\bin\keytool" -importcert -keystore "%JAVA_HOME%\lib\security\cacerts" -storepass changeit -noprompt -alias cheapssl_cert1 -file "D:\Download Director\CheapSSL_202505\Intermed\DigiCertG5TLSECCSHA3842021CA1-1.crt.pem"
+
+
+"C:\Program Files\Java\jdk-21\bin\keytool" -importcert -keystore "%JAVA_HOME%\lib\security\cacerts" -storepass changeit -noprompt -alias cheapssl_cert2 -file "D:\Download Director\CheapSSL_202505\Intermed\DigiCertG5TLSRSA4096SHA3842021CA1-1.crt.pem"
+
+

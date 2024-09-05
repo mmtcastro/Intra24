@@ -33,7 +33,7 @@ public class LdapConfig {
 	private LdapTemplate ldapTemplate;
 
 	public LdapConfig(LdapProperties ldapProperties) {
-		this.setLdapProperties(ldapProperties);
+		this.ldapProperties = ldapProperties;
 
 	}
 

@@ -63,7 +63,7 @@ public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
 //	}
 
 	@Override
-	protected void save() {
+	public void save() {
 		// TODO Auto-generated method stub
 
 	}

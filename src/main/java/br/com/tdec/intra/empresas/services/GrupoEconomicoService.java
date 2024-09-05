@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -77,36 +78,39 @@ public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 		return ret;
 	}
 
-//	public List<GrupoEconomico> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders,
-//			Optional<Void> filter, String search) {
-//		List<GrupoEconomico> ret = new ArrayList<GrupoEconomico>();
-//		count = 50; // nao consegui fazer funcionar o limit automaticamente.
-//		String direction = "";
-//		if (sortOrders != null) {
-//			for (QuerySortOrder sortOrder : sortOrders) {
-//				System.out.println("--- Sorting ----");
-//				System.out.println("Sorted: " + sortOrder.getSorted());
-//				System.out.println("Direction:  " + sortOrder.getDirection());
-//			}
-//			if (sortOrders.size() > 0) {
-//				if (sortOrders.get(0).getDirection() != null && sortOrders.get(0).getDirection().equals("ASCENDING")) {
-//					direction = "&direction=asc";
-//				} else {
-//					direction = "&direction=desc";
-//				}
-//			}
-//		}
-//
-//		ret = webClient.get()
-//				.uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=" + count + direction
-//						+ "&column=Codigo&start=" + offset + "&startsWith=" + search)
-//				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
-//				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
-//				})//
-//				.block();
-//
-//		return ret;
-//	}
+	public List<GrupoEconomico> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders,
+			Optional<Void> filter, String search) {
+		List<GrupoEconomico> ret = new ArrayList<GrupoEconomico>();
+		count = 50; // nao consegui fazer funcionar o limit automaticamente.
+		String direction = "";
+		if (sortOrders != null) {
+			for (QuerySortOrder sortOrder : sortOrders) {
+				System.out.println("--- Sorting ----");
+				System.out.println("Sorted: " + sortOrder.getSorted());
+				System.out.println("Direction:  " + sortOrder.getDirection());
+			}
+			if (sortOrders.size() > 0) {
+				if (sortOrders.get(0).getDirection() != null && sortOrders.get(0).getDirection().equals("ASCENDING")) {
+					direction = "&direction=asc";
+				} else {
+					direction = "&direction=desc";
+				}
+			}
+		}
+		System.out.println("Count: " + count);
+		System.out.println("Offset: " + offset);
+		System.out.println("Search: " + search);
+
+		ret = webClient.get()
+				.uri("/lists/GruposEconomicos?dataSource=" + scope + "&count=" + count + direction
+						+ "&column=Codigo&start=" + offset + "&startsWith=" + search)
+				.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<GrupoEconomico>>() {
+				})//
+				.block();
+
+		return ret;
+	}
 
 	public GrupoEconomico findById(String id) {
 		GrupoEconomico grupoEconomico = null;
@@ -127,24 +131,6 @@ public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 	}
 
 	@Override
-	public void cancel() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void edit(GrupoEconomico model) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public DeleteResponse delete(GrupoEconomico model) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public DeleteResponse delete(String unid) {
 		// TODO Auto-generated method stub
 		return null;
@@ -157,14 +143,19 @@ public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 	}
 
 	@Override
-	public List<GrupoEconomico> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders,
-			Optional<Void> filter, String search) {
+	public GrupoEconomico findByUnid(String unid) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public GrupoEconomico findByUnid(String unid) {
+	public SaveResponse put(String unid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SaveResponse patch(String unid) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -12,8 +12,8 @@
 	<packaging>jar</packaging>
 
 	<properties>
-		<java.version>17</java.version>
-		<vaadin.version>24.4.1</vaadin.version>
+		<java.version>21</java.version>
+		<vaadin.version>24.4.10</vaadin.version>
 	</properties>
 
 
@@ -97,10 +97,10 @@
 			<artifactId>spring-security-ldap</artifactId>
 		</dependency>
 		<dependency>
-		<groupId>org.projectlombok</groupId>
-		<artifactId>lombok</artifactId>
-		<scope>provided</scope>
-	</dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 
 		<dependency>
@@ -124,8 +124,13 @@
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
+
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -135,7 +140,7 @@
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 		</dependency>
-		
+
 	</dependencies>
 
 	<build>

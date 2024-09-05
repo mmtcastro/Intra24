@@ -5,11 +5,13 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonAlias;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-@Getter
-@Setter
+@Data
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@ToString(callSuper = true)
 public class GrupoEconomico extends AbstractModelDoc {
 	@JsonAlias({ "GerenteConta", "gerenteConta" })
 	private String gerenteConta;
@@ -19,4 +21,16 @@ public class GrupoEconomico extends AbstractModelDoc {
 	private Date dataUltimoNegocio;
 	@JsonAlias({ "parceriaPrimeiroNegocio", "ParceriaPrimeiroNegocio" })
 	private String parceriaPrimeiroNegocio;
+
+	public GrupoEconomico() {
+		super();
+	}
+
+	public int compareTo(AbstractModelDoc outro) {
+		if (getCodigo() != null) {
+			return getCodigo().compareTo(outro.getCodigo());
+		} else {
+			return 0;
+		}
+	}
 }
