@@ -191,6 +191,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	public SaveResponse save(T model) {
 		SaveResponse saveResponse = null;
+		System.out.println("Aqui no save, data eh " + model.getData() + " - " + model.getData().getClass());
 
 		try {
 			String rawResponse = webClient.post().uri("/document?dataSource=" + scope)
@@ -217,7 +218,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 								}
 							}))
 					.bodyToMono(String.class).block();
-
+			System.out.println("Raw eh " + rawResponse);
 			saveResponse = objectMapper.readValue(rawResponse, SaveResponse.class);
 
 		} catch (CustomWebClientException e) {

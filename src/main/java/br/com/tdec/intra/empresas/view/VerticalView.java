@@ -1,5 +1,10 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.TextField;
@@ -38,6 +43,7 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 	public void initBinder() {
 
 		if (isNovo) {
+			model.setData(ZonedDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT, ZoneId.systemDefault()));
 			binder.forField(codigoField).asRequired("Entre com um código").withNullRepresentation("")
 					.withConverter(new UpperCaseConverter()).withConverter(new RemoveSpacesConverter())
 					.withValidator(new AbstractValidator.CodigoValidator<>(service))
