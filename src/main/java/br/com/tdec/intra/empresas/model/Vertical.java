@@ -10,8 +10,6 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class Vertical extends AbstractModelDoc {
 
-	// private String body;
-
 	public Vertical() {
 		super();
 	}

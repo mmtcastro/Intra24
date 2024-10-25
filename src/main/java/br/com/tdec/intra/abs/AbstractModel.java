@@ -20,7 +20,7 @@ public abstract class AbstractModel extends Abstract {
 
 	/**
 	 * Retorna todos os campos da classe e de suas superclasses
-	 * 
+	 *
 	 * @return
 	 */
 	@JsonIgnore
@@ -34,23 +34,26 @@ public abstract class AbstractModel extends Abstract {
 		return fields;
 	}
 
+	/**
+	 * Retorna os nomes de todos os campos da classe e de suas superclasses
+	 */
 	@JsonIgnore
 	public List<String> getAllModelFieldNames() {
-		List<String> fields = new ArrayList<>();
+		List<String> fieldNames = new ArrayList<>();
 		Class<?> currentClass = this.getClass();
 		while (currentClass != null) {
 			for (Field field : currentClass.getDeclaredFields()) {
-				fields.add(field.getName());
+				fieldNames.add(field.getName());
 			}
 			currentClass = currentClass.getSuperclass();
 		}
-		return fields;
+		return fieldNames;
 	}
 
 	/**
-	 * Retorna todos nomes dos campos da classe e de suas superclasses em properCase
+	 * Retorna os nomes dos campos da classe e de suas superclasses em properCase
 	 * para uso do ActionPack que é case sensitive
-	 * 
+	 *
 	 * @return
 	 */
 	@JsonIgnore
@@ -67,7 +70,7 @@ public abstract class AbstractModel extends Abstract {
 	}
 
 	/**
-	 * Busca todos os metodos da classe e das superclasses
+	 * Busca todos os métodos da classe e das superclasses
 	 */
 	@JsonIgnore
 	public static List<Method> findAllMethods(Class<?> clazz) {
@@ -78,23 +81,23 @@ public abstract class AbstractModel extends Abstract {
 		if (clazz.getSuperclass() != null) {
 			methods.addAll(findAllMethods(clazz.getSuperclass()));
 		}
-		methods.stream().forEach(m -> System.out.println(m.getName()));
 		return methods;
 	}
 
+	/**
+	 * Busca um campo específico por nome, independentemente da visibilidade
+	 */
 	public Field getField(String fieldName) {
-		Field ret = null;
 		try {
-			List<Field> fields = this.getAllModelFields();
-			for (Field field : fields) {
-				field.setAccessible(true);
+			for (Field field : this.getAllModelFields()) {
 				if (field.getName().equalsIgnoreCase(fieldName)) {
+					field.setAccessible(true); // Se necessário, tornar o campo acessível
 					return field;
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace(); // Considere utilizar um logger ao invés de imprimir o stacktrace
 		}
-		return ret;
+		return null;
 	}
 }

@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 import br.com.tdec.intra.abs.AbstractService;
@@ -73,32 +74,21 @@ public class Utils {
 	 * @return
 	 */
 	public static boolean isPlural(String sub) {
-		boolean ret = false;
 		try {
-			if (sub.length() > 3 && sub.substring(sub.length() - 3).equals("oes")) {
-				ret = true;
-			} else if (sub.length() > 3 && sub.substring(sub.length() - 3).equals("aes")) {
-				ret = true;
-			} else if (sub.length() > 3 && sub.substring(sub.length() - 3).equals("eis")) {
-				ret = true;
-			} else if (sub.length() > 3 && sub.substring(sub.length() - 3).equals("ais")) {
-				ret = true;
-			} else if (sub.length() > 3 && sub.substring(sub.length() - 3).equals("ois")) {
-				ret = true;
-			} else if (sub.length() > 3 && sub.substring(sub.length() - 3).equals("ens")) {
-				ret = true;
-			} else if (sub.length() > 2 && sub.substring(sub.length() - 2).equals("is")) {
-				ret = true;
-			} else if (sub.length() > 2 && sub.substring(sub.length() - 2).equals("es")) {
-				ret = true;
-			} else if (sub.length() > 1 && sub.substring(sub.length() - 1).equals("s")) {
-				ret = true;
+			int length = sub.length();
+
+			if (length > 1) {
+				// Definindo terminações plurais comuns
+				Set<String> pluralSuffixes = Set.of("oes", "aes", "eis", "ais", "ois", "ens", "is", "es", "s");
+				String suffix = length > 3 ? sub.substring(length - 3) : sub.substring(length - 1);
+				// Verifica se o sufixo está entre as terminações de plural
+				return pluralSuffixes.contains(suffix);
 			}
 		} catch (Exception e) {
-			print("Erro - Utils - isPlural - " + sub);
+			System.err.println("Erro - Utils - isPlural - " + sub);
 			e.printStackTrace();
 		}
-		return ret;
+		return false;
 	}
 
 	/**
@@ -156,32 +146,48 @@ public class Utils {
 	 * @return
 	 */
 	public static String addPlural(String sub) {
-		String str = "";
+		String str;
 		try {
-			if (sub.substring(sub.length() - 2).equals("or")) { // aprovador
-				str = sub.substring(0, sub.length() - 4) + "ores"; // aprovadores
-			} else if (sub.substring(sub.length() - 2).equals("ao")) { // aprovacao
-				str = sub.substring(0, sub.length() - 2) + "oes"; // aprovacoes
-			} else if (sub.substring(sub.length() - 2).equals("ao")) {
-				str = sub.substring(0, sub.length() - 3) + "aes";
-			} else if (sub.substring(sub.length() - 2).equals("el")) {
-				str = sub.substring(0, sub.length() - 3) + "eis";
-			} else if (sub.substring(sub.length() - 2).equals("al")) {
-				str = sub.substring(0, sub.length() - 2) + "ais";
-			} else if (sub.substring(sub.length() - 2).equals("ol")) {
-				str = sub.substring(0, sub.length() - 2) + "ois";
-			} else if (sub.substring(sub.length() - 2).equals("em")) {
-				str = sub.substring(0, sub.length() - 2) + "ens";
-			} else if (sub.substring(sub.length() - 1).equals("l")) {
-				str = sub.substring(0, sub.length() - 1) + "is";
-			} else if (sub.substring(sub.length() - 1).equals("r")) { // parecer - pareceres
-				str = sub.substring(0, sub.length() - 1) + "res";
+			int length = sub.length();
+			if (length >= 2) {
+				String lastTwo = sub.substring(length - 2);
+				switch (lastTwo) {
+				case "or": // Ex: aprovador -> aprovadores
+					str = sub + "es";
+					break;
+				case "ao": // Ex: aprovação -> aprovações
+					str = sub.substring(0, length - 2) + "ões";
+					break;
+				case "el": // Ex: papel -> papéis
+					str = sub.substring(0, length - 2) + "éis";
+					break;
+				case "al": // Ex: animal -> animais
+					str = sub.substring(0, length - 2) + "ais";
+					break;
+				case "ol": // Ex: sol -> sóis
+					str = sub.substring(0, length - 2) + "óis";
+					break;
+				case "em": // Ex: item -> itens
+					str = sub.substring(0, length - 2) + "ens";
+					break;
+				default:
+					String lastChar = sub.substring(length - 1);
+					if ("l".equals(lastChar)) {
+						str = sub.substring(0, length - 1) + "is";
+					} else if ("r".equals(lastChar)) { // Ex: parecer -> pareceres
+						str = sub + "es";
+					} else {
+						str = sub + "s"; // Caso geral
+					}
+					break;
+				}
 			} else {
-				str = sub + "s";
+				str = sub + "s"; // Caso para strings de comprimento menor que 2
 			}
 		} catch (Exception e) {
-			print("Erro - Utils - AddPlural - no String - " + sub);
+			System.err.println("Erro - Utils - addPlural - no String - " + sub);
 			e.printStackTrace();
+			str = sub; // Retorna a string original em caso de erro
 		}
 		return str;
 	}
@@ -395,6 +401,62 @@ public class Utils {
 			e.printStackTrace();
 		}
 		return ret;
+	}
+
+	/**
+	 * Retorna a versão pluralizada do nome de classe com base no pacote. Exemplo:
+	 * `br.com.tdec.intra.empresas.model.Empresa` ->
+	 * `br.com.tdec.intra.empresas.model.Empresas`
+	 *
+	 * @param modelPackage o pacote completo da classe do modelo
+	 * @return pacote modificado com o nome da classe em plural, se aplicável
+	 */
+	public static String getListaPackageFromPackage(String modelPackage) {
+		String listaModelPackage = "";
+
+		if (modelPackage == null || modelPackage.isEmpty()) {
+			return listaModelPackage;
+		}
+
+		// Converte o pacote em uma lista de partes separadas por "."
+		List<String> packageParts = stringToArrayList(modelPackage, ".");
+
+		// Identifica a última parte como o nome da classe
+		String className = packageParts.get(packageParts.size() - 1);
+		List<String> classParts = properCaseToArrayList(className);
+		String baseClassName = classParts.get(0); // Nome base da classe, como "Empresa"
+
+		// Pluraliza o nome da classe se necessário
+		if (!isPlural(baseClassName)) {
+			baseClassName = addPlural(baseClassName);
+		}
+
+		// Substitui a última parte do pacote pelo nome da classe pluralizada
+		packageParts.set(packageParts.size() - 1, baseClassName);
+		listaModelPackage = String.join(".", packageParts);
+		return listaModelPackage;
+	}
+
+	/**
+	 * retorna GruposEconomicos a partir de GrupoEconomico
+	 * 
+	 * @param modelName
+	 * @return
+	 */
+	public static String getListaNameFromModelName(String modelName) {
+		if (modelName == null || modelName.isEmpty()) {
+			return "";
+		}
+		// Divide o nome da classe em partes com base em camel case
+		List<String> classParts = properCaseToArrayList(modelName);
+		StringBuilder pluralizedName = new StringBuilder();
+		for (String part : classParts) {
+			part = addPlural(part);
+			print(part);
+			// Concatena a parte processada
+			pluralizedName.append(part);
+		}
+		return pluralizedName.toString();
 	}
 
 }

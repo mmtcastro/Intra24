@@ -2,17 +2,23 @@ package br.com.tdec.intra.abs;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import br.com.tdec.intra.utils.Utils;
 import br.com.tdec.intra.utils.UtilsSession;
+import br.com.tdec.intra.utils.jackson.ZonedDateTimeDeserializer;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -65,10 +71,14 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	@JsonAlias({ "Sit", "sit" })
 	protected String sit;
 	@JsonAlias({ "Data", "data" })
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+	@JsonDeserialize(using = ZonedDateTimeDeserializer.class)
 	protected ZonedDateTime data;
 	@JsonAlias({ "autor", "Autor" })
 	protected String autor;
 	@JsonAlias({ "Criacao", "criacao" })
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+	@JsonDeserialize(using = ZonedDateTimeDeserializer.class)
 	protected ZonedDateTime criacao;
 	@JsonAlias({ "responsavel", "Responsavel" })
 	protected String responsavel;
@@ -95,6 +105,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected Boolean isResponse; // para manter compatibilidade com Notes (contato eh response de Empresa)
 	protected String uri; // para guardar a identificacao de um determinado documento. Ex.
 							// intra.tdec.com.br/intra.nsf/empresas_contato.xsp?id=empresas_Contato_asdasd_asdsad_sdas
+	protected String revision; // para ver quantas vezes foi revisado e a ultima revisão
 
 	public AbstractModelDoc() {
 
@@ -105,6 +116,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 		this.id = generateNewModelId();
 		this.autor = UtilsSession.getCurrentUserName();
 		this.criacao = ZonedDateTime.now();
+		newRevision();
 	}
 
 	public int compareTo(AbstractModelDoc outro) {
@@ -176,14 +188,19 @@ public abstract class AbstractModelDoc extends AbstractModel {
 		@JsonProperty("unid")
 		private String unid;
 		@JsonProperty("created")
+		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
 		private ZonedDateTime created;
 		@JsonProperty("lastmodified")
+		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
 		private ZonedDateTime lastmodified;
 		@JsonProperty("lastaccessed")
+		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
 		private ZonedDateTime lastaccessed;
 		@JsonProperty("lastmodifiedinfile")
+		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
 		private ZonedDateTime lastmodifiedinfile;
 		@JsonProperty("addedtofile")
+		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
 		private ZonedDateTime addedtofile;
 		@JsonProperty("noteclass")
 		private List<String> noteclass;
@@ -197,6 +214,9 @@ public abstract class AbstractModelDoc extends AbstractModel {
 		private String etag;
 		@JsonProperty("size")
 		private int size;
+		@JsonProperty("toplevelchildunids")
+		@JsonIgnore
+		private String toplevelchildunids;
 	}
 
 	@Override
@@ -214,6 +234,19 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	@Override
 	public int hashCode() {
 		return id != null ? id.hashCode() : 0;
+	}
+
+	public void newRevision() {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd-HH:mm:ss");
+		if (this.revision != null && this.revision.contains("-")) {
+			String[] parts = this.revision.split("-");
+			int currentRevisionNumber = Integer.parseInt(parts[0]);
+			// Incrementa o número e atualiza a data e hora
+			this.revision = (currentRevisionNumber + 1) + "-" + LocalDateTime.now().format(formatter);
+		} else {
+			// Caso não tenha um valor válido, inicializa como a primeira revisão
+			this.revision = "1-" + LocalDateTime.now().format(formatter);
+		}
 	}
 
 }

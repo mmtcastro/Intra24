@@ -15,6 +15,9 @@ import lombok.Data;
 public class WebClientProperties {
 	@NotNull
 	@NotEmpty
+	private String server;
+	@NotNull
+	@NotEmpty
 	private String baseUrl;
 
 	@NotNull

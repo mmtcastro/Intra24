@@ -49,7 +49,7 @@ public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserve
 
 	public LoginViewAsync(WebClientService webClientService, LdapConfig ldapConfig,
 			WebClientProperties webClientProperties) {
-
+		System.out.println("Iniciando autenticacao");
 		this.webClientService = webClientService;
 		this.webClient = webClientService.getWebClient();
 		this.webClientProperties = webClientProperties;

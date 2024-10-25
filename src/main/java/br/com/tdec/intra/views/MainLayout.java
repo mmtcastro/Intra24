@@ -47,6 +47,7 @@ public class MainLayout extends AppLayout {
 
 		viewTitle = new H2();
 		viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
+		viewTitle.getStyle().set("white-space", "nowrap"); // Evitar quebra de linha
 
 		addToNavbar(true, toggle, viewTitle);
 
@@ -55,10 +56,12 @@ public class MainLayout extends AppLayout {
 
 		// Button logout = new Button("Log out " + username, e ->
 		// securityService.logout());
-		Anchor logout = new Anchor("logout", "Log out " + username);
+		Anchor logout = new Anchor("logout", "Log out");
+		logout.addClassNames(LumoUtility.Margin.Left.AUTO);
+
 		logout.getElement().addEventListener("click", event -> securityService.logout());
 
-		var header = new HorizontalLayout(new DrawerToggle(), logout);
+		var header = new HorizontalLayout(logout);
 
 		header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 

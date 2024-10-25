@@ -1,11 +1,5 @@
 package br.com.tdec.intra.empresas.view;
 
-import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.Grid.Column;
-import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -59,26 +53,26 @@ public class VerticaisView extends AbstractViewLista<Vertical> {
 //		getUI().ifPresent(ui -> ui.navigate("vertical/"));
 //	}
 //
-	public void initGrid() {
-		// grid.setSizeFull();
-		Column<Vertical> codigoColumn = grid.addColumn(Vertical::getCodigo).setHeader("Código").setSortable(true);
-		codigoColumn.setComparator(Comparator.comparing(Vertical::getCodigo)).setKey("codigo");
-		Column<Vertical> descricaoColumn = grid.addColumn(Vertical::getDescricao).setHeader("Descrição");
-		Grid.Column<Vertical> autorColumn = grid.addColumn(Vertical::getAutor).setHeader("Autor");
-		// autorColumn.setComparator(Comparator.comparing(Vertical::getAutor)).setKey("autor");
-		Grid.Column<Vertical> criacaoColumn = grid.addColumn(new TextRenderer<>(item -> {
-			if (item.getCriacao() != null) {
-				return item.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-			} else {
-				return null; // Or any placeholder text you prefer
-			}
-		})).setHeader("Criação");
-		Grid.Column<Vertical> unidColumn = grid.addColumn(Vertical::getUnid).setHeader("Unid");
-
-//		grid.asSingleSelect().addValueChangeListener(evt -> openPage(evt.getValue()));
-		// add(grid);
-
-	}
+//	public void initGrid() {
+//		// grid.setSizeFull();
+//		Column<Vertical> codigoColumn = grid.addColumn(Vertical::getCodigo).setHeader("Código").setSortable(true);
+//		codigoColumn.setComparator(Comparator.comparing(Vertical::getCodigo)).setKey("codigo");
+//		Column<Vertical> descricaoColumn = grid.addColumn(Vertical::getDescricao).setHeader("Descrição");
+//		Grid.Column<Vertical> autorColumn = grid.addColumn(Vertical::getAutor).setHeader("Autor");
+//		// autorColumn.setComparator(Comparator.comparing(Vertical::getAutor)).setKey("autor");
+//		Grid.Column<Vertical> criacaoColumn = grid.addColumn(new TextRenderer<>(item -> {
+//			if (item.getCriacao() != null) {
+//				return item.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+//			} else {
+//				return null; // Or any placeholder text you prefer
+//			}
+//		})).setHeader("Criação");
+//		Grid.Column<Vertical> unidColumn = grid.addColumn(Vertical::getUnid).setHeader("Unid");
+//
+////		grid.asSingleSelect().addValueChangeListener(evt -> openPage(evt.getValue()));
+//		// add(grid);
+//
+//	}
 //
 //	private void openPage(Vertical vertical) {
 //		getUI().ifPresent(ui -> ui.navigate("vertical/" + vertical.getUnid()));

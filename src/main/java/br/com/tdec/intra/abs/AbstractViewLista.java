@@ -1,5 +1,9 @@
 package br.com.tdec.intra.abs;
 
+import java.lang.reflect.ParameterizedType;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.button.Button;
@@ -8,6 +12,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.LazyDataView;
+import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.value.ValueChangeMode;
 
 import lombok.Getter;
@@ -59,7 +64,51 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 		add(grid);
 	}
 
-	public abstract void initGrid();
+//	// Método genérico padrão para configurar colunas
+//	public void initGrid() {
+//		// Adiciona colunas genéricas. Subclasses podem sobrescrever este método.
+//		grid.addColumn(model -> model.getCodigo()).setHeader("Código").setSortable(true);
+//		grid.addColumn(model -> model.getDescricao()).setHeader("Descrição");
+//		grid.addColumn(model -> model.getAutor()).setHeader("Autor");
+//		grid.addColumn(model -> {
+//			if (model.getCriacao() != null) {
+//				return model.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+//			} else {
+//				return null;
+//			}
+//		}).setHeader("Criação");
+//		grid.addColumn(model -> model.getUnid()).setHeader("Unid");
+//	}
+
+	public void initGrid() {
+		// Coluna para Código
+		Grid.Column<T> codigoColumn = grid.addColumn(model -> model.getCodigo()).setHeader("Código").setSortable(true);
+		codigoColumn.setComparator(Comparator.comparing(T::getCodigo)).setKey("codigo");
+
+		// Coluna para Descrição
+		Grid.Column<T> descricaoColumn = grid.addColumn(model -> model.getDescricao()).setHeader("Descrição")
+				.setSortable(true);
+		descricaoColumn.setComparator(Comparator.comparing(T::getDescricao)).setKey("descricao");
+
+		// Coluna para Autor
+		Grid.Column<T> autorColumn = grid.addColumn(model -> model.getAutor()).setHeader("Autor").setSortable(true);
+		autorColumn.setComparator(Comparator.comparing(T::getAutor)).setKey("autor");
+
+		// Coluna para Criação, com formatação de data
+		Grid.Column<T> criacaoColumn = grid.addColumn(model -> {
+			if (model.getCriacao() != null) {
+				return model.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+			}
+			return null;
+		}).setHeader("Criação").setSortable(true);
+		criacaoColumn.setComparator(
+				Comparator.comparing(model -> model.getCriacao(), Comparator.nullsLast(Comparator.naturalOrder())))
+				.setKey("criacao");
+
+		// Coluna para Unid
+		Grid.Column<T> unidColumn = grid.addColumn(model -> model.getUnid()).setHeader("Unid").setSortable(true);
+		unidColumn.setComparator(Comparator.comparing(T::getUnid)).setKey("unid");
+	}
 
 	private void openPage(T model) {
 		getUI().ifPresent(ui -> ui.navigate(model.getClass().getSimpleName().toLowerCase() + "/" + model.getUnid()));
@@ -70,10 +119,17 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 	}
 
 	public void updateGrid(Grid<T> grid, String searchText) {
-		LazyDataView<T> dataView = grid.setItems(q -> captureWildcard(this.service
-				.findAllByCodigo(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), searchText).stream()));
+		LazyDataView<T> dataView = grid.setItems(query -> {
+			// Pegando o offset, limite e ordens de ordenação da query
+			int offset = query.getOffset();
+			int limit = query.getLimit();
+			List<QuerySortOrder> sortOrders = query.getSortOrders();
 
-		dataView.setItemCountEstimate(8000);
+			// Chama o serviço com os parâmetros apropriados, incluindo o searchText
+			return this.service.findAllByCodigo(offset, limit, sortOrders, searchText, getModelClass()).stream();
+		});
+
+		dataView.setItemCountEstimate(8000); // Estimativa de total de itens
 	}
 
 	@SuppressWarnings("unchecked")
@@ -89,6 +145,11 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 		} catch (Exception e) {
 			throw new RuntimeException("Nao foi possivel criar o modelo - " + modelType, e);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	protected Class<T> getModelClass() {
+		return (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 	}
 
 }

@@ -1,10 +1,7 @@
 package br.com.tdec.intra.empresas.view;
 
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.router.BeforeEvent;
-import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility.Display;
@@ -12,9 +9,12 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Flex;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 
+import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.Empresa;
 import br.com.tdec.intra.empresas.services.EmpresaService;
+import br.com.tdec.intra.utils.converters.RemoveSpacesConverter;
+import br.com.tdec.intra.utils.converters.UpperCaseConverter;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -28,38 +28,38 @@ import lombok.Setter;
 public class EmpresaView extends AbstractViewDoc<Empresa> {
 
 	private static final long serialVersionUID = 1L;
-	private String unid;
-	private Empresa empresa;
-	private FormLayout form = new FormLayout();
-	private TextField idField = new TextField("Id");
 	private TextField codigoField = new TextField("Código");
 	private TextField nomeField = new TextField("Nome");
+	private TextField descricaoField = new TextField("Descrição");
 	private Binder<Empresa> binder = new Binder<>(Empresa.class, false);
-//	private Button saveButton = new Button("Salvar", e -> save());
-//	private Button deleteButton = new Button("Excluir", e -> delete());
-//	private Button cancelButton = new Button("Cancelar", e -> cancel());
 
 	public EmpresaView(EmpresaService service) {
 		super(Empresa.class, service);
 		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
 	}
 
-	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
-		this.unid = parameter;
-		empresa = service.findByUnid(unid);
-		binder.forField(codigoField).asRequired("Entre com um código").bind(Empresa::getCodigo, Empresa::setCodigo);
-		binder.bind(idField, Empresa::getId, Empresa::setId);
-		binder.bind(nomeField, Empresa::getNome, Empresa::setNome);
-		idField.setReadOnly(true);
-		binder.readBean(empresa);
-		form.add(codigoField, nomeField, idField);
-		// addButtons();
-		add(form);
-	}
-
 	@Override
-	public void save() {
-		// TODO Auto-generated method stub
+	protected void initBinder() {
+		if (isNovo) {
+			binder.forField(codigoField).asRequired("Entre com um código").withNullRepresentation("")
+					.withConverter(new UpperCaseConverter()).withConverter(new RemoveSpacesConverter())
+					.withValidator(new AbstractValidator.CodigoValidator<>(service))
+					.bind(Empresa::getCodigo, Empresa::setCodigo);
+		} else {
+			binder.forField(codigoField).asRequired("Entre com um código").withNullRepresentation("")
+					.withConverter(new UpperCaseConverter()).withConverter(new RemoveSpacesConverter())
+					.bind(Empresa::getCodigo, Empresa::setCodigo);
+			readOnlyFields.add(codigoField);
+		}
+		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(Empresa::getDescricao,
+				Empresa::setDescricao);
+		System.out.println("Data no Binder: " + model.getData());
+		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(Empresa::getDescricao,
+				Empresa::setDescricao);
+
+		binder.setBean(model);
+
+		add(codigoField, nomeField, descricaoField);
 
 	}
 

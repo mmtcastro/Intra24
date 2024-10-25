@@ -47,36 +47,6 @@ public class EmpresasView extends AbstractViewLista<Empresa> {
 				return null; // Or any placeholder text you prefer
 			}
 		})).setHeader("Criação");
-
-//		grid.asSingleSelect().addValueChangeListener(evt -> openPage(evt.getValue()));
-//		add(grid);
 	}
-
-//	private void setSearch() {
-//		search.setPlaceholder("buscar...");
-//		search.setClearButtonVisible(true);
-//		search.setValueChangeMode(ValueChangeMode.LAZY);
-//		search.addValueChangeListener(e -> updateGrid(grid, search.getValue()));
-//		add(search);
-//
-//	}
-
-//	private void openPage(Empresa empresa) {
-//		getUI().ifPresent(ui -> ui.navigate("empresa/" + empresa.getUnid()));
-//	}
-
-//	public void updateGrid(Grid<Empresa> grid, String searchText) {
-//		LazyDataView<Empresa> dataView = grid.setItems(q -> captureWildcard(this.service
-//				.findAllByCodigo(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), searchText).stream()));
-//
-//		dataView.setItemCountEstimate(8000);
-//	}
-//
-//	@SuppressWarnings("unchecked")
-//	private Stream<Empresa> captureWildcard(Stream<? extends AbstractModelDoc> stream) {
-//		// This casting operation captures the wildcard and returns a stream of
-//		// AbstractModelDoc - por causa do <E> no AbstractRepository
-//		return (Stream<Empresa>) stream;
-//	}
 
 }

@@ -130,34 +130,4 @@ public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 		return null;
 	}
 
-	@Override
-	public DeleteResponse delete(String unid) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public GrupoEconomico findByCodigo(String unid) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public GrupoEconomico findByUnid(String unid) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public SaveResponse put(String unid) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public SaveResponse patch(String unid) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

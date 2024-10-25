@@ -44,28 +44,6 @@ public class CargosView extends AbstractViewLista<Cargo> {
 				return null; // Or any placeholder text you prefer
 			}
 		})).setHeader("Criação");
-
-		// grid.asSingleSelect().addValueChangeListener(evt ->
-		// openPageCargo(evt.getValue()));
 	}
-
-//	private void openPageCargo(Cargo cargo) {
-//		getUI().ifPresent(ui -> ui.navigate("cargo/" + cargo.getUnid()));
-//	}
-
-//	public void updateGrid(Grid<Cargo> grid, String searchText) {
-//		System.out.println("Search eh " + searchText);
-//		LazyDataView<Cargo> dataView = grid.setItems(q -> captureWildcard(this.service
-//				.findAllByCodigo(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), searchText).stream()));
-//
-//		dataView.setItemCountEstimate(8000);
-//	}
-//
-//	@SuppressWarnings("unchecked")
-//	private Stream<Cargo> captureWildcard(Stream<? extends AbstractModelDoc> stream) {
-//		// This casting operation captures the wildcard and returns a stream of
-//		// AbstractModelDoc - por causa do <E> no AbstractRepository
-//		return (Stream<Cargo>) stream;
-//	}
 
 }

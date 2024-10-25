@@ -4,13 +4,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -19,17 +16,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WebClientConfig {
-	/*
-	 * Sem este WebClientConfig, o ZonedDateTime não é deserializado corretamente e
-	 * não é gravado do Domino
-	 * 
-	 */
-	@Bean
-	public ObjectMapper objectMapper() {
-		return Jackson2ObjectMapperBuilder.json()//
-				.modules(new JavaTimeModule())//
-				.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).build();
-	}
 
 	@Bean
 	public WebClient webClient(ObjectMapper objectMapper, WebClientProperties webClientProperties) {
