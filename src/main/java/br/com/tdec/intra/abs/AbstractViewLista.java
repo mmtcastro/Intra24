@@ -97,7 +97,7 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 		// Coluna para Criação, com formatação de data
 		Grid.Column<T> criacaoColumn = grid.addColumn(model -> {
 			if (model.getCriacao() != null) {
-				return model.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+				return model.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
 			}
 			return null;
 		}).setHeader("Criação").setSortable(true);
