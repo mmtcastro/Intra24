@@ -18,7 +18,8 @@ public class ZonedDateTimeToLocalDateConverter implements Converter<LocalDate, Z
 			return Result.ok(null); // Retorna nulo se não houver data selecionada
 		}
 		// Converte LocalDate para ZonedDateTime com a hora 00:00 e o fuso horário atual
-		ZonedDateTime zonedDateTime = value.atStartOfDay(ZoneId.systemDefault());
+		// ZonedDateTime zonedDateTime = value.atStartOfDay(ZoneId.systemDefault());
+		ZonedDateTime zonedDateTime = value.atStartOfDay(ZoneId.of("America/Sao_Paulo"));
 		return Result.ok(zonedDateTime);
 	}
 

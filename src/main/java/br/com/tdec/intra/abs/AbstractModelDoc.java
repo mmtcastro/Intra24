@@ -2,6 +2,7 @@ package br.com.tdec.intra.abs;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -70,16 +71,16 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected String status;
 	@JsonAlias({ "Sit", "sit" })
 	protected String sit;
-	@JsonAlias({ "Data", "data" })
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-	@JsonDeserialize(using = ZonedDateTimeDeserializer.class)
-	protected ZonedDateTime data;
-	@JsonAlias({ "autor", "Autor" })
-	protected String autor;
 	@JsonAlias({ "Criacao", "criacao" })
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
 	@JsonDeserialize(using = ZonedDateTimeDeserializer.class)
 	protected ZonedDateTime criacao;
+	@JsonAlias({ "Data", "data" })
+//	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+//	@JsonDeserialize(using = ZonedDateTimeDeserializer.class)
+	protected LocalDate data;
+	@JsonAlias({ "autor", "Autor" })
+	protected String autor;
 	@JsonAlias({ "responsavel", "Responsavel" })
 	protected String responsavel;
 	@JsonAlias({ "Area", "area" })

@@ -1,12 +1,8 @@
 package br.com.tdec.intra.empresas.view;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -17,7 +13,6 @@ import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.services.VerticalService;
 import br.com.tdec.intra.utils.converters.RemoveSpacesConverter;
 import br.com.tdec.intra.utils.converters.UpperCaseConverter;
-import br.com.tdec.intra.utils.converters.ZonedDateTimeToLocalDateConverter;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -43,7 +38,9 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 	public void initBinder() {
 
 		if (isNovo) {
-			model.setData(ZonedDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT, ZoneId.systemDefault()));
+			// model.setData(ZonedDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT,
+			// ZoneId.systemDefault()));
+			model.setData(LocalDate.now());
 			binder.forField(codigoField).asRequired("Entre com um código").withNullRepresentation("")
 					.withConverter(new UpperCaseConverter()).withConverter(new RemoveSpacesConverter())
 					.withValidator(new AbstractValidator.CodigoValidator<>(service))
@@ -56,17 +53,22 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		}
 		binder.forField(dataField)//
 				.asRequired("Formato esperado: DD/MM/AAAA")//
-				.withConverter(new ZonedDateTimeToLocalDateConverter())//
+				// .withConverter(new ZonedDateTimeToIso8601Converter())//
 				.bind(Vertical::getData, Vertical::setData);
-		System.out.println("Data no Binder: " + model.getData());
+
 		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(Vertical::getDescricao,
 				Vertical::setDescricao);
+
+		dataField.addValueChangeListener(e -> {
+			// Exibe o valor atual do dataField antes de ser enviado ao modelo
+			System.out.println("Valor atual de dataField (antes de setBean): " + e.getValue());
+		});
 
 		binder.setBean(model);
 
 		add(codigoField, dataField, descricaoField);
 
-		dataField.addValueChangeListener(e -> Notification.show("Data: " + model.getData()));
+		dataField.addValueChangeListener(e -> System.out.println("Data (ZonedDateTime): " + model.getData()));
 
 	}
 

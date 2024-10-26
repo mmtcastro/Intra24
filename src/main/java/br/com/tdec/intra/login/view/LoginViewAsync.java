@@ -66,6 +66,7 @@ public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserve
 
 		login.addLoginListener(e -> {
 			authenticated = SecurityUtils.authenticate(e.getUsername(), e.getPassword());
+
 			if (authenticated) {
 				try {
 					user = authenticateAndFetchUser(e.getUsername(), e.getPassword());

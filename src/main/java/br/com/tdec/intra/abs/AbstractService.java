@@ -191,9 +191,10 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	public SaveResponse save(T model) {
 		SaveResponse saveResponse = null;
-		System.out.println("Aqui no save, data eh " + model.getData() + " - " + model.getData().getClass());
 
 		try {
+			String requestBodyJson = objectMapper.writeValueAsString(model);
+			System.out.println("JSON a ser enviado: " + requestBodyJson);
 			String rawResponse = webClient.post().uri("/document?dataSource=" + scope)
 					.header("Accept", "application/json").header("Content-Type", "application/json")
 					.header("Authorization", "Bearer " + getUser().getToken()).body(Mono.just(model), model.getClass())
@@ -256,6 +257,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			String unid = model.getMeta().getUnid();
 			model.newRevision();
 			System.out.println(unid + "Revision eh " + model.getRevision());
+			System.out.println("Data eh " + model.getData());
 			// Realiza a solicitação de PUT usando o `unid` na URL e o próprio `model` como
 			// corpo da requisição
 			String rawResponse = webClient.put()
@@ -289,6 +291,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 					.bodyToMono(String.class).block();
 
 			// Desserializa a resposta bruta manualmente para SaveResponse
+			System.out.println("Raw: " + rawResponse);
 			saveResponse = objectMapper.readValue(rawResponse, SaveResponse.class);
 
 		} catch (CustomWebClientException e) {
