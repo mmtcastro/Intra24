@@ -238,13 +238,14 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 
 	public void save() {
 		try {
-			SaveResponse saveResponse = null;
+			// SaveResponse saveResponse = null;
 			binder.validate();
-			if (isNovo) {
-				saveResponse = service.save(model);
-			} else {
-				saveResponse = service.put(model);
-			}
+			SaveResponse saveResponse = service.save(model);
+//			if (isNovo) {
+//				saveResponse = service.save(model);
+//			} else {
+//				saveResponse = service.put(model);
+//			}
 
 			if (saveResponse != null) {
 				if (saveResponse.getStatus() == null) {

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import br.com.tdec.intra.utils.Utils;
 import br.com.tdec.intra.utils.UtilsSession;
+import br.com.tdec.intra.utils.jackson.BodyDeserializer;
 import br.com.tdec.intra.utils.jackson.ZonedDateTimeDeserializer;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -107,6 +108,9 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected String uri; // para guardar a identificacao de um determinado documento. Ex.
 							// intra.tdec.com.br/intra.nsf/empresas_contato.xsp?id=empresas_Contato_asdasd_asdsad_sdas
 	protected String revision; // para ver quantas vezes foi revisado e a ultima revisão
+	@JsonAlias({ "body", "Body" })
+	@JsonDeserialize(using = BodyDeserializer.class)
+	protected Body body;
 
 	public AbstractModelDoc() {
 
@@ -218,6 +222,14 @@ public abstract class AbstractModelDoc extends AbstractModel {
 		@JsonProperty("toplevelchildunids")
 		@JsonIgnore
 		private String toplevelchildunids;
+	}
+
+	@Getter
+	@Setter
+	public static class Body {
+		private String type;
+		private String encoding;
+		private String content;
 	}
 
 	@Override

@@ -75,8 +75,8 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		try {
 			// Captura a resposta do WebClient, lidando com erros
 			String rawResponse = webClient.get()
-					.uri("/document/" + unid + "?dataSource=" + scope
-							+ "&computeWithForm=false&richTextAs=markdown&mode=" + mode)
+					.uri("/document/" + unid + "?dataSource=" + scope + "&computeWithForm=true"
+							+ "&richTextAs=html&mode=" + mode)
 					.header("Content-Type", "application/json")
 					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
 					.onStatus(HttpStatusCode::isError,
@@ -191,52 +191,84 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	public SaveResponse save(T model) {
 		SaveResponse saveResponse = null;
-
 		try {
+			String rawResponse = "erro rawRepsonse";
+			boolean isNew = model.getMeta() == null;
 			String requestBodyJson = objectMapper.writeValueAsString(model);
 			System.out.println("JSON a ser enviado: " + requestBodyJson);
-			String rawResponse = webClient.post().uri("/document?dataSource=" + scope)
-					.header("Accept", "application/json").header("Content-Type", "application/json")
-					.header("Authorization", "Bearer " + getUser().getToken()).body(Mono.just(model), model.getClass())
-					.retrieve().onStatus(HttpStatusCode::isError,
-							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
-								int statusCode = errorResponse.getStatus();
-								String message = errorResponse.getMessage();
-								String details = errorResponse.getDetails();
+			if (isNew) {
+				rawResponse = webClient.post().uri("/document?dataSource=" + scope).header("Accept", "application/json")
+						.header("Content-Type", "application/json")
+						.header("Authorization", "Bearer " + getUser().getToken())
+						.body(Mono.just(model), model.getClass()).retrieve()
+						.onStatus(HttpStatusCode::isError, clientResponse -> clientResponse
+								.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
+									int statusCode = errorResponse.getStatus();
+									String message = errorResponse.getMessage();
+									String details = errorResponse.getDetails();
 
-								if (statusCode == 403) {
-									return Mono.error(new CustomWebClientException("Sem permissão: " + message,
-											statusCode, errorResponse));
-								} else if (statusCode == 406) {
-									return Mono.error(new CustomWebClientException("Operação não suportada: " + message,
-											statusCode, errorResponse));
-								} else if (statusCode == 500) {
-									return Mono.error(new CustomWebClientException("Erro no servidor: " + message,
-											statusCode, errorResponse));
-								} else {
-									return Mono.error(new CustomWebClientException("Erro desconhecido: " + message,
-											statusCode, errorResponse));
-								}
-							}))
-					.bodyToMono(String.class).block();
+									if (statusCode == 403) {
+										return Mono.error(new CustomWebClientException("Sem permissão: " + message,
+												statusCode, errorResponse));
+									} else if (statusCode == 406) {
+										return Mono.error(new CustomWebClientException(
+												"Operação não suportada: " + message, statusCode, errorResponse));
+									} else if (statusCode == 500) {
+										return Mono.error(new CustomWebClientException("Erro no servidor: " + message,
+												statusCode, errorResponse));
+									} else {
+										return Mono.error(new CustomWebClientException("Erro desconhecido: " + message,
+												statusCode, errorResponse));
+									}
+								}))
+						.bodyToMono(String.class).block();
+			} else {
+				String unid = model.getMeta().getUnid();
+				model.newRevision();
+				System.out.println(unid + "Revision eh " + model.getRevision());
+				System.out.println("Data eh " + model.getData());
+				rawResponse = webClient.put()
+						.uri("/document/" + unid + "?dataSource=" + scope + "&richTextAs=mime&mode=html" + mode
+								+ "&revision=" + model.getRevision())
+						.header("Accept", "application/json").header("Content-Type", "application/json")
+						.header("Authorization", "Bearer " + getUser().getToken())
+						.body(Mono.just(model), model.getClass()).retrieve()
+						.onStatus(HttpStatusCode::isError, clientResponse -> clientResponse
+								.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
+									int statusCode = errorResponse.getStatus();
+									String message = errorResponse.getMessage();
+									String details = errorResponse.getDetails();
+
+									if (statusCode == 403) {
+										return Mono.error(new CustomWebClientException("Sem permissão: " + message,
+												statusCode, errorResponse));
+									} else if (statusCode == 406) {
+										return Mono.error(new CustomWebClientException(
+												"Operação não suportada: " + message, statusCode, errorResponse));
+									} else if (statusCode == 500) {
+										return Mono.error(new CustomWebClientException("Erro no servidor: " + message,
+												statusCode, errorResponse));
+									} else if (statusCode == 501) {
+										return Mono.error(new CustomWebClientException(
+												"Operação não implementada: " + message, statusCode, errorResponse));
+									} else {
+										return Mono.error(new CustomWebClientException("Erro desconhecido: " + message,
+												statusCode, errorResponse));
+									}
+								}))
+						.bodyToMono(String.class).block();
+			}
 			System.out.println("Raw eh " + rawResponse);
 			saveResponse = objectMapper.readValue(rawResponse, SaveResponse.class);
 
 		} catch (CustomWebClientException e) {
 			ErrorResponse error = e.getErrorResponse();
-			// System.out.println("Erro ao salvar documento. Código HTTP: " +
-			// error.getStatus());
-			// System.out.println("Mensagem de erro: " + error.getMessage());
-			// System.out.println("Detalhes do erro: " + error.getDetails());
-
 			// Cria uma resposta SaveResponse personalizada com base no erro
 			saveResponse = new SaveResponse();
 			saveResponse.setStatus(String.valueOf(error.getStatus()));
 			saveResponse.setMessage("Erro ao salvar documento: " + error.getMessage() + " - " + error.getDetails());
 
 		} catch (WebClientResponseException e) {
-			// System.out.println("Erro ao salvar documento. Código HTTP: " +
-			// e.getStatusCode());
 			saveResponse = new SaveResponse();
 			saveResponse.setStatus(String.valueOf(e.getStatusCode().value()));
 			saveResponse.setMessage("Erro ao salvar documento: " + e.getMessage());
@@ -251,69 +283,123 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		return saveResponse;
 	}
 
-	public SaveResponse put(T model) {
-		SaveResponse saveResponse = null;
-		try {
-			String unid = model.getMeta().getUnid();
-			model.newRevision();
-			System.out.println(unid + "Revision eh " + model.getRevision());
-			System.out.println("Data eh " + model.getData());
-			// Realiza a solicitação de PUT usando o `unid` na URL e o próprio `model` como
-			// corpo da requisição
-			String rawResponse = webClient.put()
-					.uri("/document/" + unid + "?dataSource=" + scope + "&richTextAs=mime&mode=" + mode + "&revision="
-							+ model.getRevision())
-					.header("Accept", "application/json").header("Content-Type", "application/json")
-					.header("Authorization", "Bearer " + getUser().getToken()).body(Mono.just(model), model.getClass())
-					.retrieve().onStatus(HttpStatusCode::isError,
-							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
-								int statusCode = errorResponse.getStatus();
-								String message = errorResponse.getMessage();
-								String details = errorResponse.getDetails();
-
-								if (statusCode == 403) {
-									return Mono.error(new CustomWebClientException("Sem permissão: " + message,
-											statusCode, errorResponse));
-								} else if (statusCode == 406) {
-									return Mono.error(new CustomWebClientException("Operação não suportada: " + message,
-											statusCode, errorResponse));
-								} else if (statusCode == 500) {
-									return Mono.error(new CustomWebClientException("Erro no servidor: " + message,
-											statusCode, errorResponse));
-								} else if (statusCode == 501) {
-									return Mono.error(new CustomWebClientException(
-											"Operação não implementada: " + message, statusCode, errorResponse));
-								} else {
-									return Mono.error(new CustomWebClientException("Erro desconhecido: " + message,
-											statusCode, errorResponse));
-								}
-							}))
-					.bodyToMono(String.class).block();
-
-			// Desserializa a resposta bruta manualmente para SaveResponse
-			System.out.println("Raw: " + rawResponse);
-			saveResponse = objectMapper.readValue(rawResponse, SaveResponse.class);
-
-		} catch (CustomWebClientException e) {
-			ErrorResponse error = e.getErrorResponse();
-			saveResponse = new SaveResponse();
-			saveResponse.setStatus(String.valueOf(error.getStatus()));
-			saveResponse.setMessage("Erro ao salvar documento: " + error.getMessage() + " - " + error.getDetails());
-
-		} catch (WebClientResponseException e) {
-			saveResponse = new SaveResponse();
-			saveResponse.setStatus(String.valueOf(e.getStatusCode().value()));
-			saveResponse.setMessage("Erro ao salvar documento: " + e.getMessage());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			saveResponse = new SaveResponse();
-			saveResponse.setStatus("500");
-			saveResponse.setMessage("Erro inesperado ao salvar documento.");
-		}
-
-		return saveResponse;
-	}
+//	public SaveResponse save2(T model) {
+//		SaveResponse saveResponse = null;
+//		try {
+//			String requestBodyJson = objectMapper.writeValueAsString(model);
+//			System.out.println("JSON a ser enviado: " + requestBodyJson);
+//			String rawResponse = webClient.post().uri("/document?dataSource=" + scope)
+//					.header("Accept", "application/json").header("Content-Type", "application/json")
+//					.header("Authorization", "Bearer " + getUser().getToken()).body(Mono.just(model), model.getClass())
+//					.retrieve().onStatus(HttpStatusCode::isError,
+//							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
+//								int statusCode = errorResponse.getStatus();
+//								String message = errorResponse.getMessage();
+//								String details = errorResponse.getDetails();
+//
+//								if (statusCode == 403) {
+//									return Mono.error(new CustomWebClientException("Sem permissão: " + message,
+//											statusCode, errorResponse));
+//								} else if (statusCode == 406) {
+//									return Mono.error(new CustomWebClientException("Operação não suportada: " + message,
+//											statusCode, errorResponse));
+//								} else if (statusCode == 500) {
+//									return Mono.error(new CustomWebClientException("Erro no servidor: " + message,
+//											statusCode, errorResponse));
+//								} else {
+//									return Mono.error(new CustomWebClientException("Erro desconhecido: " + message,
+//											statusCode, errorResponse));
+//								}
+//							}))
+//					.bodyToMono(String.class).block();
+//			System.out.println("Raw eh " + rawResponse);
+//			saveResponse = objectMapper.readValue(rawResponse, SaveResponse.class);
+//
+//		} catch (CustomWebClientException e) {
+//			ErrorResponse error = e.getErrorResponse();
+//			// Cria uma resposta SaveResponse personalizada com base no erro
+//			saveResponse = new SaveResponse();
+//			saveResponse.setStatus(String.valueOf(error.getStatus()));
+//			saveResponse.setMessage("Erro ao salvar documento: " + error.getMessage() + " - " + error.getDetails());
+//
+//		} catch (WebClientResponseException e) {
+//			saveResponse = new SaveResponse();
+//			saveResponse.setStatus(String.valueOf(e.getStatusCode().value()));
+//			saveResponse.setMessage("Erro ao salvar documento: " + e.getMessage());
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			saveResponse = new SaveResponse();
+//			saveResponse.setStatus("500");
+//			saveResponse.setMessage("Erro inesperado ao salvar documento.");
+//		}
+//
+//		return saveResponse;
+//	}
+//
+//	public SaveResponse put(T model) {
+//		SaveResponse saveResponse = null;
+//		try {
+//			String unid = model.getMeta().getUnid();
+//			model.newRevision();
+//			System.out.println(unid + "Revision eh " + model.getRevision());
+//			System.out.println("Data eh " + model.getData());
+//			// Realiza a solicitação de PUT usando o `unid` na URL e o próprio `model` como
+//			// corpo da requisição
+//			String rawResponse = webClient.put()
+//					.uri("/document/" + unid + "?dataSource=" + scope + "&richTextAs=mime&mode=html" + mode
+//							+ "&revision=" + model.getRevision())
+//					.header("Accept", "application/json").header("Content-Type", "application/json")
+//					.header("Authorization", "Bearer " + getUser().getToken()).body(Mono.just(model), model.getClass())
+//					.retrieve().onStatus(HttpStatusCode::isError,
+//							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
+//								int statusCode = errorResponse.getStatus();
+//								String message = errorResponse.getMessage();
+//								String details = errorResponse.getDetails();
+//
+//								if (statusCode == 403) {
+//									return Mono.error(new CustomWebClientException("Sem permissão: " + message,
+//											statusCode, errorResponse));
+//								} else if (statusCode == 406) {
+//									return Mono.error(new CustomWebClientException("Operação não suportada: " + message,
+//											statusCode, errorResponse));
+//								} else if (statusCode == 500) {
+//									return Mono.error(new CustomWebClientException("Erro no servidor: " + message,
+//											statusCode, errorResponse));
+//								} else if (statusCode == 501) {
+//									return Mono.error(new CustomWebClientException(
+//											"Operação não implementada: " + message, statusCode, errorResponse));
+//								} else {
+//									return Mono.error(new CustomWebClientException("Erro desconhecido: " + message,
+//											statusCode, errorResponse));
+//								}
+//							}))
+//					.bodyToMono(String.class).block();
+//
+//			// Desserializa a resposta bruta manualmente para SaveResponse
+//			System.out.println("Raw: " + rawResponse);
+//			saveResponse = objectMapper.readValue(rawResponse, SaveResponse.class);
+//
+//		} catch (CustomWebClientException e) {
+//			ErrorResponse error = e.getErrorResponse();
+//			saveResponse = new SaveResponse();
+//			saveResponse.setStatus(String.valueOf(error.getStatus()));
+//			saveResponse.setMessage("Erro ao salvar documento: " + error.getMessage() + " - " + error.getDetails());
+//
+//		} catch (WebClientResponseException e) {
+//			saveResponse = new SaveResponse();
+//			saveResponse.setStatus(String.valueOf(e.getStatusCode().value()));
+//			saveResponse.setMessage("Erro ao salvar documento: " + e.getMessage());
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			saveResponse = new SaveResponse();
+//			saveResponse.setStatus("500");
+//			saveResponse.setMessage("Erro inesperado ao salvar documento.");
+//		}
+//
+//		return saveResponse;
+//	}
 
 	public SaveResponse patch(String unid, T model) {
 		SaveResponse patchResponse = null;
