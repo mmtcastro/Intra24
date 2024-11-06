@@ -1,5 +1,7 @@
 package br.com.tdec.intra.abs;
 
+import com.vaadin.flow.component.textfield.TextField;
+
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -178,6 +180,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 			horizontalLayoutButtons.add(saveButton, deleteButton, cancelButton);
 		} else if (!isNovo && isReadOnly) {
 			horizontalLayoutButtons.add(editButton, cancelButton);
+TextField textField = new TextField("Text field");
+horizontalLayoutButtons.add(textField);
+TextField textField2 = new TextField("Text field");
+horizontalLayoutButtons.add(textField2);
 		} else {
 			Notification.show("Erro mostrando os botoes de ação.");
 		}
