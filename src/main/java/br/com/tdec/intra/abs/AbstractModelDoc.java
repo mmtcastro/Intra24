@@ -110,7 +110,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected String revision; // para ver quantas vezes foi revisado e a ultima revisão
 	@JsonAlias({ "body", "Body" })
 	@JsonDeserialize(using = BodyDeserializer.class)
-	protected Body body;
+	protected RichText body;
 
 	public AbstractModelDoc() {
 
@@ -226,7 +226,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 
 	@Getter
 	@Setter
-	public static class Body {
+	public static class RichText {
 		private String type;
 		private String encoding;
 		private String content;
