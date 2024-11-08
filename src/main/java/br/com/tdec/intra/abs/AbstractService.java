@@ -718,17 +718,4 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	}
 
-	private MediaType getMediaType(String fileName) {
-		String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-
-		return switch (extension) {
-		case "pdf" -> MediaType.APPLICATION_PDF;
-		case "html", "htm" -> MediaType.TEXT_HTML;
-		case "txt" -> MediaType.TEXT_PLAIN;
-		case "json" -> MediaType.APPLICATION_JSON;
-		case "xml" -> MediaType.APPLICATION_XML;
-		default -> MediaType.APPLICATION_OCTET_STREAM;
-		};
-	}
-
 }
