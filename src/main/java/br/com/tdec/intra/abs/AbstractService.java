@@ -75,9 +75,10 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		try {
 			// Captura a resposta do WebClient, lidando com erros
 			String rawResponse = webClient.get()
-					.uri("/document/" + unid + "?dataSource=" + scope + "&computeWithForm=true"
+					.uri("/document/" + unid + "?dataSource=" + scope + "&computeWithForm=false"
 							+ "&richTextAs=html&mode=" + mode)
-					.header("Content-Type", "application/json")
+					.header("Content-Type", "application/json; charset=UTF-8")//
+					.header("Accept-Charset", "UTF-8")//
 					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
 					.onStatus(HttpStatusCode::isError,
 							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
@@ -88,6 +89,10 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 					.bodyToMono(String.class) // Captura a resposta como String bruta
 					.block(); // Bloqueia e espera a resposta
 
+			// Verifica se a resposta está vazia antes de desserializar
+			if (rawResponse == null || rawResponse.isEmpty()) {
+				return new Response<>(null, "Resposta vazia da Web API.", 204, false);
+			}
 			// Exibe a resposta bruta no console para análise
 			System.out.println("Resposta bruta da Web API: " + rawResponse);
 
@@ -131,8 +136,13 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	 * @return
 	 */
 	public Response<T> findByCodigo(String codigo) {
-		Response<T> response = null;
 
+		// Verifica se o código é nulo ou vazio
+		if (codigo == null || codigo.trim().isEmpty()) {
+			return new Response<>(null, "Código não pode ser nulo ou vazio.", 400, false);
+		}
+
+		Response<T> response = null;
 		try {
 			// Define o valor de `form` usando o nome simples da classe do modelo
 			String form = modelClass.getSimpleName(); // Exemplo: "Vertical"
@@ -142,7 +152,8 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 					form);
 
 			// Faz a requisição e captura a resposta
-			String rawResponse = webClient.get().uri(uri).header("Content-Type", "application/json")
+			String rawResponse = webClient.get().uri(uri)//
+					.header("Content-Type", "application/json; charset=UTF-8")
 					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
 					.onStatus(HttpStatusCode::isError,
 							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
@@ -197,7 +208,8 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			String requestBodyJson = objectMapper.writeValueAsString(model);
 			System.out.println("JSON a ser enviado: " + requestBodyJson);
 			if (isNew) {
-				rawResponse = webClient.post().uri("/document?dataSource=" + scope).header("Accept", "application/json")
+				rawResponse = webClient.post().uri("/document?dataSource=" + scope + "&richTextAs=mime")//
+						.header("Accept", "application/json")//
 						.header("Content-Type", "application/json")
 						.header("Authorization", "Bearer " + getUser().getToken())
 						.body(Mono.just(model), model.getClass()).retrieve()
@@ -228,7 +240,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 				System.out.println(unid + "Revision eh " + model.getRevision());
 				System.out.println("Data eh " + model.getData());
 				rawResponse = webClient.put()
-						.uri("/document/" + unid + "?dataSource=" + scope + "&richTextAs=mime&mode=html" + mode
+						.uri("/document/" + unid + "?dataSource=" + scope + "&richTextAs=mime&mode=" + mode
 								+ "&revision=" + model.getRevision())
 						.header("Accept", "application/json").header("Content-Type", "application/json")
 						.header("Authorization", "Bearer " + getUser().getToken())

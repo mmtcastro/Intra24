@@ -2,10 +2,12 @@ package br.com.tdec.intra.abs;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -111,6 +113,8 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	@JsonAlias({ "body", "Body" })
 	@JsonDeserialize(using = BodyDeserializer.class)
 	protected RichText body;
+	@JsonAlias({ "fileNames", "$FILES" })
+	protected List<String> fileNames;
 
 	public AbstractModelDoc() {
 
@@ -190,6 +194,8 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	public static class Meta {
 		@JsonProperty("noteid")
 		private int noteid;
+		@JsonProperty("parentunid")
+		private String parentunid; // response ou repl conflict
 		@JsonProperty("unid")
 		private String unid;
 		@JsonProperty("created")
@@ -229,7 +235,38 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	public static class RichText {
 		private String type;
 		private String encoding;
+		private String headers;
 		private String content;
+		// private String decodedContent;
+
+		// Construtor padrão com valores para HTML e Base64
+		public RichText() {
+			this.type = "text/html";
+			this.encoding = "BASE64"; // Para lidar com conteúdo complexo como HTML
+			this.headers = "Content-Type: text/html; charset=UTF-8";
+		}
+
+		// Método para definir conteúdo em texto simples, convertendo automaticamente
+		// para Base64
+		public void setPlainTextContent(String plainText) {
+			this.content = Base64.getEncoder().encodeToString(plainText.getBytes(StandardCharsets.UTF_8));
+		}
+
+		// Método para definir conteúdo HTML diretamente, sem codificação Base64
+		public void setHtmlContent(String htmlContent) {
+			this.content = htmlContent;
+			this.encoding = "PLAIN"; // Define como "PLAIN" para HTML direto
+		}
+
+		// Método para verificar e ajustar a codificação e o tipo de conteúdo
+		public void ensureHtmlBase64Encoding() {
+			if (!"text/html".equalsIgnoreCase(this.type)) {
+				this.type = "text/html";
+			}
+			if (!"BASE64".equalsIgnoreCase(this.encoding)) {
+				this.encoding = "BASE64";
+			}
+		}
 	}
 
 	@Override

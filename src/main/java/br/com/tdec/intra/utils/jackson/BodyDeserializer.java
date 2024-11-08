@@ -3,14 +3,14 @@ package br.com.tdec.intra.utils.jackson;
 import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import br.com.tdec.intra.abs.AbstractModelDoc;
-import br.com.tdec.intra.abs.AbstractModelDoc.Body;
+import br.com.tdec.intra.abs.AbstractModelDoc.RichText;
 
-public class BodyDeserializer extends JsonDeserializer<Body> {
+public class BodyDeserializer extends JsonDeserializer<RichText> {
 
 	public BodyDeserializer() {
 		super();
@@ -18,24 +18,14 @@ public class BodyDeserializer extends JsonDeserializer<Body> {
 	}
 
 	@Override
-	public Body deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-		JsonNode node = p.getCodec().readTree(p); // Cast to JsonNode
-		Body body = new Body();
-
-		// Use asText() method to extract values as Strings
-		body.setType(node.get("type").asText());
-		body.setEncoding(node.get("encoding").asText());
-		body.setContent(node.get("content").asText()); // Decodes HTML content as a plain string
-
-		return body;
-	}
-
-	public AbstractModelDoc getParent() {
-		return parent;
-	}
-
-	public void setParent(AbstractModelDoc parent) {
-		this.parent = parent;
+	public RichText deserialize(JsonParser jsonParser, DeserializationContext context)
+			throws IOException, JsonProcessingException {
+		JsonNode node = jsonParser.getCodec().readTree(jsonParser);
+		RichText richText = new RichText();
+		richText.setType(node.get("type").asText());
+		richText.setEncoding(node.get("encoding").asText());
+		richText.setContent(node.get("content").asText());
+		return richText;
 	}
 
 }

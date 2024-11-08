@@ -1,7 +1,5 @@
 package br.com.tdec.intra.abs;
 
-import com.vaadin.flow.component.textfield.TextField;
-
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasValue;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -81,6 +78,9 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		this.setTitle(title);
 		setWidth("100%");
 		getStyle().set("flex-grow", "0");
+
+		// Ao clicar duas no form, entra em modo de edição
+		this.addDoubleClickListener(event -> edit());
 
 	}
 
@@ -158,8 +158,8 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 		deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
 		editButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-		cancelButton.addClickShortcut(Key.ESCAPE);
-		saveButton.addClickShortcut(Key.ENTER);
+		// cancelButton.addClickShortcut(Key.ESCAPE);
+		// saveButton.addClickShortcut(Key.ENTER);
 		saveButton.addClickListener(e -> save());
 		cancelButton.addClickListener(e -> cancel());
 		deleteButton.addClickListener(e -> openConfirmDeleteDialog());
@@ -180,10 +180,6 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 			horizontalLayoutButtons.add(saveButton, deleteButton, cancelButton);
 		} else if (!isNovo && isReadOnly) {
 			horizontalLayoutButtons.add(editButton, cancelButton);
-TextField textField = new TextField("Text field");
-horizontalLayoutButtons.add(textField);
-TextField textField2 = new TextField("Text field");
-horizontalLayoutButtons.add(textField2);
 		} else {
 			Notification.show("Erro mostrando os botoes de ação.");
 		}
