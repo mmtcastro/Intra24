@@ -23,7 +23,6 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -37,10 +36,6 @@ import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.StreamResource;
-import com.vaadin.flow.theme.lumo.LumoUtility.Display;
-import com.vaadin.flow.theme.lumo.LumoUtility.Flex;
-import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
-import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 
 import br.com.tdec.intra.abs.AbstractService.DeleteResponse;
 import br.com.tdec.intra.abs.AbstractService.SaveResponse;
@@ -76,6 +71,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	protected HorizontalLayout horizontalLayoutButtons;
 	protected VerticalLayout verticalLayoutAnexos;
 	protected MemoryBuffer buffer = new MemoryBuffer();
+	protected boolean anexosCarregados; // para não carregar novamente ao clicar edit
 	protected Upload upload = new Upload(buffer);
 	protected HorizontalLayout footer;
 	protected Span autorSpan;
@@ -87,11 +83,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		this.modelType = modelType;
 		binder = new Binder<>(modelType);
 
-		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
-
 		this.setTitle(title);
-		setWidth("100%");
 		getStyle().set("flex-grow", "0");
+		getStyle().set("margin-left", "10px");
+		getStyle().set("margin-right", "10px");
 
 		// Ao clicar duas no form, entra em modo de edição
 		this.addDoubleClickListener(event -> edit());
@@ -136,9 +131,8 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		this.removeAll();
 		binderFields.forEach(this::add);
 
-		if (model.getFileNames() != null && !model.getFileNames().isEmpty()) {
-			initAnexos();
-		}
+		initAnexos();
+
 		initButtons();
 		initFooter();
 		// tem que vir depois de todos os campos serem adicionados no FormLayout
@@ -181,8 +175,13 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	}
 
 	public void initAnexos() {
-		System.out.println("Iniciando exibição de anexos");
-
+		if (anexosCarregados) {
+			if (!isReadOnly) {
+				initUploadFiles();
+			}
+			add(verticalLayoutAnexos);
+			return;
+		}
 		if (verticalLayoutAnexos == null) {
 			verticalLayoutAnexos = new VerticalLayout();
 		} else {
@@ -191,65 +190,46 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		if (!isReadOnly) {
 			initUploadFiles();
 		}
-		// Percorre a lista de nomes de arquivos do modelo
-		for (String fileName : model.getFileNames()) {
-			String unid = model.getMeta().getUnid();
+		if (model.getFileNames() != null && !model.getFileNames().isEmpty()) {
+			// Percorre a lista de nomes de arquivos do modelo
+			AbstractService.FileResponse fileResponse;
+			for (String fileName : model.getFileNames()) {
+				fileResponse = service.getAnexo(unid, fileName);
 
-			System.out.println("Preparando botão para o arquivo: " + fileName);
-
-			// Cria o botão de download
-			Button downloadButton = new Button("Download " + fileName, VaadinIcon.DOWNLOAD.create());
-			downloadButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-
-			// Listener para buscar o anexo quando o botão é clicado
-			downloadButton.addClickListener(clickEvent -> {
-				System.out.println("Usuário clicou para baixar o arquivo: " + fileName);
-
-				// Chama o serviço para obter o anexo
-				AbstractService.FileResponse anexoResponse = service.getAnexo(unid, fileName);
-
-				if (anexoResponse != null && anexoResponse.isSuccess()) {
-					byte[] fileData = anexoResponse.getFileData();
+				if (fileResponse != null && fileResponse.isSuccess()) {
+					byte[] fileData = fileResponse.getFileData();
 
 					if (fileData != null && fileData.length > 0) {
-						// Cria o StreamResource para permitir o download
-						StreamResource resource = new StreamResource(fileName,
+						// Cria o StreamResource para download
+						StreamResource streamResource = new StreamResource(fileName,
 								() -> new ByteArrayInputStream(fileData));
-						resource.setContentType(anexoResponse.getMediaType());
-						resource.setCacheTime(0);
+						streamResource.setContentType(fileResponse.getMediaType());
+						streamResource.setCacheTime(0);
 
 						// Cria o Anchor para download
-						Anchor downloadLink = new Anchor(resource, "Clique aqui para baixar " + fileName);
+						Anchor downloadLink = new Anchor(streamResource,
+								String.format("%s (%d KB)", fileName, fileData.length / 1024));
 						downloadLink.getElement().setAttribute("download", true);
 
 						// Adiciona o link de download ao layout
-						UI.getCurrent().access(() -> {
-							Notification.show("Arquivo pronto para download: " + fileName, 3000,
-									Notification.Position.MIDDLE);
-							verticalLayoutAnexos.add(downloadLink);
-						});
+						verticalLayoutAnexos.add(downloadLink);
 					} else {
-						System.out.println("Nenhum dado recebido para o arquivo: " + fileName);
 						Notification.show("Erro ao obter o arquivo: " + fileName + " - Nenhum dado recebido.", 3000,
 								Notification.Position.MIDDLE);
 					}
 				} else {
-					System.out.println("Erro ao buscar o anexo: " + fileName + " - "
-							+ (anexoResponse != null ? anexoResponse.getMessage() : "Resposta nula"));
 					Notification.show(
 							"Erro ao buscar o anexo: " + fileName + " - "
-									+ (anexoResponse != null ? anexoResponse.getMessage() : "Resposta nula"),
+									+ (fileResponse != null ? fileResponse.getMessage() : "Resposta nula"),
 							3000, Notification.Position.MIDDLE);
 				}
-			});
 
-			// Adiciona o botão de download ao layout
-			verticalLayoutAnexos.add(downloadButton);
+			}
 		}
 
 		// Adiciona o layout ao componente
 		add(verticalLayoutAnexos);
-		// setColspan(verticalLayoutAnexos, 2);
+		anexosCarregados = true;
 	}
 
 //	public void initAnexosTest() {
@@ -298,7 +278,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 				.setMany("Arraste os arquivos aqui")); // Texto para arrastar vários arquivos
 		upload.setI18n(i18n);
 
-		upload.setMaxFiles(3);
+		upload.setMaxFiles(10);
 		upload.addSucceededListener(event -> {
 			// Obter o nome do arquivo e o conteúdo
 			String fileName = event.getFileName();

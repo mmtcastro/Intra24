@@ -411,14 +411,19 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	}
 
 	public FileResponse getAnexo(String unid, String fileName) {
-		System.out.println("Unid eh " + unid);
 		FileResponse response = new FileResponse();
 
 		try {
+			// Codificar o nome do arquivo para evitar problemas com caracteres especiais
+			// String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+			String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString()).replace("+", "%20");
+
+			System.out.println("Nome do arquivo codificado: " + encodedFileName);
+
+			System.out.println("Nome do arquivo codificado: " + encodedFileName);
+
 			// Requisição usando WebClient para obter o anexo
-			response = webClient.get()
-					.uri("/attachments/" + unid + "/" + URLEncoder.encode(fileName, StandardCharsets.UTF_8)
-							+ "?dataSource=" + scope)
+			response = webClient.get().uri("/attachments/" + unid + "/" + encodedFileName + "?dataSource=" + scope)
 					.header("Authorization", "Bearer " + getUser().getToken()).accept(MediaType.ALL)
 					.exchangeToMono(clientResponse -> {
 						FileResponse fileResponse = new FileResponse();
@@ -452,7 +457,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			response.setMessage("Erro ao buscar anexo: " + e.getMessage());
 			response.setStatusCode(500);
 		}
-		System.out.println("Response eh " + response);
+		System.out.println("Response é " + response);
 		return response;
 	}
 
