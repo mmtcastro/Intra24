@@ -13,8 +13,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AbstractModelListaMultivalue extends AbstractModel implements Comparable<AbstractModelDocMultivalue> {
-	private static final long serialVersionUID = 1L;
+public class AbstractModelListaMultivalue<E extends AbstractModelDocMultivalue> extends AbstractModel
+		implements Iterable<AbstractModelDocMultivalue> {
 	protected List<AbstractModelDocMultivalue> lista;
 
 	public AbstractModelListaMultivalue() {
@@ -28,13 +28,10 @@ public class AbstractModelListaMultivalue extends AbstractModel implements Compa
 			Class<?> cl = Class.forName("java.util.ArrayList");
 			lista = (ArrayList<AbstractModelDocMultivalue>) cl.newInstance();
 		} catch (ClassNotFoundException e) {
-			printErro(e);
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			printErro(e);
 			e.printStackTrace();
 		} catch (InstantiationException e) {
-			printErro(e);
 			e.printStackTrace();
 		}
 	}
