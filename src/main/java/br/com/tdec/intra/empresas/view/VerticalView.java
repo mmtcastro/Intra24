@@ -1,15 +1,10 @@
 package br.com.tdec.intra.empresas.view;
 
-import java.io.InputStream;
 import java.time.LocalDate;
 
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.richtexteditor.RichTextEditor;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.UploadI18N;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -37,13 +32,10 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
 	private RichTextEditor bodyField = new RichTextEditor();
-	private MemoryBuffer buffer = new MemoryBuffer();
-	private Upload upload = new Upload(buffer);
 
 	public VerticalView(VerticalService service) {
 		super(Vertical.class, service);
 		addClassNames("abstract-view-doc");
-		initUploadFiles();
 	}
 
 	public void initBinder() {
@@ -76,43 +68,17 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 
 		binder.setBean(model);
 
-		add(codigoField, dataField, descricaoField, bodyField, upload);
+		// Adicione os campos na ordem correta (caso contrario o updateView troca a
+		// ordem)
+		binderFields.add(codigoField);
+		binderFields.add(dataField);
+		binderFields.add(descricaoField);
+		binderFields.add(bodyField);
 		print("Nomes dos arquivos eh " + model.getFileNames());
 
 		// dataField.addValueChangeListener(e -> System.out.println("Data
 		// (ZonedDateTime): " + model.getData()));
 
-	}
-
-	public void initUploadFiles() {
-		UploadI18N i18n = new UploadI18N();
-		i18n.setAddFiles(new UploadI18N.AddFiles().setOne("Adicionar arquivo") // Texto do botão para um arquivo
-				.setMany("Adicionar arquivos")); // Texto do botão para vários arquivos
-		i18n.setDropFiles(new UploadI18N.DropFiles().setOne("Arraste o arquivo aqui") // Texto para arrastar um arquivo
-				.setMany("Arraste os arquivos aqui")); // Texto para arrastar vários arquivos
-		upload.setI18n(i18n);
-
-		upload.setMaxFiles(3);
-		upload.addSucceededListener(event -> {
-			// Obter o nome do arquivo e o conteúdo
-			String fileName = event.getFileName();
-			InputStream fileData = buffer.getInputStream();
-
-			// Exibir uma notificação com detalhes do arquivo
-			Notification.show("Upload bem-sucedido: " + fileName);
-
-			// Aqui você pode processar o arquivo conforme necessário (ex: salvar no
-			// servidor)
-			// Exemplo de leitura do conteúdo do arquivo
-			processFile(fileName, fileData);
-		});
-
-	}
-
-	private void processFile(String fileName, InputStream fileData) {
-		// Lógica para processar o arquivo (exemplo: salvar no sistema de arquivos ou
-		// banco de dados)
-		// Aqui, você pode implementar a lógica de armazenamento conforme a necessidade
 	}
 
 }

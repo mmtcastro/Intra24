@@ -1,11 +1,14 @@
 package br.com.tdec.intra.abs;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -295,124 +298,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		return saveResponse;
 	}
 
-//	public SaveResponse save2(T model) {
-//		SaveResponse saveResponse = null;
-//		try {
-//			String requestBodyJson = objectMapper.writeValueAsString(model);
-//			System.out.println("JSON a ser enviado: " + requestBodyJson);
-//			String rawResponse = webClient.post().uri("/document?dataSource=" + scope)
-//					.header("Accept", "application/json").header("Content-Type", "application/json")
-//					.header("Authorization", "Bearer " + getUser().getToken()).body(Mono.just(model), model.getClass())
-//					.retrieve().onStatus(HttpStatusCode::isError,
-//							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
-//								int statusCode = errorResponse.getStatus();
-//								String message = errorResponse.getMessage();
-//								String details = errorResponse.getDetails();
-//
-//								if (statusCode == 403) {
-//									return Mono.error(new CustomWebClientException("Sem permissão: " + message,
-//											statusCode, errorResponse));
-//								} else if (statusCode == 406) {
-//									return Mono.error(new CustomWebClientException("Operação não suportada: " + message,
-//											statusCode, errorResponse));
-//								} else if (statusCode == 500) {
-//									return Mono.error(new CustomWebClientException("Erro no servidor: " + message,
-//											statusCode, errorResponse));
-//								} else {
-//									return Mono.error(new CustomWebClientException("Erro desconhecido: " + message,
-//											statusCode, errorResponse));
-//								}
-//							}))
-//					.bodyToMono(String.class).block();
-//			System.out.println("Raw eh " + rawResponse);
-//			saveResponse = objectMapper.readValue(rawResponse, SaveResponse.class);
-//
-//		} catch (CustomWebClientException e) {
-//			ErrorResponse error = e.getErrorResponse();
-//			// Cria uma resposta SaveResponse personalizada com base no erro
-//			saveResponse = new SaveResponse();
-//			saveResponse.setStatus(String.valueOf(error.getStatus()));
-//			saveResponse.setMessage("Erro ao salvar documento: " + error.getMessage() + " - " + error.getDetails());
-//
-//		} catch (WebClientResponseException e) {
-//			saveResponse = new SaveResponse();
-//			saveResponse.setStatus(String.valueOf(e.getStatusCode().value()));
-//			saveResponse.setMessage("Erro ao salvar documento: " + e.getMessage());
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			saveResponse = new SaveResponse();
-//			saveResponse.setStatus("500");
-//			saveResponse.setMessage("Erro inesperado ao salvar documento.");
-//		}
-//
-//		return saveResponse;
-//	}
-//
-//	public SaveResponse put(T model) {
-//		SaveResponse saveResponse = null;
-//		try {
-//			String unid = model.getMeta().getUnid();
-//			model.newRevision();
-//			System.out.println(unid + "Revision eh " + model.getRevision());
-//			System.out.println("Data eh " + model.getData());
-//			// Realiza a solicitação de PUT usando o `unid` na URL e o próprio `model` como
-//			// corpo da requisição
-//			String rawResponse = webClient.put()
-//					.uri("/document/" + unid + "?dataSource=" + scope + "&richTextAs=mime&mode=html" + mode
-//							+ "&revision=" + model.getRevision())
-//					.header("Accept", "application/json").header("Content-Type", "application/json")
-//					.header("Authorization", "Bearer " + getUser().getToken()).body(Mono.just(model), model.getClass())
-//					.retrieve().onStatus(HttpStatusCode::isError,
-//							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
-//								int statusCode = errorResponse.getStatus();
-//								String message = errorResponse.getMessage();
-//								String details = errorResponse.getDetails();
-//
-//								if (statusCode == 403) {
-//									return Mono.error(new CustomWebClientException("Sem permissão: " + message,
-//											statusCode, errorResponse));
-//								} else if (statusCode == 406) {
-//									return Mono.error(new CustomWebClientException("Operação não suportada: " + message,
-//											statusCode, errorResponse));
-//								} else if (statusCode == 500) {
-//									return Mono.error(new CustomWebClientException("Erro no servidor: " + message,
-//											statusCode, errorResponse));
-//								} else if (statusCode == 501) {
-//									return Mono.error(new CustomWebClientException(
-//											"Operação não implementada: " + message, statusCode, errorResponse));
-//								} else {
-//									return Mono.error(new CustomWebClientException("Erro desconhecido: " + message,
-//											statusCode, errorResponse));
-//								}
-//							}))
-//					.bodyToMono(String.class).block();
-//
-//			// Desserializa a resposta bruta manualmente para SaveResponse
-//			System.out.println("Raw: " + rawResponse);
-//			saveResponse = objectMapper.readValue(rawResponse, SaveResponse.class);
-//
-//		} catch (CustomWebClientException e) {
-//			ErrorResponse error = e.getErrorResponse();
-//			saveResponse = new SaveResponse();
-//			saveResponse.setStatus(String.valueOf(error.getStatus()));
-//			saveResponse.setMessage("Erro ao salvar documento: " + error.getMessage() + " - " + error.getDetails());
-//
-//		} catch (WebClientResponseException e) {
-//			saveResponse = new SaveResponse();
-//			saveResponse.setStatus(String.valueOf(e.getStatusCode().value()));
-//			saveResponse.setMessage("Erro ao salvar documento: " + e.getMessage());
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			saveResponse = new SaveResponse();
-//			saveResponse.setStatus("500");
-//			saveResponse.setMessage("Erro inesperado ao salvar documento.");
-//		}
-//
-//		return saveResponse;
-//	}
-
 	public SaveResponse patch(String unid, T model) {
 		SaveResponse patchResponse = null;
 
@@ -525,6 +410,52 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		return deleteResponse;
 	}
 
+	public FileResponse getAnexo(String unid, String fileName) {
+		System.out.println("Unid eh " + unid);
+		FileResponse response = new FileResponse();
+
+		try {
+			// Requisição usando WebClient para obter o anexo
+			response = webClient.get()
+					.uri("/attachments/" + unid + "/" + URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+							+ "?dataSource=" + scope)
+					.header("Authorization", "Bearer " + getUser().getToken()).accept(MediaType.ALL)
+					.exchangeToMono(clientResponse -> {
+						FileResponse fileResponse = new FileResponse();
+
+						if (clientResponse.statusCode().is2xxSuccessful()) {
+							MediaType mediaType = clientResponse.headers().contentType()
+									.orElse(MediaType.APPLICATION_OCTET_STREAM);
+							return clientResponse.bodyToMono(byte[].class).map(fileData -> {
+								fileResponse.setFileData(fileData);
+								fileResponse.setFileName(fileName);
+								fileResponse.setMediaType(mediaType.toString());
+								fileResponse.setStatusCode(200);
+								return fileResponse;
+							});
+						} else {
+							return clientResponse.bodyToMono(String.class).map(errorMessage -> {
+								fileResponse.setMessage("Erro ao buscar anexo: " + errorMessage);
+								fileResponse.setStatusCode(clientResponse.statusCode().value());
+								return fileResponse;
+							});
+						}
+					}).block();
+
+			// Verificação adicional de falha
+			if (response == null) {
+				response = new FileResponse();
+				response.setMessage("Erro desconhecido ao obter o anexo.");
+				response.setStatusCode(500);
+			}
+		} catch (Exception e) {
+			response.setMessage("Erro ao buscar anexo: " + e.getMessage());
+			response.setStatusCode(500);
+		}
+		System.out.println("Response eh " + response);
+		return response;
+	}
+
 	protected User getUser() {
 		User user = null;
 		try {
@@ -582,6 +513,29 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		private String unid;
 		@JsonProperty("details")
 		private String details;
+	}
+
+	@Getter
+	@Setter
+	@ToString
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	@JsonInclude(JsonInclude.Include.NON_NULL) // Inclui apenas campos não nulos
+	public static class FileResponse {
+		@JsonProperty("fileData")
+		private byte[] fileData;
+		@JsonProperty("mediaType")
+		private String mediaType;
+		@JsonProperty("fileName")
+		private String fileName;
+		@JsonProperty("statusCode")
+		private Integer statusCode;
+		@JsonProperty("message")
+		private String message;
+
+		public boolean isSuccess() {
+			return statusCode != null && statusCode >= 200 && statusCode < 300;
+		}
+
 	}
 
 	@Getter
@@ -757,6 +711,19 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			this.success = success;
 		}
 
+	}
+
+	private MediaType getMediaType(String fileName) {
+		String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+
+		return switch (extension) {
+		case "pdf" -> MediaType.APPLICATION_PDF;
+		case "html", "htm" -> MediaType.TEXT_HTML;
+		case "txt" -> MediaType.TEXT_PLAIN;
+		case "json" -> MediaType.APPLICATION_JSON;
+		case "xml" -> MediaType.APPLICATION_XML;
+		default -> MediaType.APPLICATION_OCTET_STREAM;
+		};
 	}
 
 }

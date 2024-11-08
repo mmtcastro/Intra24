@@ -1,6 +1,9 @@
 package br.com.tdec.intra.abs;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -17,16 +20,23 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.UploadI18N;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.QueryParameters;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility.Display;
 import com.vaadin.flow.theme.lumo.LumoUtility.Flex;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
@@ -52,6 +62,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	private ObjectMapper objectMapper; // jackson conversao zonedDateTime
 	protected String unid;
 	protected Binder<T> binder;
+	protected List<Component> binderFields = new ArrayList<>();// imporante para manter a ordem dos campos no updateView
 	protected boolean isNovo;
 	protected boolean isReadOnly;
 	protected Map<String, String> queryParams;
@@ -63,6 +74,9 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	protected Dialog deleteDialog;
 	protected Set<HasValue<?, ?>> readOnlyFields = new HashSet<>();
 	protected HorizontalLayout horizontalLayoutButtons;
+	protected VerticalLayout verticalLayoutAnexos;
+	protected MemoryBuffer buffer = new MemoryBuffer();
+	protected Upload upload = new Upload(buffer);
 	protected HorizontalLayout footer;
 	protected Span autorSpan;
 	protected Span criacaoSpan;
@@ -106,35 +120,52 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 			}
 		}
 
-		initBinder();
-		binder.setBean(model);
+		updateView();
 
-		initButtons();
+	}
 
-		initFooter();
+	/**
+	 * sempre que algum componente foi alterado, tenho que refazer toda a tela.
+	 * Apenas adicinoar um componente em caso de edit, por exemplo, ira colocá-lo
+	 * fora de ordem. Primeiro o Binder, depois os richtext, depois o upload, depois
+	 * os files, depois os botoes e depois o foooter.
+	 */
+	public void updateView() {
+		initBinder(); // roda no modelo
+		binder.setBean(model); // Limpa o layout e adiciona os campos na ordem correta
+		this.removeAll();
+		binderFields.forEach(this::add);
 
-		// tem que vir depois de todos os campos serem adicionados no FormLayout
-		if (isReadOnly)
-
-		{
-			readOnly();
-		} else {
-			edit();
+		if (model.getFileNames() != null && !model.getFileNames().isEmpty()) {
+			initAnexos();
 		}
+		initButtons();
+		initFooter();
+		// tem que vir depois de todos os campos serem adicionados no FormLayout
+		if (isReadOnly) {
+			// Itera sobre todos os componentes filhos da classe
+			super.getChildren().forEach(component -> {
+				if (component instanceof HasValue) {
+					HasValue<?, ?> field = (HasValue<?, ?>) component;
+					field.setReadOnly(true);
+				}
+			});
+		} else {
+			Iterator<Component> i = super.getChildren().iterator();
+			while (i.hasNext()) {
+				Component c = i.next();
+				if (c instanceof HasValue) {
+					HasValue<?, ?> field = (HasValue<?, ?>) c;
+					if (!readOnlyFields.contains(field)) {
+						field.setReadOnly(false);
+					}
+				}
+			}
+		}
+
 	}
 
 	protected abstract void initBinder();
-
-	protected void initView() {
-		initBinder(); // Configura os campos específicos e o binder
-
-		// Configura os campos e as regras de readOnly
-		if (isReadOnly) {
-			readOnly();
-		} else {
-			edit();
-		}
-	}
 
 	@Autowired
 	public void setMailService(MailService mailService) {
@@ -147,6 +178,148 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		} catch (Exception e) {
 			throw new RuntimeException("Nao foi possivel criar o modelo - " + modelType, e);
 		}
+	}
+
+	public void initAnexos() {
+		System.out.println("Iniciando exibição de anexos");
+
+		if (verticalLayoutAnexos == null) {
+			verticalLayoutAnexos = new VerticalLayout();
+		} else {
+			verticalLayoutAnexos.removeAll();
+		}
+		if (!isReadOnly) {
+			initUploadFiles();
+		}
+		// Percorre a lista de nomes de arquivos do modelo
+		for (String fileName : model.getFileNames()) {
+			String unid = model.getMeta().getUnid();
+
+			System.out.println("Preparando botão para o arquivo: " + fileName);
+
+			// Cria o botão de download
+			Button downloadButton = new Button("Download " + fileName, VaadinIcon.DOWNLOAD.create());
+			downloadButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+			// Listener para buscar o anexo quando o botão é clicado
+			downloadButton.addClickListener(clickEvent -> {
+				System.out.println("Usuário clicou para baixar o arquivo: " + fileName);
+
+				// Chama o serviço para obter o anexo
+				AbstractService.FileResponse anexoResponse = service.getAnexo(unid, fileName);
+
+				if (anexoResponse != null && anexoResponse.isSuccess()) {
+					byte[] fileData = anexoResponse.getFileData();
+
+					if (fileData != null && fileData.length > 0) {
+						// Cria o StreamResource para permitir o download
+						StreamResource resource = new StreamResource(fileName,
+								() -> new ByteArrayInputStream(fileData));
+						resource.setContentType(anexoResponse.getMediaType());
+						resource.setCacheTime(0);
+
+						// Cria o Anchor para download
+						Anchor downloadLink = new Anchor(resource, "Clique aqui para baixar " + fileName);
+						downloadLink.getElement().setAttribute("download", true);
+
+						// Adiciona o link de download ao layout
+						UI.getCurrent().access(() -> {
+							Notification.show("Arquivo pronto para download: " + fileName, 3000,
+									Notification.Position.MIDDLE);
+							verticalLayoutAnexos.add(downloadLink);
+						});
+					} else {
+						System.out.println("Nenhum dado recebido para o arquivo: " + fileName);
+						Notification.show("Erro ao obter o arquivo: " + fileName + " - Nenhum dado recebido.", 3000,
+								Notification.Position.MIDDLE);
+					}
+				} else {
+					System.out.println("Erro ao buscar o anexo: " + fileName + " - "
+							+ (anexoResponse != null ? anexoResponse.getMessage() : "Resposta nula"));
+					Notification.show(
+							"Erro ao buscar o anexo: " + fileName + " - "
+									+ (anexoResponse != null ? anexoResponse.getMessage() : "Resposta nula"),
+							3000, Notification.Position.MIDDLE);
+				}
+			});
+
+			// Adiciona o botão de download ao layout
+			verticalLayoutAnexos.add(downloadButton);
+		}
+
+		// Adiciona o layout ao componente
+		add(verticalLayoutAnexos);
+		// setColspan(verticalLayoutAnexos, 2);
+	}
+
+//	public void initAnexosTest() {
+//		System.out.println("Iniciando teste de anexo para 'fernando.html'");
+//
+//		// Nome do arquivo que queremos testar
+//		String fileName = "fernando.html";
+//		String unid = model.getMeta().getUnid();
+//
+//		try {
+//			System.out.println("Chamando getAnexo() para o documento: " + unid + " e arquivo: " + fileName);
+//
+//			// Chama o serviço para obter o anexo
+//			AbstractService.FileResponse anexoResponse = service.getAnexo(unid, fileName);
+//
+//			// Verifica o resultado da chamada
+//			if (anexoResponse != null) {
+//				System.out.println("Resposta recebida:");
+//				System.out.println("Status Code: " + anexoResponse.getStatusCode());
+//				System.out.println("Mensagem: " + anexoResponse.getMessage());
+//				System.out.println("Media Type: " + anexoResponse.getMediaType());
+//				System.out.println("File Name: " + anexoResponse.getFileName());
+//
+//				// Verifica se os dados do arquivo foram recebidos
+//				byte[] fileData = anexoResponse.getFileData();
+//				if (fileData != null && fileData.length > 0) {
+//					System.out
+//							.println("Dados do arquivo recebidos com sucesso. Tamanho: " + fileData.length + " bytes");
+//				} else {
+//					System.out.println("Nenhum dado recebido para o arquivo.");
+//				}
+//			} else {
+//				System.out.println("Resposta nula recebida do serviço.");
+//			}
+//		} catch (Exception e) {
+//			System.out.println("Erro ao buscar anexo: " + e.getMessage());
+//			e.printStackTrace();
+//		}
+//	}
+
+	public void initUploadFiles() {
+		UploadI18N i18n = new UploadI18N();
+		i18n.setAddFiles(new UploadI18N.AddFiles().setOne("Adicionar arquivo") // Texto do botão para um arquivo
+				.setMany("Adicionar arquivos")); // Texto do botão para vários arquivos
+		i18n.setDropFiles(new UploadI18N.DropFiles().setOne("Arraste o arquivo aqui") // Texto para arrastar um arquivo
+				.setMany("Arraste os arquivos aqui")); // Texto para arrastar vários arquivos
+		upload.setI18n(i18n);
+
+		upload.setMaxFiles(3);
+		upload.addSucceededListener(event -> {
+			// Obter o nome do arquivo e o conteúdo
+			String fileName = event.getFileName();
+			InputStream fileData = buffer.getInputStream();
+
+			// Exibir uma notificação com detalhes do arquivo
+			Notification.show("Upload bem-sucedido: " + fileName);
+
+			// Aqui você pode processar o arquivo conforme necessário (ex: salvar no
+			// servidor)
+			// Exemplo de leitura do conteúdo do arquivo
+			processFile(fileName, fileData);
+		});
+		verticalLayoutAnexos.add(upload);
+
+	}
+
+	private void processFile(String fileName, InputStream fileData) {
+		// Lógica para processar o arquivo (exemplo: salvar no sistema de arquivos ou
+		// banco de dados)
+		// Aqui, você pode implementar a lógica de armazenamento conforme a necessidade
 	}
 
 	public void initButtons() {
@@ -277,16 +450,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	 */
 	protected void readOnly() {
 		isReadOnly = true;
-		// Itera sobre todos os componentes filhos da classe
-		super.getChildren().forEach(component -> {
-			// Imprime o nome da classe do componente
-			// System.out.println(component.getClass().getSimpleName());
-			// Verifica se o componente implementa HasValue
-			if (component instanceof HasValue) {
-				HasValue<?, ?> field = (HasValue<?, ?>) component;
-				field.setReadOnly(true);
-			}
-		});
+
 	}
 
 	/**
@@ -338,17 +502,8 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 
 	protected void edit() {
 		isReadOnly = false;
-		Iterator<Component> i = super.getChildren().iterator();
-		while (i.hasNext()) {
-			Component c = i.next();
-			if (c instanceof HasValue) {
-				HasValue<?, ?> field = (HasValue<?, ?>) c;
-				if (!readOnlyFields.contains(field)) {
-					field.setReadOnly(false);
-				}
-			}
-		}
-		showButtons();
+		updateView();
+
 	}
 
 	protected void openPage(T model) {
