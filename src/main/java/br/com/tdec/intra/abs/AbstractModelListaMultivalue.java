@@ -1,13 +1,17 @@
 package br.com.tdec.intra.abs;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import br.com.tdec.intra.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -157,12 +161,30 @@ public class AbstractModelListaMultivalue<E extends AbstractModelDocMultivalue> 
 
 	public void addNewModel() {
 		try {
+			// Obtém o nome do pacote da classe atual
 			String classe = this.getClass().getCanonicalName();
-			String modelPackage = br.com.tdec.utils.Utils.getModelPackageFromPackage(classe);
-			AbstractModelDocMultivalue model = createApp().createNewModelMultivalue(modelPackage);
-			lista.add(model);
+
+			// Obtém o nome completo da classe concreta usando a função
+			// getModelPackageFromPackage
+			String modelPackage = Utils.getModelPackageFromPackage(classe);
+
+			// Verifica se a classe existe antes de tentar instanciar
+			if (Utils.classeExiste(modelPackage)) {
+				// Carrega a classe dinamicamente
+				Class<?> modelClass = Class.forName(modelPackage);
+
+				// Cria uma nova instância e a converte para AbstractModelDocMultivalue
+				AbstractModelDocMultivalue model = (AbstractModelDocMultivalue) modelClass.getDeclaredConstructor()
+						.newInstance();
+
+				// Adiciona o modelo à lista
+				lista.add(model);
+			} else {
+				print("Erro - A classe concreta para o modelo não foi encontrada: " + modelPackage);
+			}
 		} catch (Exception e) {
-			printErro(e);
+			print("Erro - AbstractModelLista - addNewModel");
+			e.printStackTrace();
 		}
 	}
 
@@ -261,15 +283,15 @@ public class AbstractModelListaMultivalue<E extends AbstractModelDocMultivalue> 
 		Collections.sort(lista);
 	}
 
-	public void sort(String campo, int ordem) {
-		GenericComparator comparator = new GenericComparator(campo, ordem);
-		Collections.sort(this.getLista(), comparator);
-	}
+//	public void sort(String campo, int ordem) {
+//		GenericComparator comparator = new GenericComparator(campo, ordem);
+//		Collections.sort(this.getLista(), comparator);
+//	}
 
-	@Override
-	public int compareTo(AbstractModelDocMultivalue o) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+//	@Override
+//	public int compareTo(AbstractModelDocMultivalue o) {
+//		// TODO Auto-generated method stub
+//		return 0;
+//	}
 
 }

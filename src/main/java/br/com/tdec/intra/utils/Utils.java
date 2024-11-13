@@ -1,16 +1,112 @@
 package br.com.tdec.intra.utils;
 
+import java.security.SecureRandom;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import br.com.tdec.intra.abs.AbstractService;
 
 public class Utils {
+
+	/**
+	 * valida senha forte (?=.*[a-z]) The string must contain at least 1 lowercase
+	 * alphabetical character (?=.*[A-Z]) The string must * contain at least 1
+	 * uppercase alphabetical character (?=.*[0-9]) The string must contain at least
+	 * 1 numeric character (?=.[!@#\$%\^&]) The string must contain at least one
+	 * special character, but we are escaping reserved RegEx characters to avoid
+	 * conflict (?=.{8,}) The string must be eight characters or longer
+	 * 
+	 * Ao menos uma minúscula, uma maiúscula, um número, um símbolo e no minimo 8
+	 * caracteres
+	 * 
+	 * @param password
+	 * @return
+	 */
+	public static boolean isStrongPassword(String password) {
+		boolean ret = false;
+		String strongRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\\$%\\^&\\*])(?=.{8,})";
+		// Create a Pattern object
+		Pattern pattern = Pattern.compile(strongRegex);
+		// Now create matcher object.
+		Matcher matcher = pattern.matcher(password);
+		ret = matcher.find();
+		return ret;
+	}
+
+	/**
+	 * Veririca se é um id tipo "tdec", isto é empresa_Empresa_UUID tem que ter três
+	 * componentes e o ultimo tem que ser um UUID
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public static boolean isId(String id) {
+		boolean ret = true;
+		try {
+			if (id == null) {
+				return false;
+			}
+			List<String> check = stringToArrayList(id, "_");
+			if (check.size() != 3) {
+				return false;
+			}
+			String uuid = check.get(2);
+			// UUID
+			if (uuid.length() < 36) {
+				return false;
+			}
+			if (!isUUID(uuid)) {
+				return false;
+			}
+
+		} catch (Exception e) {
+			print("Erro - Utils - isId - id = id");
+			e.printStackTrace();
+		}
+		return ret;
+
+	}
+
+	/**
+	 * Verifica se o string passado é ou nao um UUID Id
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public static Boolean isUUID(String id) {
+		if (id == null) {
+			return false;
+		}
+		boolean ret = false;
+		Pattern p = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}");
+		ret = p.matcher(id).matches();
+		return ret;
+	}
+
+	/**
+	 * Seis caracteres ao menos, uma maiuscula, uma minuscula e pelo menos um numero
+	 * 
+	 * @param password
+	 * @return
+	 */
+	public static boolean isMediumPassword(String password) {
+		boolean ret = false;
+		String strongRegex = "^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})";
+		// Create a Pattern object
+		Pattern pattern = Pattern.compile(strongRegex);
+		// Now create matcher object.
+		Matcher matcher = pattern.matcher(password);
+		ret = matcher.find();
+		return ret;
+	}
 
 	/**
 	 * Retorna
@@ -457,6 +553,107 @@ public class Utils {
 			pluralizedName.append(part);
 		}
 		return pluralizedName.toString();
+	}
+
+	public static String randomString(int length) {
+		// char[] CHARSET_AZ_09 =
+		// "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
+		char[] characterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+		Random random = new SecureRandom();
+		char[] result = new char[length];
+		for (int i = 0; i < result.length; i++) {
+			// picks a random index out of character set > random character
+			int randomCharIndex = random.nextInt(characterSet.length);
+			result[i] = characterSet[randomCharIndex];
+		}
+		return new String(result);
+	}
+
+	public static String getModelPackageFromPackage(String modelPackage) {
+		String ret = "";
+		try {
+			if (modelPackage == null || modelPackage.isEmpty()) {
+				return ret;
+			}
+
+			if (!classeExiste(modelPackage)) {
+				return ret;
+			}
+
+			List<String> classe = stringToArrayList(modelPackage, ".");
+
+			// Verifica o tamanho do pacote e ajusta o índice conforme necessário
+			int modelIndex = (classe.size() == 6) ? 5 : 4; // Adapta para o novo tamanho de pacote (6 ao invés de 5)
+
+			if (classe.size() >= modelIndex + 1) {
+				ArrayList<String> properCase = properCaseToArrayList(classe.get(modelIndex));
+
+				// Remove o sufixo "Bean" se houver
+				String bean = properCase.get(properCase.size() - 1);
+				if (bean.length() > 3 && bean.endsWith("Bean")) {
+					properCase.set(properCase.size() - 1, bean.substring(0, bean.length() - 4));
+				}
+
+				// Constrói o nome da classe com remoção de plurais
+				for (String part : properCase) {
+					ret += removePlural(part);
+				}
+
+				// Ajusta o prefixo do pacote conforme o tamanho detectado
+				if (classe.size() == 6) {
+					// Estrutura nova: br.com.tdec.intra.empresas.model.Empresa
+					ret = classe.get(0) + "." + classe.get(1) + "." + classe.get(2) + "." + classe.get(3) + ".model."
+							+ ret;
+				} else if (classe.size() == 5) {
+					// Estrutura antiga: br.com.tdec.empresas.model.Empresa
+					ret = classe.get(0) + "." + classe.get(1) + "." + classe.get(2) + ".model." + ret;
+				} else {
+					print("ERRO - Utils.getModelPackageFromPackage - " + modelPackage + " - pacote não compatível");
+					return "";
+				}
+			} else {
+				print("ERRO - Utils.getModelPackageFromPackage - " + modelPackage + " - estrutura do pacote inválida");
+			}
+		} catch (Exception e) {
+			print("Erro Utils - Utils.getModelPackageFromPackage - " + modelPackage);
+			e.printStackTrace();
+		}
+		return ret;
+	}
+
+	public static String getModelPackageFromClass(Class<?> modelClass) {
+		if (modelClass == null) {
+			return "";
+		}
+
+		// Obtém o nome completo do pacote a partir da classe
+		String modelPackage = modelClass.getPackage().getName();
+
+		// Reutiliza a função existente que recebe uma String
+		return getModelPackageFromPackage(modelPackage);
+	}
+
+	/**
+	 * verifica se determinada classe existe no pacote
+	 * 
+	 * @param classe
+	 * @return
+	 */
+	public static boolean classeExiste(String classe) {
+		try {
+			Class.forName(classe);
+			return true;
+		} catch (ClassNotFoundException e) {
+			System.out.println("Erro - Utils - classe NAO existe  - " + classe);
+			return false;
+		}
+	}
+
+	public static String capitalize(String str) {
+		if (str == null || str.isEmpty()) {
+			return str;
+		}
+		return str.substring(0, 1).toUpperCase() + str.substring(1);
 	}
 
 }

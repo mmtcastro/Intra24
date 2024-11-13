@@ -112,13 +112,6 @@ public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 		return ret;
 	}
 
-	public GrupoEconomico findById(String id) {
-		GrupoEconomico grupoEconomico = null;
-
-		return grupoEconomico;
-
-	}
-
 	@Override
 	public GrupoEconomico createModel() {
 		return new GrupoEconomico();

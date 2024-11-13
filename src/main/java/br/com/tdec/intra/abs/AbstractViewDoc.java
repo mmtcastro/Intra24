@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +17,7 @@ import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Anchor;
@@ -45,6 +45,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@CssImport(value = "./themes/intra24/views/abstract-view-doc.css", themeFor = "vaadin-form-layout")
 public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLayout
 		implements HasUrlParameter<String> {
 
@@ -71,7 +72,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	protected HorizontalLayout horizontalLayoutButtons;
 	protected VerticalLayout verticalLayoutAnexos;
 	protected MemoryBuffer buffer = new MemoryBuffer();
-	protected boolean anexosCarregados; // para não carregar novamente ao clicar edit
+	protected boolean anexosCarregados; // para não carregar novamente ao clicar em edit
 	protected Upload upload = new Upload(buffer);
 	protected HorizontalLayout footer;
 	protected Span autorSpan;
@@ -87,10 +88,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		getStyle().set("flex-grow", "0");
 		getStyle().set("margin-left", "10px");
 		getStyle().set("margin-right", "10px");
+		this.getStyle().set("padding-bottom", "60px"); // Ajuste a altura conforme necessário - footer
 
 		// Ao clicar duas no form, entra em modo de edição
 		this.addDoubleClickListener(event -> edit());
-
 	}
 
 	@Override
@@ -116,6 +117,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		}
 
 		updateView();
+		initFooter();
 
 	}
 
@@ -126,18 +128,27 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	 * os files, depois os botoes e depois o foooter.
 	 */
 	public void updateView() {
-		initBinder(); // roda no modelo
-		binder.setBean(model); // Limpa o layout e adiciona os campos na ordem correta
+		// Inicializa o Binder e define o modelo
+		initBinder();
+		binder.setBean(model);
+
+		// Limpa o layout e adiciona os campos do Binder na ordem correta
 		this.removeAll();
 		binderFields.forEach(this::add);
 
+		// Chama o método abstrato para adicionar componentes personalizados da
+		// subclasse
+		addCustomComponents();
+
+		// Adiciona os anexos (upload e arquivos)
 		initAnexos();
 
+		// Adiciona os botões de ação
 		initButtons();
-		initFooter();
-		// tem que vir depois de todos os campos serem adicionados no FormLayout
+
+		// Define os campos como readOnly, se necessário
 		if (isReadOnly) {
-			// Itera sobre todos os componentes filhos da classe
+			// Itera sobre todos os componentes e define como readOnly
 			super.getChildren().forEach(component -> {
 				if (component instanceof HasValue) {
 					HasValue<?, ?> field = (HasValue<?, ?>) component;
@@ -145,21 +156,25 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 				}
 			});
 		} else {
-			Iterator<Component> i = super.getChildren().iterator();
-			while (i.hasNext()) {
-				Component c = i.next();
-				if (c instanceof HasValue) {
-					HasValue<?, ?> field = (HasValue<?, ?>) c;
+			// Permite edição nos campos que não estão marcados como readOnly
+			super.getChildren().forEach(component -> {
+				if (component instanceof HasValue) {
+					HasValue<?, ?> field = (HasValue<?, ?>) component;
 					if (!readOnlyFields.contains(field)) {
 						field.setReadOnly(false);
 					}
 				}
-			}
+			});
 		}
-
 	}
 
 	protected abstract void initBinder();
+
+	/**
+	 * Método abstrato para que as subclasses adicionem seus próprios componentes
+	 * personalizados. Será chamado entre a adição dos campos do Binder e os botões.
+	 */
+	protected abstract void addCustomComponents();
 
 	@Autowired
 	public void setMailService(MailService mailService) {
@@ -184,6 +199,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		}
 		if (verticalLayoutAnexos == null) {
 			verticalLayoutAnexos = new VerticalLayout();
+			setColspan(verticalLayoutAnexos, 2);
 		} else {
 			verticalLayoutAnexos.removeAll();
 		}
@@ -231,44 +247,6 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		add(verticalLayoutAnexos);
 		anexosCarregados = true;
 	}
-
-//	public void initAnexosTest() {
-//		System.out.println("Iniciando teste de anexo para 'fernando.html'");
-//
-//		// Nome do arquivo que queremos testar
-//		String fileName = "fernando.html";
-//		String unid = model.getMeta().getUnid();
-//
-//		try {
-//			System.out.println("Chamando getAnexo() para o documento: " + unid + " e arquivo: " + fileName);
-//
-//			// Chama o serviço para obter o anexo
-//			AbstractService.FileResponse anexoResponse = service.getAnexo(unid, fileName);
-//
-//			// Verifica o resultado da chamada
-//			if (anexoResponse != null) {
-//				System.out.println("Resposta recebida:");
-//				System.out.println("Status Code: " + anexoResponse.getStatusCode());
-//				System.out.println("Mensagem: " + anexoResponse.getMessage());
-//				System.out.println("Media Type: " + anexoResponse.getMediaType());
-//				System.out.println("File Name: " + anexoResponse.getFileName());
-//
-//				// Verifica se os dados do arquivo foram recebidos
-//				byte[] fileData = anexoResponse.getFileData();
-//				if (fileData != null && fileData.length > 0) {
-//					System.out
-//							.println("Dados do arquivo recebidos com sucesso. Tamanho: " + fileData.length + " bytes");
-//				} else {
-//					System.out.println("Nenhum dado recebido para o arquivo.");
-//				}
-//			} else {
-//				System.out.println("Resposta nula recebida do serviço.");
-//			}
-//		} catch (Exception e) {
-//			System.out.println("Erro ao buscar anexo: " + e.getMessage());
-//			e.printStackTrace();
-//		}
-//	}
 
 	public void initUploadFiles() {
 		UploadI18N i18n = new UploadI18N();
@@ -341,21 +319,53 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 
 	}
 
-	public void initFooter() {
-		if (model != null) {
-			footer = new HorizontalLayout();
-			footer.addClassName("abstract-view-doc-footer");
-			autorSpan = new Span("Autor: " + model.getAutor());
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-			if (model.getCriacao() != null) {
-				criacaoSpan = new Span("Criação: " + model.getCriacao().format(formatter));
-			} else {
-				criacaoSpan = new Span("");
-			}
+//	public void initFooter() {
+//		if (model != null) {
+//			footer = new HorizontalLayout();
+//			footer.addClassName("abstract-view-doc-footer");
+//			autorSpan = new Span("Autor: " + model.getAutor());
+//			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+//			if (model.getCriacao() != null) {
+//				criacaoSpan = new Span("Criação: " + model.getCriacao().format(formatter));
+//			} else {
+//				criacaoSpan = new Span("");
+//			}
+//
+//			idSpan = new Span("Id: " + model.getId());
+//			footer.add(autorSpan, criacaoSpan, idSpan);
+//			add(footer, 3);
+//		}
+//	}
 
-			idSpan = new Span("Id: " + model.getId());
+	public void initFooter() {
+		if (footer == null) {
+			footer = new HorizontalLayout();
+			footer.setWidthFull();
+			footer.addClassName("abstract-view-doc-footer");
+
+			// Estilos para integrar o footer
+			footer.getStyle().set("position", "sticky");
+			footer.getStyle().set("bottom", "0");
+			footer.getStyle().set("left", "0");
+			footer.getStyle().set("right", "0");
+			footer.getStyle().set("width", "100%"); // Garante que ocupe toda a largura
+			footer.getStyle().set("background-color", "var(--lumo-base-color)");
+			footer.getStyle().set("padding", "10px");
+			footer.getStyle().set("box-shadow", "0 -1px 3px rgba(0, 0, 0, 0.1)");
+			footer.getStyle().set("z-index", "10");
+
+			autorSpan = new Span("Autor: " + (model.getAutor() != null ? model.getAutor() : "Desconhecido"));
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+			criacaoSpan = new Span(
+					"Criação: " + (model.getCriacao() != null ? model.getCriacao().format(formatter) : ""));
+			idSpan = new Span("Id: " + (model.getId() != null ? model.getId() : ""));
+
 			footer.add(autorSpan, criacaoSpan, idSpan);
-			add(footer, 3);
+		}
+
+		// Adiciona o footer diretamente ao layout da página (UI), fora do FormLayout
+		if (!footer.getParent().isPresent()) {
+			UI.getCurrent().getElement().appendChild(footer.getElement());
 		}
 	}
 

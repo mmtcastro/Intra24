@@ -22,14 +22,22 @@ public class JacksonConfig {
 	@Bean
 	public ObjectMapper objectMapper() {
 		ObjectMapper objectMapper = new ObjectMapper();
-
-		// Registra o módulo que lida com a API de data e hora do Java 8
 		JavaTimeModule javaTimeModule = new JavaTimeModule();
+
+		// Adiciona deserializadores para tipos de data
 		javaTimeModule.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
 		objectMapper.registerModule(javaTimeModule);
 
-		// Evita que as datas sejam escritas como timestamps
+		// Desabilita serialização como timestamp
 		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+//		// Registra o deserializador para AbstractModelDoc e seus subtipos
+//		SimpleModule module = new SimpleModule();
+//		module.addDeserializer(AbstractModelDoc.class, new AbstractModelDocDeserializer<>(AbstractModelDoc.class));
+//		objectMapper.registerModule(module);
+//
+//		// Adiciona mixin para subtipos
+//		objectMapper.addMixIn(AbstractModelDoc.class, AbstractModelDocMixIn.class);
 
 		return objectMapper;
 	}

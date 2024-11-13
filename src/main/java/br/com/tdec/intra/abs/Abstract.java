@@ -11,7 +11,7 @@ import lombok.Setter;
 public abstract class Abstract {
 
 	public static void print(Object object) {
-		System.out.print(object);
+		System.out.println(object);
 	}
 
 	public String toString() {

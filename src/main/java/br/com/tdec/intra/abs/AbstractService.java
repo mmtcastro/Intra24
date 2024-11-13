@@ -47,12 +47,14 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	@Autowired
 	private ObjectMapper objectMapper; // jackson datas
 	protected String scope;
+	protected String form;
 	protected String mode; // usado do Domino Restapi para definir se pode ou não deletar e rodar agentes
 	protected T model;
 	protected Class<T> modelClass;
 
 	public AbstractService(Class<T> modelClass) {
 		scope = Utils.getScopeFromClass(this.getClass());
+		form = this.getClass().getSimpleName(); // Vertical
 		this.mode = "default"; // tem que trocar para DQL ou outro mode caso necessário. Esta aqui para //
 								// simplificar.
 		this.modelClass = modelClass;
@@ -75,6 +77,10 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	public Response<T> findByUnid(String unid) {
 		Response<T> response = null;
+		// Verifica se o código é nulo ou vazio
+		if (unid == null || unid.trim().isEmpty()) {
+			return new Response<>(null, "Unid não pode ser nulo ou vazio.", 400, false);
+		}
 		try {
 			// Captura a resposta do WebClient, lidando com erros
 			String rawResponse = webClient.get()
@@ -104,6 +110,8 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			// objectMapper padrao
 			T model = objectMapper.readValue(rawResponse, modelClass);
 
+			model.init(); // Inicializa o modelo, se necessário depois de carregar os dados
+
 			// Retorna o modelo em um Response de sucesso
 			response = new Response<>(model, "Documento carregado com sucesso.", 200, true);
 
@@ -131,6 +139,59 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		return response;
 	}
 
+	public Response<T> findById(String id) {
+		Response<T> response = null;
+		// Verifica se o código é nulo ou vazio
+		if (id == null || id.trim().isEmpty()) {
+			return new Response<>(null, "Id não pode ser nulo ou vazio.", 400, false);
+		}
+		try {
+			// Montando a URI com os parâmetros para buscar por vista
+			String apiUrl = "/lists/_intraIds?mode=default&dataSource=" + scope
+					+ "keyAllowPartial=false&documents=true&richTextAs=mime&key=" + id + "&scope=documents";
+
+			// Capturando a resposta do WebClient
+			String rawResponse = webClient.get().uri(apiUrl).header("Content-Type", "application/json; charset=UTF-8")
+					.header("Accept-Charset", "UTF-8").header("Authorization", "Bearer " + getUser().getToken())
+					.retrieve().onStatus(HttpStatusCode::isError,
+							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
+								return Mono.<Throwable>error(new CustomWebClientException(errorResponse.getMessage(),
+										errorResponse.getStatus(), errorResponse));
+							}))
+					.bodyToMono(String.class).block();
+
+			// Verificando se a resposta está vazia
+			if (rawResponse == null || rawResponse.isEmpty()) {
+				return new Response<>(null, "Resposta vazia da Web API.", 204, false);
+			}
+
+			System.out.println("Resposta bruta da Web API: " + rawResponse);
+
+			// Desserializar a resposta para o tipo esperado (T)
+			T model = objectMapper.readValue(rawResponse, modelClass);
+			model.init(); // Inicializa o modelo, se necessário
+
+			// Retorna o modelo em um Response de sucesso
+			response = new Response<>(model, "Documento carregado com sucesso.", 200, true);
+
+		} catch (CustomWebClientException e) {
+			ErrorResponse error = e.getErrorResponse();
+			System.out.println("Erro ao tentar buscar documento. Código HTTP: " + error.getStatus());
+			response = new Response<>(null, error.getMessage() + " - " + error.getDetails(), error.getStatus(), false);
+
+		} catch (WebClientResponseException e) {
+			HttpStatusCode statusCode = e.getStatusCode();
+			System.out.println("Erro ao tentar buscar documento. Código HTTP: " + statusCode);
+			response = new Response<>(null, "Erro ao buscar documento: " + e.getMessage(), statusCode.value(), false);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response = new Response<>(null, "Erro inesperado ao buscar documento.", 500, false);
+		}
+
+		return response;
+	}
+
 	/**
 	 * Esta funcao retorna um array. Como só pode existir um codigo para cada tipo
 	 * de form, retorno o primeiro da List<String>
@@ -147,12 +208,10 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 		Response<T> response = null;
 		try {
-			// Define o valor de `form` usando o nome simples da classe do modelo
-			String form = modelClass.getSimpleName(); // Exemplo: "Vertical"
-
 			// Monta a URI com o código e form
-			String uri = String.format("/lists/_intraCodigos?mode=default&dataSource=empresas&key=%s&key=%s", codigo,
-					form);
+			String uri = String.format("/lists/_intraCodigos?mode=" + mode + "&dataSource=" + scope
+					+ "&keyAllowPartial=false&documents=true&richTextAs=mime&key=" + codigo + "&key=" + form
+					+ "&scope=documents");
 
 			// Faz a requisição e captura a resposta
 			String rawResponse = webClient.get().uri(uri)//
@@ -206,6 +265,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	public SaveResponse save(T model) {
 		SaveResponse saveResponse = null;
 		try {
+			model.extrairCamposMultivalueGenerico(); // Extrai campos multivalorados
 			String rawResponse = "erro rawRepsonse";
 			boolean isNew = model.getMeta() == null;
 			String requestBodyJson = objectMapper.writeValueAsString(model);
@@ -420,8 +480,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 			System.out.println("Nome do arquivo codificado: " + encodedFileName);
 
-			System.out.println("Nome do arquivo codificado: " + encodedFileName);
-
 			// Requisição usando WebClient para obter o anexo
 			response = webClient.get().uri("/attachments/" + unid + "/" + encodedFileName + "?dataSource=" + scope)
 					.header("Authorization", "Bearer " + getUser().getToken()).accept(MediaType.ALL)
@@ -457,7 +515,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			response.setMessage("Erro ao buscar anexo: " + e.getMessage());
 			response.setStatusCode(500);
 		}
-		System.out.println("Response é " + response);
+		// System.out.println("FileResponse é " + response);
 		return response;
 	}
 

@@ -4,6 +4,12 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.tdec.intra.utils.Utils;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class AbstractModelDocMultivalue extends AbstractModel implements Comparable<AbstractModelDocMultivalue> {
 	/**
 	 * Modelos que existem distribuidos em campos multiValue dentro de um
@@ -15,7 +21,7 @@ public class AbstractModelDocMultivalue extends AbstractModel implements Compara
 	 * autorAvisoChamado); private Date criacaoNomeDoModelo (Ex.:
 	 * criacaoAvisoChamado); Caso contrario o AbstractDaoNsf nao funcionará
 	 */
-	private static final long serialVersionUID = 1L;
+
 	protected String idMulti; // importante para adicionar e remover multivalue dentro do bean
 
 	public AbstractModelDocMultivalue() {

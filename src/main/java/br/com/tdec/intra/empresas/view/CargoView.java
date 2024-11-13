@@ -48,4 +48,10 @@ public class CargoView extends AbstractViewDoc<Cargo> {
 
 	}
 
+	@Override
+	protected void addCustomComponents() {
+		// TODO Auto-generated method stub
+
+	}
+
 }
