@@ -1,5 +1,6 @@
 package br.com.tdec.intra.views.helloworld;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ public class HelloWorldView extends HorizontalLayout {
 	private Button gruposLdap = new Button("Grupos LDAP");
 	private TextField roleField = new TextField("Role");
 	private Button roleButton = new Button("Set Role");
+	private TextField charSetField = new TextField("Char Set é " + Charset.defaultCharset());
 
 	private LdapContextSource contextSource;
 
@@ -68,6 +70,7 @@ public class HelloWorldView extends HorizontalLayout {
 		Button button = new Button("nagevar para GruposEconomicos",
 				event -> UI.getCurrent().navigate("gruposeconomicos"));
 		add(button);
+		add(charSetField);
 
 		roleButton.addClickListener(e -> {
 			List<GrantedAuthority> authorities = fetchAdditionalAuthorities(name.getValue(), roleField.getValue());

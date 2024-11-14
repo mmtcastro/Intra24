@@ -8,6 +8,8 @@ import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.Cargo;
 import br.com.tdec.intra.empresas.services.CargoService;
+import br.com.tdec.intra.utils.converters.ProperCaseConverter;
+import br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -26,25 +28,30 @@ public class CargoView extends AbstractViewDoc<Cargo> {
 
 	public CargoView(CargoService service) {
 		super(Cargo.class, service);
-		this.service = service;
 		// addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO,
 		// Margin.LARGE);
 	}
 
 	@Override
 	protected void initBinder() {
-
-		binder.forField(codigoField).asRequired("Entre com um código")//
-				.withValidator(new AbstractValidator.CodigoValidator<>(service))//
-				.bind(Cargo::getCodigo, Cargo::setCodigo);
-		if (!isNovo) {
+		if (isNovo) {
+			binder.forField(codigoField).asRequired("Entre com um código")//
+					.withNullRepresentation("")//
+					.withConverter(new ProperCaseConverter())//
+					.withValidator(new AbstractValidator.CodigoValidator<>(service))//
+					.withConverter(new ProperCaseConverter())//
+					.withConverter(new RemoveSimbolosEAcentos())//
+					.bind(Cargo::getCodigo, Cargo::setCodigo);
+		} else {
+			binder.forField(codigoField).asRequired("Entre com um código").withNullRepresentation("")
+					.bind(Cargo::getCodigo, Cargo::setCodigo);
 			readOnlyFields.add(codigoField);
 		}
 		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(Cargo::getDescricao,
 				Cargo::setDescricao);
-		binder.readBean(model);
-		// form.add(codigoField, descricaoField, idField, autorField, criacaoField);
-		add(codigoField, descricaoField);
+		// binder.readBean(model);
+		binderFields.add(codigoField);
+		binderFields.add(descricaoField);
 
 	}
 

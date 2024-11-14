@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import br.com.tdec.intra.utils.Utils;
 import br.com.tdec.intra.utils.UtilsSession;
-import br.com.tdec.intra.utils.jackson.BodyDeserializer;
 import br.com.tdec.intra.utils.jackson.ZonedDateTimeDeserializer;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -118,9 +117,12 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected String uri; // para guardar a identificacao de um determinado documento. Ex.
 							// intra.tdec.com.br/intra.nsf/empresas_contato.xsp?id=empresas_Contato_asdasd_asdsad_sdas
 	protected String revision; // para ver quantas vezes foi revisado e a ultima revisão
-	@JsonAlias({ "body", "Body" })
-	@JsonDeserialize(using = BodyDeserializer.class)
-	protected RichText body;
+//	@JsonAlias({ "body", "Body" })
+//	@JsonDeserialize(using = BodyDeserializer.class)
+//	protected RichText body;
+//	@JsonAlias({ "obs", "Obs" })
+//	@JsonDeserialize(using = BodyDeserializer.class)
+//	protected RichText obs;
 	@JsonAlias({ "fileNames", "$FILES" })
 	protected List<String> fileNames;
 
@@ -284,6 +286,15 @@ public abstract class AbstractModelDoc extends AbstractModel {
 				this.encoding = "BASE64";
 			}
 		}
+
+		@Override
+		public String toString() {
+			return "RichText {" + "\n  type='" + type + '\'' + ",\n  encoding='" + encoding + '\'' + ",\n  headers='"
+					+ headers + '\'' + ",\n  content='"
+					+ (content != null ? content.substring(0, Math.min(content.length(), 100)) + "..." : "null") + '\''
+					+ "\n}";
+		}
+
 	}
 
 	@Override

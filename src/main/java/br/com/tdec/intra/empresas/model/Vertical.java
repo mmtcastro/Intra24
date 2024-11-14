@@ -4,11 +4,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.abs.AbstractModelDocMultivalue;
 import br.com.tdec.intra.abs.AbstractModelListaMultivalue;
+import br.com.tdec.intra.utils.jackson.BodyDeserializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,6 +27,12 @@ public class Vertical extends AbstractModelDoc {
 	private List<Double> unidadeValor;
 	@JsonIgnore
 	private List<Unidade> unidades;
+	@JsonAlias({ "body", "Body" })
+	@JsonDeserialize(using = BodyDeserializer.class)
+	protected RichText body;
+	@JsonAlias({ "obs", "Obs" })
+	@JsonDeserialize(using = BodyDeserializer.class)
+	protected RichText obs;
 
 	public Vertical() {
 		super();

@@ -2,6 +2,7 @@ package br.com.tdec.intra.abs;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,6 +28,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.richtexteditor.RichTextEditor;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
@@ -37,9 +39,11 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.StreamResource;
 
+import br.com.tdec.intra.abs.AbstractModelDoc.RichText;
 import br.com.tdec.intra.abs.AbstractService.DeleteResponse;
 import br.com.tdec.intra.abs.AbstractService.SaveResponse;
 import br.com.tdec.intra.config.MailService;
+import br.com.tdec.intra.utils.converters.RichTextToMimeConverter;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -58,6 +62,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	private ObjectMapper objectMapper; // jackson conversao zonedDateTime
 	protected String unid;
 	protected Binder<T> binder;
+	protected RichTextEditor obsField = new RichTextEditor(); // opcional na classe concreta
 	protected List<Component> binderFields = new ArrayList<>();// imporante para manter a ordem dos campos no updateView
 	protected boolean isNovo;
 	protected boolean isReadOnly;
@@ -128,8 +133,14 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	 * os files, depois os botoes e depois o foooter.
 	 */
 	public void updateView() {
-		// Inicializa o Binder e define o modelo
+		// Inicializa o Binder
 		initBinder();
+
+		// Verifica se o modelo possui o campo 'obs' e inicializa o campo de observações
+		initObsFieldIfNeeded();
+
+		// define o modelo
+
 		binder.setBean(model);
 
 		// Limpa o layout e adiciona os campos do Binder na ordem correta
@@ -146,26 +157,102 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		// Adiciona os botões de ação
 		initButtons();
 
-		// Define os campos como readOnly, se necessário
-		if (isReadOnly) {
-			// Itera sobre todos os componentes e define como readOnly
-			super.getChildren().forEach(component -> {
-				if (component instanceof HasValue) {
-					HasValue<?, ?> field = (HasValue<?, ?>) component;
-					field.setReadOnly(true);
+		updateReadOnlyState();
+
+	}
+
+	/**
+	 * Inicializa o campo de observações (RichTextEditor) se o modelo tiver o campo
+	 * 'obs'.
+	 */
+	private void initObsFieldIfNeeded() {
+		try {
+			// Verifica se o campo 'obs' existe na classe do modelo
+			if (model.getClass().getDeclaredField("obs") != null) {
+				System.out.println("O campo 'obs' existe na classe do modelo");
+				// Verifica se o campo 'obs' está nulo e inicializa com um objeto vazio
+				model = modelType.createInstance();
+				if (model.getObs() == null) {
+					System.out.println("O campo 'obs' está nulo, inicializando com RichText vazio");
+					model.setObs(new RichText());
 				}
-			});
-		} else {
-			// Permite edição nos campos que não estão marcados como readOnly
-			super.getChildren().forEach(component -> {
-				if (component instanceof HasValue) {
-					HasValue<?, ?> field = (HasValue<?, ?>) component;
-					if (!readOnlyFields.contains(field)) {
-						field.setReadOnly(false);
-					}
-				}
-			});
+
+				// Inicializa o campo RichTextEditor para observações
+				obsField = new RichTextEditor();
+				obsField.setWidthFull();
+
+				// Usa reflexão para acessar os métodos getter e setter do campo 'obs'
+				Method getObsMethod = model.getClass().getMethod("getObs");
+				Method setObsMethod = model.getClass().getMethod("setObs", RichText.class);
+
+				// Configura o binding usando os métodos obtidos por reflexão
+				binder.forField(obsField).withNullRepresentation("") // Representação nula para o campo de entrada
+						.withConverter(new RichTextToMimeConverter()) // Aplicando o conversor
+						.bind(model -> {
+							try {
+								return (RichText) getObsMethod.invoke(model);
+							} catch (Exception e) {
+								throw new RuntimeException("Erro ao acessar o campo 'obs' via reflexão", e);
+							}
+						}, (model, value) -> {
+							try {
+								// Invoca diretamente o setter com o objeto RichText
+								setObsMethod.invoke(model, value);
+							} catch (Exception e) {
+								throw new RuntimeException("Erro ao definir o campo 'obs' via reflexão", e);
+							}
+						});
+
+				// Layout para o campo de observações
+				VerticalLayout obsFieldLayout = new VerticalLayout();
+				obsFieldLayout.setWidthFull();
+				obsFieldLayout.setPadding(false);
+
+				// Rótulo para o campo de observações
+				Span obsFieldLabel = new Span("Observações:");
+				obsFieldLabel.getStyle().set("font-weight", "bold");
+				obsFieldLabel.getStyle().set("margin-top", "10px");
+				obsFieldLabel.getStyle().set("margin-bottom", "0px");
+
+				// Adiciona o rótulo e o campo ao layout
+				obsFieldLayout.add(obsFieldLabel, obsField);
+				setColspan(obsFieldLayout, 2);
+
+				// Adiciona o campo de observações ao binderFields para ser exibido em ordem
+				binderFields.add(obsFieldLayout);
+			}
+		} catch (NoSuchFieldException | NoSuchMethodException e) {
+			// O campo 'obs' não existe, não precisa fazer nada
+			System.err.println("Campo 'obs' não encontrado: " + e.getMessage());
+		} catch (Exception e) {
+			System.err.println("Erro inesperado: " + e.getMessage());
+			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Aplica o estado de readOnly a todos os componentes do formulário.
+	 */
+	private void applyReadOnlyState(Component component, boolean isReadOnly) {
+		if (component instanceof HasValue) {
+			// Se o componente é um campo, aplica o estado de readOnly
+			HasValue<?, ?> field = (HasValue<?, ?>) component;
+			if (isReadOnly || readOnlyFields.contains(field)) {
+				field.setReadOnly(true);
+			} else {
+				field.setReadOnly(false);
+			}
+		} else {
+			// Itera sobre todos os filhos do componente
+			component.getChildren().forEach(child -> applyReadOnlyState(child, isReadOnly));
+		}
+	}
+
+	/**
+	 * Atualiza o estado de readOnly para todos os componentes do formulário.
+	 */
+	public void updateReadOnlyState() {
+		applyReadOnlyState(this, isReadOnly);
 	}
 
 	protected abstract void initBinder();

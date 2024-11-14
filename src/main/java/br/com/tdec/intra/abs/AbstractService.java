@@ -54,11 +54,12 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	public AbstractService(Class<T> modelClass) {
 		scope = Utils.getScopeFromClass(this.getClass());
-		form = this.getClass().getSimpleName(); // Vertical
+
 		this.mode = "default"; // tem que trocar para DQL ou outro mode caso necessário. Esta aqui para //
 								// simplificar.
 		this.modelClass = modelClass;
 		this.model = createModel();
+		form = model.getClass().getSimpleName(); // Vertical
 	}
 
 	@Autowired
@@ -103,7 +104,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 				return new Response<>(null, "Resposta vazia da Web API.", 204, false);
 			}
 			// Exibe a resposta bruta no console para análise
-			System.out.println("Resposta bruta da Web API: " + rawResponse);
+			System.out.println("FindByUnid - Resposta bruta da Web API: " + rawResponse);
 
 			// Desserializa a resposta bruta manualmente para o tipo esperado (T)
 			// ObjectMapper objectMapper = new ObjectMapper(); // cuidado para nao pegar o
@@ -165,7 +166,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 				return new Response<>(null, "Resposta vazia da Web API.", 204, false);
 			}
 
-			System.out.println("Resposta bruta da Web API: " + rawResponse);
+			System.out.println("findById - Resposta bruta da Web API: " + rawResponse);
 
 			// Desserializar a resposta para o tipo esperado (T)
 			T model = objectMapper.readValue(rawResponse, modelClass);
@@ -226,7 +227,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 					.block();
 
 			// Exibe a resposta bruta no console para análise
-			System.out.println("Resposta bruta da Web API: " + rawResponse);
+			System.out.println("findByCodigo - Resposta bruta da Web API: " + rawResponse);
 
 			// Desserializa como lista e captura apenas o primeiro item
 			List<T> resultList = objectMapper.readValue(rawResponse,
@@ -447,7 +448,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 					.block(); // Bloqueia e espera a resposta
 
 			// Exibe a resposta bruta no console para análise
-			System.out.println("Resposta bruta da Web API: " + rawResponse);
+			System.out.println("delete - Resposta bruta da Web API: " + rawResponse);
 
 			// Desserializa a resposta bruta manualmente para DeleteResponse
 			// ObjectMapper objectMapper = new ObjectMapper();
