@@ -2,7 +2,7 @@ package br.com.tdec.intra.abs;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -63,6 +63,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	protected String unid;
 	protected Binder<T> binder;
 	protected RichTextEditor obsField = new RichTextEditor(); // opcional na classe concreta
+	protected VerticalLayout obsFieldLayout; // para o colspan,2 e o titulo funcionarem
 	protected List<Component> binderFields = new ArrayList<>();// imporante para manter a ordem dos campos no updateView
 	protected boolean isNovo;
 	protected boolean isReadOnly;
@@ -96,7 +97,9 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		this.getStyle().set("padding-bottom", "60px"); // Ajuste a altura conforme necessário - footer
 
 		// Ao clicar duas no form, entra em modo de edição
+
 		this.addDoubleClickListener(event -> edit());
+
 	}
 
 	@Override
@@ -167,44 +170,45 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	 */
 	private void initObsFieldIfNeeded() {
 		try {
-			// Verifica se o campo 'obs' existe na classe do modelo
-			if (model.getClass().getDeclaredField("obs") != null) {
+			// Verifica se o campo 'obs' existe na classe do modelo usando reflexão
+			Field obsFieldModel = model.getClass().getDeclaredField("obs");
+
+			if (obsFieldModel != null) {
 				System.out.println("O campo 'obs' existe na classe do modelo");
-				// Verifica se o campo 'obs' está nulo e inicializa com um objeto vazio
-				model = modelType.createInstance();
-				if (model.getObs() == null) {
-					System.out.println("O campo 'obs' está nulo, inicializando com RichText vazio");
-					model.setObs(new RichText());
+
+				// Torna o campo 'obs' acessível
+				obsFieldModel.setAccessible(true);
+
+				// Verifica se o campo 'obs' é null e, se for, inicializa com um novo RichText
+				if (obsFieldModel.get(model) == null) {
+					System.out.println("Inicializando o campo 'obs' com um novo RichText");
+					obsFieldModel.set(model, new RichText());
 				}
 
 				// Inicializa o campo RichTextEditor para observações
 				obsField = new RichTextEditor();
 				obsField.setWidthFull();
 
-				// Usa reflexão para acessar os métodos getter e setter do campo 'obs'
-				Method getObsMethod = model.getClass().getMethod("getObs");
-				Method setObsMethod = model.getClass().getMethod("setObs", RichText.class);
-
-				// Configura o binding usando os métodos obtidos por reflexão
+				// Configura o binding usando o campo 'obs' via reflexão
 				binder.forField(obsField).withNullRepresentation("") // Representação nula para o campo de entrada
 						.withConverter(new RichTextToMimeConverter()) // Aplicando o conversor
 						.bind(model -> {
 							try {
-								return (RichText) getObsMethod.invoke(model);
+								return (RichText) obsFieldModel.get(model);
 							} catch (Exception e) {
 								throw new RuntimeException("Erro ao acessar o campo 'obs' via reflexão", e);
 							}
 						}, (model, value) -> {
 							try {
-								// Invoca diretamente o setter com o objeto RichText
-								setObsMethod.invoke(model, value);
+								RichText richText = (RichText) value;
+								obsFieldModel.set(model, richText);
 							} catch (Exception e) {
 								throw new RuntimeException("Erro ao definir o campo 'obs' via reflexão", e);
 							}
 						});
 
 				// Layout para o campo de observações
-				VerticalLayout obsFieldLayout = new VerticalLayout();
+				obsFieldLayout = new VerticalLayout();
 				obsFieldLayout.setWidthFull();
 				obsFieldLayout.setPadding(false);
 
@@ -221,9 +225,11 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 				// Adiciona o campo de observações ao binderFields para ser exibido em ordem
 				binderFields.add(obsFieldLayout);
 			}
-		} catch (NoSuchFieldException | NoSuchMethodException e) {
-			// O campo 'obs' não existe, não precisa fazer nada
-			System.err.println("Campo 'obs' não encontrado: " + e.getMessage());
+		} catch (NoSuchFieldException e) {
+			System.err.println("Campo 'obs' não encontrado na classe concreta: " + e.getMessage());
+		} catch (IllegalAccessException e) {
+			System.err.println("Erro ao acessar o campo 'obs': " + e.getMessage());
+			e.printStackTrace();
 		} catch (Exception e) {
 			System.err.println("Erro inesperado: " + e.getMessage());
 			e.printStackTrace();
@@ -253,6 +259,14 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	 */
 	public void updateReadOnlyState() {
 		applyReadOnlyState(this, isReadOnly);
+		// Verificar o estado do obsField
+		if (obsField != null) {
+			String value = obsField.getValue();
+			boolean isObsEmpty = (value == null || value.trim().isEmpty() || value.equals("<p><br></p>"));
+
+			// Esconder o campo obsField se estiver vazio e o documento for readOnly
+			obsFieldLayout.setVisible(!(isReadOnly && isObsEmpty));
+		}
 	}
 
 	protected abstract void initBinder();
@@ -492,12 +506,18 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		try {
 			// SaveResponse saveResponse = null;
 			binder.validate();
+			if (!binder.isValid()) {
+				Notification notification = Notification.show("Erro de validação");
+				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+				return;
+			}
+
+			// Remove o footer antes de sair
+			if (footer != null && footer.getParent().isPresent()) {
+				footer.getElement().removeFromParent();
+			}
+
 			SaveResponse saveResponse = service.save(model);
-//			if (isNovo) {
-//				saveResponse = service.save(model);
-//			} else {
-//				saveResponse = service.put(model);
-//			}
 
 			if (saveResponse != null) {
 				if (saveResponse.getStatus() == null) {
@@ -515,6 +535,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 					notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
 					return;
 				}
+			} else {
+				Notification notification = Notification.show("Verificar direito de gravacao no REST API");
+				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+				return;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -578,6 +602,9 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	}
 
 	protected void edit() {
+		if (!isReadOnly) {
+			return; // Já está em modo de edição, não faz nada
+		}
 		isReadOnly = false;
 		updateView();
 
@@ -594,6 +621,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	}
 
 	protected void cancel() {
+		// Remove o footer antes de voltar
+		if (footer != null && footer.getParent().isPresent()) {
+			footer.getElement().removeFromParent();
+		}
 		UI.getCurrent().getPage().getHistory().back();
 	}
 

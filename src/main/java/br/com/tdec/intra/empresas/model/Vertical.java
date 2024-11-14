@@ -49,9 +49,16 @@ public class Vertical extends AbstractModelDoc {
 		}
 	}
 
+	public RichText getObs() {
+		if (this.obs == null) {
+			return new RichText();
+		} else {
+			return this.obs;
+		}
+	}
+
 	@Getter
 	@Setter
-
 	public static class Unidade extends AbstractModelDocMultivalue {
 		@JsonIgnore
 		private String estado;

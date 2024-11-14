@@ -16,15 +16,4 @@ public class CargoService extends AbstractService<Cargo> {
 		super(Cargo.class);
 	}
 
-	@Override
-	public Cargo createModel() {
-		return new Cargo();
-	}
-
-	@Override
-	public SaveResponse save(Cargo model) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }
