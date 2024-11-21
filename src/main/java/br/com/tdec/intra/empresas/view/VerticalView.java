@@ -49,6 +49,7 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
 	private RichTextEditor bodyField = new RichTextEditor();
+	private VerticalLayout bodyFieldLayout;
 	private VerticalLayout verticalLayoutGrid = new VerticalLayout();
 	private Grid<Unidade> gridUnidades;
 	private Button buttonAdicionarUnidade;
@@ -58,6 +59,16 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		addClassNames("abstract-view-doc");
 
 	}
+
+//	@Override
+//	public void updateReadOnlyState() {
+//		// Chama o método da classe abstrata para aplicar o estado de readOnly a todos
+//		// os componentes
+//		super.updateReadOnlyState();
+//
+//		// Atualize o grid ao mudar o estado de readOnly
+//		atualizarGrid();
+//	}
 
 	public void initBinder() {
 
@@ -88,17 +99,19 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 				.withConverter(new RichTextToMimeConverter()) // Aplicando o converter
 				.bind(Vertical::getBody, Vertical::setBody);
 
+		// Remove o layout existente antes de recriá-lo
+		binderFields.remove(bodyFieldLayout);
 		// Configuração do RichTextEditor
 		bodyField.setWidthFull(); // Alinha o RichTextEditor com os outros campos
 		bodyField.getStyle().set("min-height", "300px"); // Ajusta a altura mínima para melhor visualização
 
 		// Layout para o campo de texto rico
-		VerticalLayout bodyFieldLayout = new VerticalLayout();
+		bodyFieldLayout = new VerticalLayout();
 		bodyFieldLayout.setWidthFull();
 		bodyFieldLayout.setPadding(false);
 
 		// Rótulo para o campo de observações
-		Span bodyFieldLabel = new Span("Observações:");
+		Span bodyFieldLabel = new Span("Body:");
 		bodyFieldLabel.getStyle().set("font-weight", "bold");
 		bodyFieldLabel.getStyle().set("margin-top", "10px"); // Aumenta o espaçamento em relação ao campo acima
 		bodyFieldLabel.getStyle().set("margin-bottom", "0px"); // Reduz a distância entre o rótulo e o campo
@@ -114,8 +127,13 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		binderFields.add(dataField);
 		binderFields.add(descricaoField);
 		binderFields.add(bodyFieldLayout); // Adiciona o campo diretamente para controle de readOnly
+
+		// Grid Unidades
 		initGrid();
 		binderFields.add(verticalLayoutGrid);
+
+		// Atualize o grid aqui para refletir o estado correto
+		atualizarGrid();
 
 		print("Obs no model eh " + model.getObs().toString());
 
@@ -269,12 +287,6 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		} else {
 			// Notification.show("Nenhuma unidade encontrada.");
 		}
-	}
-
-	@Override
-	protected void addCustomComponents() {
-		initGrid();
-
 	}
 
 	private boolean isEstadoDuplicado(String estado) {

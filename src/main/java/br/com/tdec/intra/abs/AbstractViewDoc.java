@@ -1,6 +1,7 @@
 package br.com.tdec.intra.abs;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.time.format.DateTimeFormatter;
@@ -11,10 +12,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -24,6 +27,8 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -40,6 +45,7 @@ import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.StreamResource;
 
 import br.com.tdec.intra.abs.AbstractModelDoc.RichText;
+import br.com.tdec.intra.abs.AbstractModelDoc.UploadedFile;
 import br.com.tdec.intra.abs.AbstractService.DeleteResponse;
 import br.com.tdec.intra.abs.AbstractService.SaveResponse;
 import br.com.tdec.intra.config.MailService;
@@ -80,6 +86,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	protected MemoryBuffer buffer = new MemoryBuffer();
 	protected boolean anexosCarregados; // para não carregar novamente ao clicar em edit
 	protected Upload upload = new Upload(buffer);
+	// protected List<UploadedFile> uploadedFiles = new ArrayList<>();
 	protected HorizontalLayout footer;
 	protected Span autorSpan;
 	protected Span criacaoSpan;
@@ -101,6 +108,14 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		this.addDoubleClickListener(event -> edit());
 
 	}
+
+	protected abstract void initBinder();
+
+//	/**
+//	 * Método abstrato para que as subclasses adicionem seus próprios componentes
+//	 * personalizados. Será chamado entre a adição dos campos do Binder e os botões.
+//	 */
+//	protected abstract void addCustomComponents();
 
 	@Override
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
@@ -139,20 +154,25 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		// Inicializa o Binder
 		initBinder();
 
-		// Verifica se o modelo possui o campo 'obs' e inicializa o campo de observações
+		// Inicializa o campo de observações, se necessário
 		initObsFieldIfNeeded();
 
-		// define o modelo
-
+		// Define o modelo
 		binder.setBean(model);
 
 		// Limpa o layout e adiciona os campos do Binder na ordem correta
 		this.removeAll();
 		binderFields.forEach(this::add);
 
-		// Chama o método abstrato para adicionar componentes personalizados da
-		// subclasse
-		addCustomComponents();
+//		// Chama o método abstrato para adicionar componentes personalizados da
+//		// subclasse
+//		addCustomComponents();
+
+		// Adiciona explicitamente o campo de observações (obsFieldLayout) após os
+		// componentes personalizados
+		if (obsFieldLayout != null) {
+			add(obsFieldLayout);
+		}
 
 		// Adiciona os anexos (upload e arquivos)
 		initAnexos();
@@ -160,8 +180,8 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		// Adiciona os botões de ação
 		initButtons();
 
+		// Atualiza o estado de readOnly
 		updateReadOnlyState();
-
 	}
 
 	/**
@@ -170,6 +190,12 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	 */
 	private void initObsFieldIfNeeded() {
 		try {
+			// Verifica se o obsFieldLayout já foi inicializado e adicionado ao binderFields
+			// sem isso ele insere duas vezes o campo quando em modo de edição
+			if (obsFieldLayout != null && binderFields.contains(obsFieldLayout)) {
+				System.out.println("Campo de observações já inicializado, não será criado novamente.");
+				return;
+			}
 			// Verifica se o campo 'obs' existe na classe do modelo usando reflexão
 			Field obsFieldModel = model.getClass().getDeclaredField("obs");
 
@@ -269,14 +295,6 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		}
 	}
 
-	protected abstract void initBinder();
-
-	/**
-	 * Método abstrato para que as subclasses adicionem seus próprios componentes
-	 * personalizados. Será chamado entre a adição dos campos do Binder e os botões.
-	 */
-	protected abstract void addCustomComponents();
-
 	@Autowired
 	public void setMailService(MailService mailService) {
 		this.mailService = mailService;
@@ -290,7 +308,67 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		}
 	}
 
+//	public void initAnexos() {
+//		if (anexosCarregados) {
+//			if (!isReadOnly) {
+//				initUploadFiles();
+//			}
+//			add(verticalLayoutAnexos);
+//			return;
+//		}
+//		if (verticalLayoutAnexos == null) {
+//			verticalLayoutAnexos = new VerticalLayout();
+//			setColspan(verticalLayoutAnexos, 2);
+//		} else {
+//			verticalLayoutAnexos.removeAll();
+//		}
+//		if (!isReadOnly) {
+//			initUploadFiles();
+//		}
+//		if (model.getFileNames() != null && !model.getFileNames().isEmpty()) {
+//			// Percorre a lista de nomes de arquivos do modelo
+//			AbstractService.FileResponse fileResponse;
+//			for (String fileName : model.getFileNames()) {
+//				fileResponse = service.getAnexo(unid, fileName);
+//
+//				if (fileResponse != null && fileResponse.isSuccess()) {
+//					byte[] fileData = fileResponse.getFileData();
+//
+//					if (fileData != null && fileData.length > 0) {
+//						// Cria o StreamResource para download
+//						StreamResource streamResource = new StreamResource(fileName,
+//								() -> new ByteArrayInputStream(fileData));
+//						streamResource.setContentType(fileResponse.getMediaType());
+//						streamResource.setCacheTime(0);
+//
+//						// Cria o Anchor para download
+//						Anchor downloadLink = new Anchor(streamResource,
+//								String.format("%s (%d KB)", fileName, fileData.length / 1024));
+//						downloadLink.getElement().setAttribute("download", true);
+//
+//						// Adiciona o link de download ao layout
+//						verticalLayoutAnexos.add(downloadLink);
+//					} else {
+//						Notification.show("Erro ao obter o arquivo: " + fileName + " - Nenhum dado recebido.", 3000,
+//								Notification.Position.MIDDLE);
+//					}
+//				} else {
+//					Notification.show(
+//							"Erro ao buscar o anexo: " + fileName + " - "
+//									+ (fileResponse != null ? fileResponse.getMessage() : "Resposta nula"),
+//							3000, Notification.Position.MIDDLE);
+//				}
+//
+//			}
+//		}
+//
+//		// Adiciona o layout ao componente
+//		add(verticalLayoutAnexos);
+//		anexosCarregados = true;
+//	}
+
 	public void initAnexos() {
+		// Verifica se os anexos já foram carregados para evitar duplicação
 		if (anexosCarregados) {
 			if (!isReadOnly) {
 				initUploadFiles();
@@ -298,58 +376,87 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 			add(verticalLayoutAnexos);
 			return;
 		}
+
+		// Inicializa o layout de anexos
 		if (verticalLayoutAnexos == null) {
 			verticalLayoutAnexos = new VerticalLayout();
-			setColspan(verticalLayoutAnexos, 2);
+			verticalLayoutAnexos.setWidthFull();
+			verticalLayoutAnexos.setPadding(true);
+			verticalLayoutAnexos.setSpacing(true);
+
+			// Estiliza o layout para parecer uma "caixa"
+			verticalLayoutAnexos.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
+			verticalLayoutAnexos.getStyle().set("border-radius", "8px");
+			verticalLayoutAnexos.getStyle().set("padding", "15px");
+			verticalLayoutAnexos.getStyle().set("background-color", "var(--lumo-base-color)");
+			verticalLayoutAnexos.getStyle().set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)");
+			verticalLayoutAnexos.getStyle().set("margin-top", "20px"); // Adiciona margem superior
 		} else {
 			verticalLayoutAnexos.removeAll();
 		}
-		if (!isReadOnly) {
-			initUploadFiles();
-		}
+
+		// Título da seção de anexos
+		Span anexosLabel = new Span(new Icon(VaadinIcon.FOLDER), new Text(" Anexos:"));
+		anexosLabel.getStyle().set("font-weight", "bold");
+		anexosLabel.getStyle().set("font-size", "16px");
+		anexosLabel.getStyle().set("margin-bottom", "10px");
+
+		verticalLayoutAnexos.add(anexosLabel);
+
+		// Lista de arquivos anexados
+		VerticalLayout fileListLayout = new VerticalLayout();
+		fileListLayout.setPadding(false);
+		fileListLayout.setSpacing(false);
+		fileListLayout.setWidthFull();
+
+		// Adiciona os arquivos anexados à lista
 		if (model.getFileNames() != null && !model.getFileNames().isEmpty()) {
-			// Percorre a lista de nomes de arquivos do modelo
-			AbstractService.FileResponse fileResponse;
 			for (String fileName : model.getFileNames()) {
-				fileResponse = service.getAnexo(unid, fileName);
+				AbstractService.FileResponse fileResponse = service.getAnexo(unid, fileName);
 
 				if (fileResponse != null && fileResponse.isSuccess()) {
 					byte[] fileData = fileResponse.getFileData();
+					StreamResource streamResource = new StreamResource(fileName,
+							() -> new ByteArrayInputStream(fileData));
+					streamResource.setContentType(fileResponse.getMediaType());
 
-					if (fileData != null && fileData.length > 0) {
-						// Cria o StreamResource para download
-						StreamResource streamResource = new StreamResource(fileName,
-								() -> new ByteArrayInputStream(fileData));
-						streamResource.setContentType(fileResponse.getMediaType());
-						streamResource.setCacheTime(0);
+					Anchor fileLink = new Anchor(streamResource, fileName + " (" + fileData.length / 1024 + " KB)");
+					fileLink.getElement().setAttribute("download", true);
+					fileLink.getStyle().set("padding", "5px 0");
+					fileListLayout.add(fileLink);
 
-						// Cria o Anchor para download
-						Anchor downloadLink = new Anchor(streamResource,
-								String.format("%s (%d KB)", fileName, fileData.length / 1024));
-						downloadLink.getElement().setAttribute("download", true);
-
-						// Adiciona o link de download ao layout
-						verticalLayoutAnexos.add(downloadLink);
-					} else {
-						Notification.show("Erro ao obter o arquivo: " + fileName + " - Nenhum dado recebido.", 3000,
-								Notification.Position.MIDDLE);
+					// Adicionar o anexo ao modelo (se ainda não estiver lá)
+					if (model.getAnexos().stream().noneMatch(a -> a.getFileName().equals(fileName))) {
+						model.adicionarAnexo(new UploadedFile(fileName, fileData));
+						model.getLogger().info("Anexo adicionado ao modelo: " + fileName);
 					}
-				} else {
-					Notification.show(
-							"Erro ao buscar o anexo: " + fileName + " - "
-									+ (fileResponse != null ? fileResponse.getMessage() : "Resposta nula"),
-							3000, Notification.Position.MIDDLE);
 				}
-
 			}
+		} else {
+			Span noFilesLabel = new Span("Nenhum arquivo anexado.");
+			noFilesLabel.getStyle().set("color", "var(--lumo-secondary-text-color)");
+			fileListLayout.add(noFilesLabel);
 		}
 
-		// Adiciona o layout ao componente
+		verticalLayoutAnexos.add(fileListLayout);
+
+		// Adiciona o componente de upload somente se não estiver em modo readOnly
+		if (!isReadOnly) {
+			initUploadFiles();
+			verticalLayoutAnexos.add(upload);
+		}
+
+		// Adiciona o layout de anexos ao binderFields para controle de readOnly
+		// binderFields.add(verticalLayoutAnexos);
+		// anexosCarregados = true;
+
+		// Adiciona o layout de anexos ao formulário
 		add(verticalLayoutAnexos);
-		anexosCarregados = true;
+
 	}
 
 	public void initUploadFiles() {
+		model.getLogger().info("upload de arquivos - " + model.getAnexos().size());
 		UploadI18N i18n = new UploadI18N();
 		i18n.setAddFiles(new UploadI18N.AddFiles().setOne("Adicionar arquivo") // Texto do botão para um arquivo
 				.setMany("Adicionar arquivos")); // Texto do botão para vários arquivos
@@ -358,28 +465,79 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		upload.setI18n(i18n);
 
 		upload.setMaxFiles(10);
+		upload.setMaxFileSize(50 * 1024 * 1024); // 50 MB
+
+		// Listener para uploads com falha
+		upload.addFailedListener(event -> {
+			String errorMessage = "Falha ao enviar o arquivo. Verifique o tamanho ou o formato.";
+
+			Throwable reason = event.getReason();
+			if (reason instanceof MaxUploadSizeExceededException) {
+				errorMessage = "O arquivo excede o tamanho máximo permitido pelo servidor!";
+			}
+
+			Notification.show(errorMessage, 5000, Notification.Position.MIDDLE);
+		});
+
 		upload.addSucceededListener(event -> {
 			// Obter o nome do arquivo e o conteúdo
 			String fileName = event.getFileName();
 			InputStream fileData = buffer.getInputStream();
+			try {
+				// Salvar o arquivo na lista temporária
+				byte[] fileBytes = fileData.readAllBytes();
+				// uploadedFiles.add(new UploadedFile(fileName, fileBytes));
+				model.adicionarAnexo(new UploadedFile(fileName, fileBytes));
 
-			// Exibir uma notificação com detalhes do arquivo
-			Notification.show("Upload bem-sucedido: " + fileName);
-
-			// Aqui você pode processar o arquivo conforme necessário (ex: salvar no
-			// servidor)
-			// Exemplo de leitura do conteúdo do arquivo
-			processFile(fileName, fileData);
+				// Notificar o usuário
+				// Notification.show("Arquivo adicionado: " + fileName, 3000,
+				// Notification.Position.MIDDLE);
+			} catch (IOException e) {
+				Notification.show("Erro ao processar o arquivo: " + e.getMessage(), 3000, Notification.Position.MIDDLE);
+			}
 		});
-		verticalLayoutAnexos.add(upload);
+		// verticalLayoutAnexos.add(upload);
 
 	}
 
-	private void processFile(String fileName, InputStream fileData) {
-		// Lógica para processar o arquivo (exemplo: salvar no sistema de arquivos ou
-		// banco de dados)
-		// Aqui, você pode implementar a lógica de armazenamento conforme a necessidade
-	}
+//	private void updateAnexoList() {
+//		verticalLayoutAnexos.removeAll();
+//
+//		// Atualizar o título da seção
+//		Span anexosLabel = new Span(new Icon(VaadinIcon.FOLDER), new Text(" Anexos:"));
+//		anexosLabel.getStyle().set("font-weight", "bold");
+//		anexosLabel.getStyle().set("font-size", "16px");
+//		anexosLabel.getStyle().set("margin-bottom", "10px");
+//		verticalLayoutAnexos.add(anexosLabel);
+//
+//		// Adicionar os arquivos existentes
+//		if (model.getFileNames() != null && !model.getFileNames().isEmpty()) {
+//			for (String fileName : model.getFileNames()) {
+//				AbstractService.FileResponse fileResponse = service.getAnexo(unid, fileName);
+//
+//				if (fileResponse != null && fileResponse.isSuccess()) {
+//					byte[] fileData = fileResponse.getFileData();
+//					StreamResource streamResource = new StreamResource(fileName,
+//							() -> new ByteArrayInputStream(fileData));
+//					streamResource.setContentType(fileResponse.getMediaType());
+//
+//					Anchor fileLink = new Anchor(streamResource, fileName + " (" + fileData.length / 1024 + " KB)");
+//					fileLink.getElement().setAttribute("download", true);
+//					fileLink.getStyle().set("padding", "5px 0");
+//					verticalLayoutAnexos.add(fileLink);
+//				}
+//			}
+//		} else {
+//			Span noFilesLabel = new Span("Nenhum arquivo anexado.");
+//			noFilesLabel.getStyle().set("color", "var(--lumo-secondary-text-color)");
+//			verticalLayoutAnexos.add(noFilesLabel);
+//		}
+//
+//		// Re-adicionar o componente de upload
+//		if (!isReadOnly) {
+//			verticalLayoutAnexos.add(upload);
+//		}
+//	}
 
 	public void initButtons() {
 		saveButton = new Button("Salvar");
@@ -487,6 +645,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		Button confirmButton = new Button("Confirmar", event -> {
 			delete();
 			dialog.close();
+			// Remove o footer antes de sair
+			if (footer != null && footer.getParent().isPresent()) {
+				footer.getElement().removeFromParent();
+			}
 			UI.getCurrent().getPage().getHistory().back();
 		});
 		confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -567,7 +729,6 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 			deleteResponse = service.delete(model);
 			if (deleteResponse != null) {
 				Notification notification = Notification.show(deleteResponse.getMessage());
-
 				String status = deleteResponse.getStatus(); // Certifique-se de que o status sempre será uma string
 				if (status != null) {
 					if (status.equals("403")) {

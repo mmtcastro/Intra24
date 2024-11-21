@@ -34,20 +34,22 @@ public class LdapConfig {
 
 	public LdapConfig(LdapProperties ldapProperties) {
 		this.ldapProperties = ldapProperties;
-
+		System.out.println("LdapConfigUrls: " + ldapProperties.getUrls());
+		System.out.println("LdapConfigUrl: " + ldapProperties.getUrls().toArray(new String[0]));
 	}
 
 	@Bean
 	LdapContextSource contextSource() {
 
 		LdapContextSource contextSource = new LdapContextSource();
+		contextSource.setUrls(ldapProperties.getUrls().toArray(new String[0]));
+		// contextSource.setUrl(ldapProperties.getUrl());
 		// contextSource.setUrl("ldap://luvox.tdec.com.br");
-		// contextSource.setBase("O=TDec");
-		contextSource.setUrl(ldapProperties.getUrl());
-		// contextSource.setUserDn("mcastro");
 		contextSource.setUserDn(ldapProperties.getManagerDn());
-		// contextSource.setPassword("xxxx");
+		// contextSource.setBase("O=TDec");
+		// contextSource.setUserDn("mcastro");
 		contextSource.setPassword(ldapProperties.getManagerPassword());
+		// contextSource.setPassword("xxxx");
 		contextSource.setPooled(true);
 
 		this.ldapTemplate = new LdapTemplate(contextSource);

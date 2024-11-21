@@ -78,6 +78,7 @@ public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserve
 					login.setError(true);
 				}
 			} else {
+				System.out.println("Login Form - Erro ao autenticar");
 				login.setError(true);
 			}
 		});

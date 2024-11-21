@@ -1,15 +1,19 @@
 package br.com.tdec.intra.abs;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -25,8 +29,10 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
+import br.com.tdec.intra.abs.AbstractModelDoc.UploadedFile;
 import br.com.tdec.intra.config.WebClientService;
 import br.com.tdec.intra.directory.model.User;
 import br.com.tdec.intra.utils.Utils;
@@ -337,6 +343,14 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			System.out.println("Raw eh " + rawResponse);
 			saveResponse = objectMapper.readValue(rawResponse, SaveResponse.class);
 
+			model.getLogger().info("Documento salvo com sucesso. Unid eh " + saveResponse.getMeta().getUnid());
+
+			// Se o salvamento do formulário foi bem-sucedido, salvar os anexos
+			if (saveResponse.getMeta() != null && saveResponse.getMeta().getUnid() != null) {
+				deleteAllAnexos(saveResponse.getMeta().getUnid());
+				saveAnexos(saveResponse.getMeta().getUnid());
+			}
+
 		} catch (CustomWebClientException e) {
 			ErrorResponse error = e.getErrorResponse();
 			// Cria uma resposta SaveResponse personalizada com base no erro
@@ -361,7 +375,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	public SaveResponse patch(String unid, T model) {
 		SaveResponse patchResponse = null;
-
 		try {
 			String rawResponse = webClient.patch().uri("/document/" + unid + "?dataSource=" + scope)
 					.header("Accept", "application/json").header("Content-Type", "application/json")
@@ -520,6 +533,109 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		return response;
 	}
 
+	public FileResponse uploadAnexo(String unid, String fieldName, String fileName, InputStream fileData) {
+		FileResponse response = new FileResponse();
+
+		try {
+			System.out.println("Iniciando upload para o arquivo: " + fileName);
+
+			// Converta o InputStream para ByteArrayResource
+			byte[] fileBytes = fileData.readAllBytes();
+			ByteArrayResource byteArrayResource = new ByteArrayResource(fileBytes) {
+				@Override
+				public String getFilename() {
+					return fileName; // Retorna o nome do arquivo para o backend
+				}
+			};
+
+			// Fazendo o upload usando WebClient
+			response = webClient.post()
+					.uri(uriBuilder -> uriBuilder.path("/attachments/" + unid).queryParam("fieldName", fieldName)
+							.queryParam("dataSource", scope).build())
+					.header("Authorization", "Bearer " + getUser().getToken())
+					.contentType(MediaType.MULTIPART_FORM_DATA)
+					.body(BodyInserters.fromMultipartData("filename", byteArrayResource))
+					.exchangeToMono(clientResponse -> {
+						FileResponse fileResponse = new FileResponse();
+
+						if (clientResponse.statusCode().is2xxSuccessful()) {
+							return clientResponse.bodyToMono(String.class).map(successMessage -> {
+								fileResponse.setMessage("Upload bem-sucedido: " + successMessage);
+								fileResponse.setFileName(fileName);
+								fileResponse.setStatusCode(200);
+								fileResponse.setSuccess(true);
+								return fileResponse;
+							});
+						} else {
+							return clientResponse.bodyToMono(String.class).map(errorMessage -> {
+								fileResponse.setMessage("Erro ao fazer upload: " + errorMessage);
+								fileResponse.setStatusCode(clientResponse.statusCode().value());
+								fileResponse.setSuccess(false);
+								return fileResponse;
+							});
+						}
+					}).block();
+
+			if (response == null) {
+				response = new FileResponse();
+				response.setMessage("Erro desconhecido ao fazer upload.");
+				response.setStatusCode(500);
+				response.setSuccess(false);
+			}
+
+		} catch (Exception e) {
+			response.setMessage("Erro ao fazer upload: " + e.getMessage());
+			response.setStatusCode(500);
+			response.setSuccess(false);
+			e.printStackTrace();
+		}
+
+		return response;
+	}
+
+	private void saveAnexos(String unid) {
+		model.getLogger().info(model.getAnexos().size() + " anexos a serem salvos.");
+		for (UploadedFile anexo : model.getAnexos()) {
+			try {
+				// Enviar cada anexo para o backend
+				FileResponse response = uploadAnexo(unid, "anexos", anexo.getFileName(),
+						new ByteArrayInputStream(anexo.getFileData()));
+				if (response == null || !response.isSuccess()) {
+					Notification.show("Falha ao salvar anexo: " + anexo.getFileName(), 3000,
+							Notification.Position.MIDDLE);
+				} else {
+					System.out.println("Anexo salvo com sucesso: " + anexo.getFileName());
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				Notification.show("Erro ao salvar anexo: " + anexo.getFileName() + " - " + e.getMessage(), 5000,
+						Notification.Position.MIDDLE);
+			}
+		}
+	}
+
+	private void deleteAllAnexos(String unid) {
+		model.getLogger().info("Deletando todos os anexos do documento " + unid);
+		try {
+			FileResponse response = getAttachmentNames(unid);
+			model.getLogger().info("Anexos encontrados: " + response.getFileNames());
+			if (response != null && response.getFileNames() != null) {
+				for (String fileName : response.getFileNames()) {
+					model.getLogger().info(fileName + " será deletado.");
+					FileResponse deleteResponse = deleteAnexo(unid, fileName);
+					if (!deleteResponse.isSuccess()) {
+						System.err.println("Erro ao deletar anexo: " + fileName + " - " + deleteResponse.getMessage());
+					} else {
+						System.out.println("Anexo deletado: " + fileName);
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Erro ao deletar anexos: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
 	protected User getUser() {
 		User user = null;
 		try {
@@ -595,6 +711,15 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		private Integer statusCode;
 		@JsonProperty("message")
 		private String message;
+		@JsonProperty("success")
+		private boolean success;
+		private List<String> fileNames;
+
+		// Getter e Setter para o campo $FILES
+		@JsonProperty("$FILES")
+		public List<String> getFileNames() {
+			return fileNames;
+		}
 
 		public boolean isSuccess() {
 			return statusCode != null && statusCode >= 200 && statusCode < 300;
@@ -698,8 +823,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	public List<T> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, String search,
 			Class<T> model) {
 		List<T> ret = new ArrayList<>();
-		System.out.println("Vista é " + Utils.getListaNameFromModelName(model.getSimpleName()));
-
 		try {
 			count = 50; // Define um limite fixo para a contagem, ajustável conforme necessário
 			String direction = "";
@@ -775,6 +898,68 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			this.success = success;
 		}
 
+	}
+
+	public FileResponse getAttachmentNames(String unid) {
+		FileResponse response = new FileResponse();
+		try {
+			// Faz a requisição GET ao endpoint da API
+			response = webClient.get()
+					.uri(uriBuilder -> uriBuilder.path("/attachmentnames/" + unid).queryParam("includeEmbedded", "true")
+							.queryParam("dataSource", scope).build())
+					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
+					.onStatus(HttpStatusCode::isError,
+							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class)
+									.flatMap(errorResponse -> Mono.error(new CustomWebClientException(
+											"Erro ao buscar nomes de anexos: " + errorResponse.getMessage(),
+											clientResponse.statusCode().value(), errorResponse))))
+					.bodyToMono(FileResponse.class).block();
+
+			// Verificação adicional de resposta nula ou falha
+			if (response == null || !response.isSuccess()) {
+				response = new FileResponse();
+				response.setMessage("Erro ao buscar nomes de anexos.");
+				response.setStatusCode(500);
+				response.setSuccess(false);
+			}
+		} catch (Exception e) {
+			response.setMessage("Erro inesperado ao buscar nomes de anexos: " + e.getMessage());
+			response.setStatusCode(500);
+			response.setSuccess(false);
+		}
+		model.getLogger().info("Anexos encontrados: " + response.toString());
+		return response;
+	}
+
+	public FileResponse deleteAnexo(String unid, String fileName) {
+		FileResponse response = new FileResponse();
+		try {
+			// Faz a requisição DELETE ao endpoint da API
+			response = webClient.delete()
+					.uri(uriBuilder -> uriBuilder
+							.path("/attachments/" + unid + "/" + URLEncoder.encode(fileName, StandardCharsets.UTF_8))
+							.queryParam("dataSource", scope).build())
+					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
+					.onStatus(HttpStatusCode::isError,
+							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class)
+									.flatMap(errorResponse -> Mono.error(new CustomWebClientException(
+											"Erro ao apagar anexo: " + errorResponse.getMessage(),
+											clientResponse.statusCode().value(), errorResponse))))
+					.bodyToMono(FileResponse.class).block();
+
+			// Verificação adicional de resposta nula ou falha
+			if (response == null) {
+				response = new FileResponse();
+				response.setMessage("Erro desconhecido ao apagar o anexo.");
+				response.setStatusCode(500);
+				response.setSuccess(false);
+			}
+		} catch (Exception e) {
+			response.setMessage("Erro inesperado ao apagar o anexo: " + e.getMessage());
+			response.setStatusCode(500);
+			response.setSuccess(false);
+		}
+		return response;
 	}
 
 }

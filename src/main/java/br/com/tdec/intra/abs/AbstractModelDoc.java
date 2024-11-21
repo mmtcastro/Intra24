@@ -125,6 +125,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 //	protected RichText obs;
 	@JsonAlias({ "fileNames", "$FILES" })
 	protected List<String> fileNames;
+	protected List<UploadedFile> anexos = new ArrayList<>();
 
 	public AbstractModelDoc() {
 
@@ -353,7 +354,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 								listaField.setAccessible(true);
 								List<?> listaValores = (List<?>) listaField.get(this);
 
-								if (i < listaValores.size()) {
+								if (listaValores != null && i < listaValores.size()) {
 									Object valor = listaValores.get(i);
 									innerField.set(innerInstance, valor);
 								}
@@ -456,6 +457,26 @@ public abstract class AbstractModelDoc extends AbstractModel {
 		} catch (Exception e) {
 			System.err.println("Erro ao extrair campos multivalue de forma genérica: " + e.getMessage());
 			e.printStackTrace();
+		}
+	}
+
+	public void adicionarAnexo(UploadedFile anexo) {
+		this.anexos.add(anexo);
+	}
+
+	public void removerAnexo(String fileName) {
+		this.anexos.removeIf(anexo -> anexo.getFileName().equals(fileName));
+	}
+
+	@Getter
+	@Setter
+	public static class UploadedFile {
+		private String fileName;
+		private byte[] fileData;
+
+		public UploadedFile(String fileName, byte[] fileData) {
+			this.fileName = fileName;
+			this.fileData = fileData;
 		}
 	}
 

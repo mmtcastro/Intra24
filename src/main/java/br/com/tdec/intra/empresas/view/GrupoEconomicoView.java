@@ -56,10 +56,4 @@ public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
 
 	}
 
-	@Override
-	protected void addCustomComponents() {
-		// TODO Auto-generated method stub
-
-	}
-
 }
