@@ -50,6 +50,7 @@ import com.vaadin.flow.server.StreamResource;
 import br.com.tdec.intra.abs.AbstractModelDoc.RichText;
 import br.com.tdec.intra.abs.AbstractModelDoc.UploadedFile;
 import br.com.tdec.intra.abs.AbstractService.DeleteResponse;
+import br.com.tdec.intra.abs.AbstractService.FileResponse;
 import br.com.tdec.intra.abs.AbstractService.SaveResponse;
 import br.com.tdec.intra.config.MailService;
 import br.com.tdec.intra.utils.converters.RichTextToMimeConverter;
@@ -429,7 +430,12 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 					Anchor fileLink = new Anchor(streamResource, fileName + " (" + fileData.length / 1024 + " KB)");
 					fileLink.getElement().setAttribute("download", true);
 					fileLink.getStyle().set("padding", "5px 0");
-					fileListLayout.add(fileLink);
+
+					// Botão para excluir o anexo
+					Button deleteButton = new Button("Excluir", VaadinIcon.TRASH.create());
+					deleteButton.addClickListener(event -> deleteAnexo(fileName));
+
+					fileListLayout.add(deleteButton, fileLink);
 
 					// Adicionar o anexo ao modelo (se ainda não estiver lá)
 					if (model.getAnexos().stream().noneMatch(a -> a.getFileName().equals(fileName))) {
@@ -473,6 +479,8 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		upload.setMaxFiles(10);
 		upload.setMaxFileSize(50 * 1024 * 1024); // 50 MB
 
+		upload.setAcceptedFileTypes("application/pdf");
+
 		// Listener para uploads com falha
 		upload.addFailedListener(event -> {
 			String errorMessage = "Falha ao enviar o arquivo. Verifique o tamanho ou o formato.";
@@ -494,10 +502,15 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 				byte[] fileBytes = fileData.readAllBytes();
 				// uploadedFiles.add(new UploadedFile(fileName, fileBytes));
 				model.adicionarAnexo(new UploadedFile(fileName, fileBytes));
-
-				// Notificar o usuário
-				// Notification.show("Arquivo adicionado: " + fileName, 3000,
-				// Notification.Position.MIDDLE);
+				// Persistir o anexo no backend Domino
+				FileResponse response = service.uploadAnexo(model.getMeta().getUnid(), "anexos", fileName,
+						new ByteArrayInputStream(fileBytes));
+				if (response != null && response.isSuccess()) {
+					Notification.show("Arquivo enviado com sucesso: " + fileName, 3000, Notification.Position.MIDDLE);
+				} else {
+					Notification.show("Erro ao salvar o arquivo no backend Domino.", 5000,
+							Notification.Position.MIDDLE);
+				}
 			} catch (IOException e) {
 				Notification.show("Erro ao processar o arquivo: " + e.getMessage(), 3000, Notification.Position.MIDDLE);
 			}
@@ -506,44 +519,39 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 
 	}
 
-//	private void updateAnexoList() {
-//		verticalLayoutAnexos.removeAll();
-//
-//		// Atualizar o título da seção
-//		Span anexosLabel = new Span(new Icon(VaadinIcon.FOLDER), new Text(" Anexos:"));
-//		anexosLabel.getStyle().set("font-weight", "bold");
-//		anexosLabel.getStyle().set("font-size", "16px");
-//		anexosLabel.getStyle().set("margin-bottom", "10px");
-//		verticalLayoutAnexos.add(anexosLabel);
-//
-//		// Adicionar os arquivos existentes
-//		if (model.getFileNames() != null && !model.getFileNames().isEmpty()) {
-//			for (String fileName : model.getFileNames()) {
-//				AbstractService.FileResponse fileResponse = service.getAnexo(unid, fileName);
-//
-//				if (fileResponse != null && fileResponse.isSuccess()) {
-//					byte[] fileData = fileResponse.getFileData();
-//					StreamResource streamResource = new StreamResource(fileName,
-//							() -> new ByteArrayInputStream(fileData));
-//					streamResource.setContentType(fileResponse.getMediaType());
-//
-//					Anchor fileLink = new Anchor(streamResource, fileName + " (" + fileData.length / 1024 + " KB)");
-//					fileLink.getElement().setAttribute("download", true);
-//					fileLink.getStyle().set("padding", "5px 0");
-//					verticalLayoutAnexos.add(fileLink);
-//				}
-//			}
-//		} else {
-//			Span noFilesLabel = new Span("Nenhum arquivo anexado.");
-//			noFilesLabel.getStyle().set("color", "var(--lumo-secondary-text-color)");
-//			verticalLayoutAnexos.add(noFilesLabel);
-//		}
-//
-//		// Re-adicionar o componente de upload
-//		if (!isReadOnly) {
-//			verticalLayoutAnexos.add(upload);
-//		}
-//	}
+	private void deleteAnexo(String fileName) {
+		// Confirmação opcional antes de excluir
+		Dialog confirmDialog = new Dialog();
+		confirmDialog.add(new Text("Tem certeza que deseja excluir o anexo \"" + fileName + "\"?"));
+
+		Button confirmButton = new Button("Confirmar", event -> {
+			try {
+				// Chama o serviço para excluir o anexo no backend
+				AbstractService.FileResponse response = service.deleteAnexo(model.getMeta().getUnid(), fileName);
+
+				if (response.isSuccess()) {
+					// Remove o arquivo da lista de anexos do modelo
+					model.getFileNames().remove(fileName);
+					Notification.show("Anexo \"" + fileName + "\" removido com sucesso!", 3000,
+							Notification.Position.MIDDLE);
+
+					// Atualiza a interface
+					initAnexos();
+				} else {
+					Notification.show("Erro ao excluir anexo: " + response.getMessage(), 5000,
+							Notification.Position.MIDDLE);
+				}
+			} catch (Exception e) {
+				Notification.show("Erro inesperado: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+				e.printStackTrace();
+			}
+			confirmDialog.close();
+		});
+
+		Button cancelButton = new Button("Cancelar", event -> confirmDialog.close());
+		confirmDialog.add(new HorizontalLayout(confirmButton, cancelButton));
+		confirmDialog.open();
+	}
 
 	public void initButtons() {
 		saveButton = new Button("Salvar");

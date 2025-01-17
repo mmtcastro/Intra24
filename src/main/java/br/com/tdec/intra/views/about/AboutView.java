@@ -3,6 +3,7 @@ package br.com.tdec.intra.views.about;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.boot.SpringBootVersion;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
@@ -18,6 +21,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.server.Version;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 
 import br.com.tdec.intra.config.LdapConfig;
@@ -54,10 +58,23 @@ public class AboutView extends VerticalLayout {
 		img.setWidth("200px");
 		add(img);
 
-		H2 header = new H2("This place intentionally left empty");
+		H2 header = new H2("Informações de Versão e Ambiente");
 		header.addClassNames(Margin.Top.XLARGE, Margin.Bottom.MEDIUM);
 		add(header);
+		H1 heading1 = new H1("Heading 1");
+		add(heading1);
 		add(new Paragraph("It’s a place where you can grow your own UI 🤗"));
+		String vaadinVersion = Version.getFullVersion();
+		String springBootVersion = SpringBootVersion.getVersion();
+		Div vaadinText = new Div();
+		vaadinText.setText("Vaadin version: " + vaadinVersion);
+		vaadinText.addClassName("text-success");
+
+		add(vaadinText);
+		Div springText = new Div();
+		springText.setText("Spring Boot version: " + springBootVersion);
+		springText.addClassName("text-warning");
+		add(springText);
 
 		setSizeFull();
 		setJustifyContentMode(JustifyContentMode.CENTER);

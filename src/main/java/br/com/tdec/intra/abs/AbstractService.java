@@ -1,6 +1,5 @@
 package br.com.tdec.intra.abs;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -29,10 +28,8 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 
-import br.com.tdec.intra.abs.AbstractModelDoc.UploadedFile;
 import br.com.tdec.intra.config.WebClientService;
 import br.com.tdec.intra.directory.model.User;
 import br.com.tdec.intra.utils.Utils;
@@ -345,11 +342,11 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 			model.getLogger().info("Documento salvo com sucesso. Unid eh " + saveResponse.getMeta().getUnid());
 
-			// Se o salvamento do formulário foi bem-sucedido, salvar os anexos
-			if (saveResponse.getMeta() != null && saveResponse.getMeta().getUnid() != null) {
-				deleteAllAnexos(saveResponse.getMeta().getUnid());
-				saveAnexos(saveResponse.getMeta().getUnid());
-			}
+//			// Se o salvamento do formulário foi bem-sucedido, salvar os anexos
+//			if (saveResponse.getMeta() != null && saveResponse.getMeta().getUnid() != null) {
+//				deleteAllAnexos(saveResponse.getMeta().getUnid());
+//				saveAnexos(saveResponse.getMeta().getUnid());
+//			}
 
 		} catch (CustomWebClientException e) {
 			ErrorResponse error = e.getErrorResponse();
@@ -593,48 +590,48 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		return response;
 	}
 
-	private void saveAnexos(String unid) {
-		model.getLogger().info(model.getAnexos().size() + " anexos a serem salvos.");
-		for (UploadedFile anexo : model.getAnexos()) {
-			try {
-				// Enviar cada anexo para o backend
-				FileResponse response = uploadAnexo(unid, "anexos", anexo.getFileName(),
-						new ByteArrayInputStream(anexo.getFileData()));
-				if (response == null || !response.isSuccess()) {
-					Notification.show("Falha ao salvar anexo: " + anexo.getFileName(), 3000,
-							Notification.Position.MIDDLE);
-				} else {
-					System.out.println("Anexo salvo com sucesso: " + anexo.getFileName());
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				Notification.show("Erro ao salvar anexo: " + anexo.getFileName() + " - " + e.getMessage(), 5000,
-						Notification.Position.MIDDLE);
-			}
-		}
-	}
+//	private void saveAnexos(String unid) {
+//		model.getLogger().info(model.getAnexos().size() + " anexos a serem salvos.");
+//		for (UploadedFile anexo : model.getAnexos()) {
+//			try {
+//				// Enviar cada anexo para o backend
+//				FileResponse response = uploadAnexo(unid, "anexos", anexo.getFileName(),
+//						new ByteArrayInputStream(anexo.getFileData()));
+//				if (response == null || !response.isSuccess()) {
+//					Notification.show("Falha ao salvar anexo: " + anexo.getFileName(), 3000,
+//							Notification.Position.MIDDLE);
+//				} else {
+//					System.out.println("Anexo salvo com sucesso: " + anexo.getFileName());
+//				}
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//				Notification.show("Erro ao salvar anexo: " + anexo.getFileName() + " - " + e.getMessage(), 5000,
+//						Notification.Position.MIDDLE);
+//			}
+//		}
+//	}
 
-	private void deleteAllAnexos(String unid) {
-		model.getLogger().info("Deletando todos os anexos do documento " + unid);
-		try {
-			FileResponse response = getAttachmentNames(unid);
-			model.getLogger().info("Anexos encontrados: " + response.getFileNames());
-			if (response != null && response.getFileNames() != null) {
-				for (String fileName : response.getFileNames()) {
-					model.getLogger().info(fileName + " será deletado.");
-					FileResponse deleteResponse = deleteAnexo(unid, fileName);
-					if (!deleteResponse.isSuccess()) {
-						System.err.println("Erro ao deletar anexo: " + fileName + " - " + deleteResponse.getMessage());
-					} else {
-						System.out.println("Anexo deletado: " + fileName);
-					}
-				}
-			}
-		} catch (Exception e) {
-			System.err.println("Erro ao deletar anexos: " + e.getMessage());
-			e.printStackTrace();
-		}
-	}
+//	private void deleteAllAnexos(String unid) {
+//		model.getLogger().info("Deletando todos os anexos do documento " + unid);
+//		try {
+//			FileResponse response = getAttachmentNames(unid);
+//			model.getLogger().info("Anexos encontrados: " + response.getFileNames());
+//			if (response != null && response.getFileNames() != null) {
+//				for (String fileName : response.getFileNames()) {
+//					model.getLogger().info(fileName + " será deletado.");
+//					FileResponse deleteResponse = deleteAnexo(unid, fileName);
+//					if (!deleteResponse.isSuccess()) {
+//						System.err.println("Erro ao deletar anexo: " + fileName + " - " + deleteResponse.getMessage());
+//					} else {
+//						System.out.println("Anexo deletado: " + fileName);
+//					}
+//				}
+//			}
+//		} catch (Exception e) {
+//			System.err.println("Erro ao deletar anexos: " + e.getMessage());
+//			e.printStackTrace();
+//		}
+//	}
 
 	protected User getUser() {
 		User user = null;
