@@ -1,0 +1,19 @@
+
+.margined-form-layout {
+    margin-left: 50px;
+    margin-right: 100px;
+}
+
+/* abstract-view-doc.css */
+.abstract-view-doc-footer {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    background-color: #f8f8f8;
+    padding: 10px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+}

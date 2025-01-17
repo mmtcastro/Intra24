@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
@@ -39,6 +40,8 @@ import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.BeforeLeaveEvent;
+import com.vaadin.flow.router.BeforeLeaveObserver;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.QueryParameters;
@@ -57,7 +60,7 @@ import lombok.Setter;
 @Setter
 @CssImport(value = "./themes/intra24/views/abstract-view-doc.css", themeFor = "vaadin-form-layout")
 public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLayout
-		implements HasUrlParameter<String> {
+		implements HasUrlParameter<String>, BeforeLeaveObserver {
 
 	private static final long serialVersionUID = 1L;
 	protected T model;
@@ -106,6 +109,9 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		// Ao clicar duas no form, entra em modo de edição
 
 		this.addDoubleClickListener(event -> edit());
+
+		// Listener para desmontagem do componente
+		addDetachListener(this::removeFooter);
 
 	}
 
@@ -782,10 +788,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	}
 
 	protected void cancel() {
-		// Remove o footer antes de voltar
-		if (footer != null && footer.getParent().isPresent()) {
-			footer.getElement().removeFromParent();
-		}
+//		// Remove o footer antes de voltar
+//		if (footer != null && footer.getParent().isPresent()) {
+//			footer.getElement().removeFromParent();
+//		}
 		UI.getCurrent().getPage().getHistory().back();
 	}
 
@@ -796,6 +802,21 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 
 	public static void print(Object obj) {
 		System.out.println(obj.toString());
+	}
+
+	@Override
+	public void beforeLeave(BeforeLeaveEvent event) {
+		removeFooter();
+	}
+
+	private void removeFooter(DetachEvent event) {
+		removeFooter();
+	}
+
+	private void removeFooter() {
+		if (footer != null && footer.getParent().isPresent()) {
+			footer.getElement().removeFromParent();
+		}
 	}
 
 }

@@ -1,0 +1,19 @@
+.abstract-view-doc-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    /* background-color: #f1f1f1; */ /* Exemplo de cor de fundo */
+    border-top: 1px solid #ccc; /* Exemplo de borda superior */
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.abstract-view-doc-footer span {
+    margin-right: 10px; /* Espaço entre os itens */
+    font-size: 14px; /* Exemplo de tamanho de fonte */
+}
+
+.abstract-view-doc-footer span:last-child {
+    margin-right: 0;
+}

@@ -4,9 +4,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-import com.vaadin.flow.component.page.AppShellConfigurator;
-import com.vaadin.flow.theme.Theme;
-
 /**
  * The entry point of the Spring Boot application.
  *
@@ -16,10 +13,8 @@ import com.vaadin.flow.theme.Theme;
  */
 @SpringBootApplication
 @EnableAsync
-@Theme(value = "intra24")
-public class Application implements AppShellConfigurator {
 
-	private static final long serialVersionUID = 1L;
+public class Application {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
