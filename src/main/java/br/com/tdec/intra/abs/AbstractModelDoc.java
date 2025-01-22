@@ -126,6 +126,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	@JsonAlias({ "fileNames", "$FILES" })
 	protected List<String> fileNames;
 	protected List<UploadedFile> anexos = new ArrayList<>();
+	private List<String> anexosParaExcluir = new ArrayList<>(); // para controle de exclusão de anexos no AbstractView
 
 	public AbstractModelDoc() {
 

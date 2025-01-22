@@ -1,6 +1,7 @@
 package br.com.tdec.intra.utils;
 
 import java.security.SecureRandom;
+import java.text.Normalizer;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -654,6 +655,40 @@ public class Utils {
 			return str;
 		}
 		return str.substring(0, 1).toUpperCase() + str.substring(1);
+	}
+
+	/**
+	 * Normaliza o nome do arquivo, removendo acentos e caracteres especiais.
+	 */
+	public static String normalizeFileName(String fileName) {
+		// Remove acentos
+		String normalized = Normalizer.normalize(fileName, Normalizer.Form.NFD);
+		Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+		normalized = pattern.matcher(normalized).replaceAll("");
+
+		// Substitui caracteres inválidos por "_"
+		return normalized.replaceAll("[^a-zA-Z0-9._\\-]", "_");
+	}
+
+	/**
+	 * Sanitiza o nome do arquivo, removendo acentos, espaços e caracteres
+	 * especiais.
+	 */
+	public static String sanitizeFileName(String fileName) {
+		// Normaliza para remover acentos
+		String normalized = Normalizer.normalize(fileName, Normalizer.Form.NFD);
+		String withoutAccents = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+
+		// Substitui espaços e caracteres especiais por "_"
+		String sanitized = withoutAccents.replaceAll("[^a-zA-Z0-9._-]", "_");
+
+		// Garante que não existam múltiplos "_" seguidos
+		sanitized = sanitized.replaceAll("_+", "_");
+
+		// Remove "_" do início ou final do nome
+		sanitized = sanitized.replaceAll("^_|_$", "");
+
+		return sanitized;
 	}
 
 }

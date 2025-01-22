@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.HasValue;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -32,6 +31,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.richtexteditor.RichTextEditor;
@@ -88,7 +88,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	protected HorizontalLayout horizontalLayoutButtons;
 	protected VerticalLayout verticalLayoutAnexos;
 	protected MemoryBuffer buffer = new MemoryBuffer();
-	protected boolean anexosCarregados; // para não carregar novamente ao clicar em edit
+
 	protected Upload upload = new Upload(buffer);
 	// protected List<UploadedFile> uploadedFiles = new ArrayList<>();
 	protected HorizontalLayout footer;
@@ -315,7 +315,8 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		}
 	}
 
-//	public void initAnexos() {
+	public void initAnexos() {
+		// Verifica se os anexos já foram carregados para evitar duplicação
 //		if (anexosCarregados) {
 //			if (!isReadOnly) {
 //				initUploadFiles();
@@ -323,66 +324,6 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 //			add(verticalLayoutAnexos);
 //			return;
 //		}
-//		if (verticalLayoutAnexos == null) {
-//			verticalLayoutAnexos = new VerticalLayout();
-//			setColspan(verticalLayoutAnexos, 2);
-//		} else {
-//			verticalLayoutAnexos.removeAll();
-//		}
-//		if (!isReadOnly) {
-//			initUploadFiles();
-//		}
-//		if (model.getFileNames() != null && !model.getFileNames().isEmpty()) {
-//			// Percorre a lista de nomes de arquivos do modelo
-//			AbstractService.FileResponse fileResponse;
-//			for (String fileName : model.getFileNames()) {
-//				fileResponse = service.getAnexo(unid, fileName);
-//
-//				if (fileResponse != null && fileResponse.isSuccess()) {
-//					byte[] fileData = fileResponse.getFileData();
-//
-//					if (fileData != null && fileData.length > 0) {
-//						// Cria o StreamResource para download
-//						StreamResource streamResource = new StreamResource(fileName,
-//								() -> new ByteArrayInputStream(fileData));
-//						streamResource.setContentType(fileResponse.getMediaType());
-//						streamResource.setCacheTime(0);
-//
-//						// Cria o Anchor para download
-//						Anchor downloadLink = new Anchor(streamResource,
-//								String.format("%s (%d KB)", fileName, fileData.length / 1024));
-//						downloadLink.getElement().setAttribute("download", true);
-//
-//						// Adiciona o link de download ao layout
-//						verticalLayoutAnexos.add(downloadLink);
-//					} else {
-//						Notification.show("Erro ao obter o arquivo: " + fileName + " - Nenhum dado recebido.", 3000,
-//								Notification.Position.MIDDLE);
-//					}
-//				} else {
-//					Notification.show(
-//							"Erro ao buscar o anexo: " + fileName + " - "
-//									+ (fileResponse != null ? fileResponse.getMessage() : "Resposta nula"),
-//							3000, Notification.Position.MIDDLE);
-//				}
-//
-//			}
-//		}
-//
-//		// Adiciona o layout ao componente
-//		add(verticalLayoutAnexos);
-//		anexosCarregados = true;
-//	}
-
-	public void initAnexos() {
-		// Verifica se os anexos já foram carregados para evitar duplicação
-		if (anexosCarregados) {
-			if (!isReadOnly) {
-				initUploadFiles();
-			}
-			add(verticalLayoutAnexos);
-			return;
-		}
 
 		// Inicializa o layout de anexos
 		if (verticalLayoutAnexos == null) {
@@ -403,12 +344,21 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		}
 
 		// Título da seção de anexos
-		Span anexosLabel = new Span(new Icon(VaadinIcon.FOLDER), new Text(" Anexos:"));
-		anexosLabel.getStyle().set("font-weight", "bold");
-		anexosLabel.getStyle().set("font-size", "16px");
-		anexosLabel.getStyle().set("margin-bottom", "10px");
+		Icon folderIcon = VaadinIcon.FOLDER.create();
+		folderIcon.getStyle().set("color", "var(--lumo-primary-color)");
+		folderIcon.getStyle().set("margin-right", "10px"); // Espaçamento entre o ícone e o texto
 
-		verticalLayoutAnexos.add(anexosLabel);
+		Span anexosLabel = new Span("Anexos");
+		anexosLabel.getStyle().set("font-weight", "bold");
+		anexosLabel.getStyle().set("font-size", "18px");
+
+		// Layout horizontal para o título
+		HorizontalLayout titleLayout = new HorizontalLayout(folderIcon, anexosLabel);
+		titleLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER); // Alinha verticalmente
+		titleLayout.setSpacing(false); // Remove espaços adicionais
+		titleLayout.getStyle().set("margin-bottom", "10px"); // Espaço abaixo do título
+
+		verticalLayoutAnexos.add(titleLayout);
 
 		// Lista de arquivos anexados
 		VerticalLayout fileListLayout = new VerticalLayout();
@@ -416,12 +366,14 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		fileListLayout.setSpacing(false);
 		fileListLayout.setWidthFull();
 
-		// Adiciona os arquivos anexados à lista
+//		// Adiciona os arquivos anexados à lista
 		if (model.getFileNames() != null && !model.getFileNames().isEmpty()) {
+			// System.out.println("AbstactViewDow InitAnexos - Arquivos anexados: " +
+			// model.getFileNames());
 			for (String fileName : model.getFileNames()) {
 				AbstractService.FileResponse fileResponse = service.getAnexo(unid, fileName);
 
-				if (fileResponse != null && fileResponse.isSuccess()) {
+				if (fileResponse != null) {
 					byte[] fileData = fileResponse.getFileData();
 					StreamResource streamResource = new StreamResource(fileName,
 							() -> new ByteArrayInputStream(fileData));
@@ -431,11 +383,24 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 					fileLink.getElement().setAttribute("download", true);
 					fileLink.getStyle().set("padding", "5px 0");
 
-					// Botão para excluir o anexo
-					Button deleteButton = new Button("Excluir", VaadinIcon.TRASH.create());
-					deleteButton.addClickListener(event -> deleteAnexo(fileName));
+					fileListLayout.add(fileLink);
 
-					fileListLayout.add(deleteButton, fileLink);
+					// Layout horizontal para alinhar o link e o botão
+					HorizontalLayout fileRow = new HorizontalLayout();
+					fileRow.setWidthFull();
+					fileRow.setAlignItems(Alignment.CENTER);
+
+					// Adicionar o botão "Excluir" apenas se não estiver em modo read-only
+					if (!isReadOnly) {
+						Button deleteButton = new Button("", VaadinIcon.TRASH.create());
+						deleteButton.addClickListener(event -> deleteAnexo(fileName));
+						deleteButton.addThemeName("error");
+						fileRow.add(deleteButton);
+					}
+
+					fileRow.add(fileLink);
+
+					fileListLayout.add(fileRow);
 
 					// Adicionar o anexo ao modelo (se ainda não estiver lá)
 					if (model.getAnexos().stream().noneMatch(a -> a.getFileName().equals(fileName))) {
@@ -520,37 +485,26 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	}
 
 	private void deleteAnexo(String fileName) {
-		// Confirmação opcional antes de excluir
-		Dialog confirmDialog = new Dialog();
-		confirmDialog.add(new Text("Tem certeza que deseja excluir o anexo \"" + fileName + "\"?"));
+		// Adiciona o anexo à lista de exclusão no modelo
+		model.getAnexosParaExcluir().add(fileName);
+		// Remove o anexo da lista atual de anexos do modelo
+		// Remove o anexo da lista atual usando comparação robusta
+		boolean removed = model.getFileNames()
+				.removeIf(fileNameInList -> fileNameInList.trim().equalsIgnoreCase(fileName.trim()));
 
-		Button confirmButton = new Button("Confirmar", event -> {
-			try {
-				// Chama o serviço para excluir o anexo no backend
-				AbstractService.FileResponse response = service.deleteAnexo(model.getMeta().getUnid(), fileName);
+		if (removed) {
+			Notification.show("O anexo \"" + fileName + "\" foi marcado para exclusão.", 3000,
+					Notification.Position.MIDDLE);
+		} else {
+			Notification.show("Falha ao encontrar o anexo \"" + fileName + "\" na lista.", 3000,
+					Notification.Position.MIDDLE);
+		}
 
-				if (response.isSuccess()) {
-					// Remove o arquivo da lista de anexos do modelo
-					model.getFileNames().remove(fileName);
-					Notification.show("Anexo \"" + fileName + "\" removido com sucesso!", 3000,
-							Notification.Position.MIDDLE);
+		model.getLogger().info("Anexos size: " + model.getAnexos().size());
+		model.getLogger().info("Anexos para excluir: " + model.getAnexosParaExcluir().size());
 
-					// Atualiza a interface
-					initAnexos();
-				} else {
-					Notification.show("Erro ao excluir anexo: " + response.getMessage(), 5000,
-							Notification.Position.MIDDLE);
-				}
-			} catch (Exception e) {
-				Notification.show("Erro inesperado: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
-				e.printStackTrace();
-			}
-			confirmDialog.close();
-		});
-
-		Button cancelButton = new Button("Cancelar", event -> confirmDialog.close());
-		confirmDialog.add(new HorizontalLayout(confirmButton, cancelButton));
-		confirmDialog.open();
+		// Atualiza a lista de anexos na interface
+		updateView();
 	}
 
 	public void initButtons() {

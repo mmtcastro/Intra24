@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -115,6 +118,9 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			T model = objectMapper.readValue(rawResponse, modelClass);
 
 			model.init(); // Inicializa o modelo, se necessário depois de carregar os dados
+
+			// Chamada para carregar anexos
+			loadAnexos(model, unid);
 
 			// Retorna o modelo em um Response de sucesso
 			response = new Response<>(model, "Documento carregado com sucesso.", 200, true);
@@ -348,6 +354,19 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 //				saveAnexos(saveResponse.getMeta().getUnid());
 //			}
 
+			// Exclusão de anexos pendentes após o salvamento bem-sucedido
+			if (saveResponse.isSuccess() && model.getAnexosParaExcluir() != null) {
+				for (String fileName : model.getAnexosParaExcluir()) {
+					FileResponse deleteResponse = deleteAnexo(model.getMeta().getUnid(), fileName);
+					if (!deleteResponse.isDeleteSuccess()) {
+						System.err.println("Erro ao excluir anexo: " + fileName + " - " + deleteResponse.getMessage());
+					} else {
+						System.out.println("Anexo excluído com sucesso: " + fileName);
+					}
+				}
+				model.getAnexosParaExcluir().clear();
+			}
+
 		} catch (CustomWebClientException e) {
 			ErrorResponse error = e.getErrorResponse();
 			// Cria uma resposta SaveResponse personalizada com base no erro
@@ -526,7 +545,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			response.setMessage("Erro ao buscar anexo: " + e.getMessage());
 			response.setStatusCode(500);
 		}
-		// System.out.println("FileResponse é " + response);
+		// System.out.println("GetAnexo FileResponse é " + response);
 		return response;
 	}
 
@@ -535,13 +554,15 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 		try {
 			System.out.println("Iniciando upload para o arquivo: " + fileName);
+			String sanitizedFileName = Utils.sanitizeFileName(fileName);
+			System.out.println("Nome do arquivo após sanitização: " + sanitizedFileName);
 
 			// Converta o InputStream para ByteArrayResource
 			byte[] fileBytes = fileData.readAllBytes();
 			ByteArrayResource byteArrayResource = new ByteArrayResource(fileBytes) {
 				@Override
 				public String getFilename() {
-					return fileName; // Retorna o nome do arquivo para o backend
+					return sanitizedFileName; // Retorna o nome do arquivo para o backend
 				}
 			};
 
@@ -590,49 +611,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		return response;
 	}
 
-//	private void saveAnexos(String unid) {
-//		model.getLogger().info(model.getAnexos().size() + " anexos a serem salvos.");
-//		for (UploadedFile anexo : model.getAnexos()) {
-//			try {
-//				// Enviar cada anexo para o backend
-//				FileResponse response = uploadAnexo(unid, "anexos", anexo.getFileName(),
-//						new ByteArrayInputStream(anexo.getFileData()));
-//				if (response == null || !response.isSuccess()) {
-//					Notification.show("Falha ao salvar anexo: " + anexo.getFileName(), 3000,
-//							Notification.Position.MIDDLE);
-//				} else {
-//					System.out.println("Anexo salvo com sucesso: " + anexo.getFileName());
-//				}
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//				Notification.show("Erro ao salvar anexo: " + anexo.getFileName() + " - " + e.getMessage(), 5000,
-//						Notification.Position.MIDDLE);
-//			}
-//		}
-//	}
-
-//	private void deleteAllAnexos(String unid) {
-//		model.getLogger().info("Deletando todos os anexos do documento " + unid);
-//		try {
-//			FileResponse response = getAttachmentNames(unid);
-//			model.getLogger().info("Anexos encontrados: " + response.getFileNames());
-//			if (response != null && response.getFileNames() != null) {
-//				for (String fileName : response.getFileNames()) {
-//					model.getLogger().info(fileName + " será deletado.");
-//					FileResponse deleteResponse = deleteAnexo(unid, fileName);
-//					if (!deleteResponse.isSuccess()) {
-//						System.err.println("Erro ao deletar anexo: " + fileName + " - " + deleteResponse.getMessage());
-//					} else {
-//						System.out.println("Anexo deletado: " + fileName);
-//					}
-//				}
-//			}
-//		} catch (Exception e) {
-//			System.err.println("Erro ao deletar anexos: " + e.getMessage());
-//			e.printStackTrace();
-//		}
-//	}
-
 	protected User getUser() {
 		User user = null;
 		try {
@@ -669,6 +647,10 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		private String form;
 		@JsonProperty("@warnings")
 		private List<String> warnings;
+
+		public boolean isSuccess() {
+			return getMeta() != null && getMeta().getUnid() != null;
+		}
 	}
 
 	@Getter
@@ -700,28 +682,79 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	public static class FileResponse {
 		@JsonProperty("fileData")
 		private byte[] fileData;
+
 		@JsonProperty("mediaType")
 		private String mediaType;
+
 		@JsonProperty("fileName")
 		private String fileName;
+
+		@JsonProperty("status")
+		private String status;
+
 		@JsonProperty("statusCode")
 		private Integer statusCode;
+
+		@JsonProperty("statusText")
+		private String statusText;
+
 		@JsonProperty("message")
 		private String message;
+
+		@JsonProperty("unid")
+		private String unid;
+
 		@JsonProperty("success")
 		private boolean success;
+
+		@JsonProperty("details")
+		private Map<String, String> details;
+
+		@JsonProperty("Files") // Nome do campo conforme a resposta da API
 		private List<String> fileNames;
 
-		// Getter e Setter para o campo $FILES
-		@JsonProperty("$FILES")
-		public List<String> getFileNames() {
-			return fileNames;
+//		// Getter e Setter para o campo $FILES
+//		@JsonProperty("$FILES")
+//		public List<String> getFileNames() {
+//			return fileNames;
+//		}
+
+		// Método auxiliar para extrair o fileName de "details"
+		public void extractFileNameFromDetails() {
+			if (details != null && details.containsKey("0")) {
+				try {
+					String detailsJson = details.get("0");
+					ObjectMapper mapper = new ObjectMapper();
+					Map<String, String> detailsMap = mapper.readValue(detailsJson, new TypeReference<>() {
+					});
+					this.fileName = detailsMap.get("fileName");
+				} catch (Exception e) {
+					System.err.println("Erro ao processar 'details': " + e.getMessage());
+				}
+			}
 		}
 
-		public boolean isSuccess() {
-			return statusCode != null && statusCode >= 200 && statusCode < 300;
+		public boolean isDeleteSuccess() {
+			System.out.println("FileResponse status message: " + message);
+			if (statusText != null) {
+				return statusText.equals("OK");
+			} else {
+				return false;
+			}
 		}
 
+		/**
+		 * Copiando respostas do Domino RestAPI
+		 * 
+		 * @return
+		 */
+		public boolean isUploadSuccess() {
+			if (status != null) {
+				return status.equals("upload complete");
+			} else {
+				return false;
+			}
+		}
 	}
 
 	@Getter
@@ -900,63 +933,152 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	public FileResponse getAttachmentNames(String unid) {
 		FileResponse response = new FileResponse();
 		try {
-			// Faz a requisição GET ao endpoint da API
-			response = webClient.get()
+			// Gera a URL para a requisição
+			String url = "/attachmentnames/" + unid + "?includeEmbedded=true&dataSource=" + scope;
+			System.out.println("URL gerada para getAttachmentNames: " + url);
+
+			// Faz a requisição GET e captura a resposta como String
+			String rawResponse = webClient.get()
 					.uri(uriBuilder -> uriBuilder.path("/attachmentnames/" + unid).queryParam("includeEmbedded", "true")
 							.queryParam("dataSource", scope).build())
 					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
 					.onStatus(HttpStatusCode::isError,
-							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class)
-									.flatMap(errorResponse -> Mono.error(new CustomWebClientException(
-											"Erro ao buscar nomes de anexos: " + errorResponse.getMessage(),
-											clientResponse.statusCode().value(), errorResponse))))
-					.bodyToMono(FileResponse.class).block();
+							clientResponse -> clientResponse.bodyToMono(String.class).flatMap(errorMessage -> {
+								System.err.println("Erro HTTP ao buscar nomes de anexos: " + errorMessage);
+								return Mono.error(new CustomWebClientException("Erro ao buscar anexos: " + errorMessage,
+										clientResponse.statusCode().value()));
+							}))
+					.bodyToMono(String.class).block();
 
-			// Verificação adicional de resposta nula ou falha
-			if (response == null || !response.isSuccess()) {
+			System.out.println("Resposta bruta recebida: " + rawResponse);
+
+			// Verifica se a resposta bruta está vazia
+			if (rawResponse == null || rawResponse.isEmpty()) {
+				System.err.println("Resposta vazia ao buscar nomes de anexos.");
+				response.setMessage("Erro: Resposta vazia da API.");
+				response.setStatusCode(500);
+				response.setSuccess(false);
+				return response;
+			}
+
+			// Desserializa a resposta para o objeto FileResponse
+			response = objectMapper.readValue(rawResponse, FileResponse.class);
+
+			// Verificação adicional de resposta nula ou falha após a desserialização
+			if (response == null) {
 				response = new FileResponse();
-				response.setMessage("Erro ao buscar nomes de anexos.");
+				response.setMessage("FileResponse é null - Erro ao buscar nomes de anexos.");
 				response.setStatusCode(500);
 				response.setSuccess(false);
 			}
+
+		} catch (WebClientResponseException e) {
+			System.err.println("Erro HTTP ao buscar nomes de anexos: " + e.getResponseBodyAsString());
+			response.setMessage("Erro HTTP: " + e.getMessage());
+			response.setStatusCode(e.getStatusCode().value());
+			response.setSuccess(false);
 		} catch (Exception e) {
+			System.err.println("Erro inesperado ao buscar nomes de anexos: " + e.getMessage());
+			e.printStackTrace();
 			response.setMessage("Erro inesperado ao buscar nomes de anexos: " + e.getMessage());
 			response.setStatusCode(500);
 			response.setSuccess(false);
 		}
-		model.getLogger().info("Anexos encontrados: " + response.toString());
+
+		model.getLogger().info("GetAttachmentNames - Anexos encontrados: " + response);
 		return response;
 	}
 
 	public FileResponse deleteAnexo(String unid, String fileName) {
 		FileResponse response = new FileResponse();
 		try {
-			// Faz a requisição DELETE ao endpoint da API
-			response = webClient.delete()
+			// Normaliza o nome do arquivo para NFC
+			String normalizedFileName = Normalizer.normalize(fileName, Normalizer.Form.NFC);
+			String encodedFileName = URLEncoder.encode(normalizedFileName, StandardCharsets.UTF_8);
+
+			String uri = "/attachments/" + unid + "/" + encodedFileName + "?dataSource=" + scope;
+
+			System.out.println("URI para deletar anexo: " + uri);
+
+			// Realiza a requisição DELETE e captura a resposta como String
+
+			String rawResponse = webClient.delete()
 					.uri(uriBuilder -> uriBuilder
 							.path("/attachments/" + unid + "/" + URLEncoder.encode(fileName, StandardCharsets.UTF_8))
 							.queryParam("dataSource", scope).build())
 					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
 					.onStatus(HttpStatusCode::isError,
-							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class)
-									.flatMap(errorResponse -> Mono.error(new CustomWebClientException(
-											"Erro ao apagar anexo: " + errorResponse.getMessage(),
-											clientResponse.statusCode().value(), errorResponse))))
-					.bodyToMono(FileResponse.class).block();
+							clientResponse -> clientResponse.bodyToMono(String.class).flatMap(errorMessage -> {
+								System.err.println("Erro HTTP ao apagar anexo: " + errorMessage);
+								return Mono.error(new CustomWebClientException("Erro ao apagar anexo: " + errorMessage,
+										clientResponse.statusCode().value()));
+							}))
+					.bodyToMono(String.class).block();
 
-			// Verificação adicional de resposta nula ou falha
-			if (response == null) {
-				response = new FileResponse();
-				response.setMessage("Erro desconhecido ao apagar o anexo.");
+			// Log da resposta bruta para depuração
+			System.out.println("Raw Response: " + rawResponse);
+
+			// Valida se a resposta está vazia
+			if (rawResponse == null || rawResponse.isEmpty()) {
+				response.setMessage("Resposta da API é nula ou vazia.");
 				response.setStatusCode(500);
 				response.setSuccess(false);
+				return response;
 			}
+
+			// Desserializa a resposta para FileResponse
+			response = objectMapper.readValue(rawResponse, FileResponse.class);
+
+			// Verifica o status da operação
+			if (!response.isDeleteSuccess()) {
+				response.setMessage("Falha ao deletar o anexo.");
+				response.setStatusCode(500);
+			}
+
+		} catch (CustomWebClientException e) {
+			System.err.println("Erro do WebClient: " + e.getMessage());
+			response.setMessage("Erro ao apagar o anexo: " + e.getMessage());
+
+			response.setSuccess(false);
 		} catch (Exception e) {
+			System.err.println("Erro inesperado ao apagar o anexo: " + e.getMessage());
 			response.setMessage("Erro inesperado ao apagar o anexo: " + e.getMessage());
 			response.setStatusCode(500);
 			response.setSuccess(false);
 		}
+
+		// Log final da resposta
+		System.out.println("deleteAnexo - Response: " + response);
 		return response;
+	}
+
+	public void loadAnexos(T model, String unid) {
+		if (model == null || unid == null || unid.trim().isEmpty()) {
+			return; // Não há anexos para carregar
+		}
+
+		try {
+			// Obter lista de nomes de anexos
+			FileResponse fileResponse = getAttachmentNames(unid); // Método para listar anexos
+			System.out.println("Anexos encontrados: " + fileResponse.getFileNames());
+			if (fileResponse != null && fileResponse.getFileNames() != null && fileResponse.getFileNames().size() > 0) {
+				for (String fileName : fileResponse.getFileNames()) {
+					// Para cada nome de anexo, busca os dados
+					FileResponse anexoResponse = getAnexo(unid, fileName);
+					if (anexoResponse != null) {
+						byte[] fileData = anexoResponse.getFileData();
+						model.adicionarAnexo(new AbstractModelDoc.UploadedFile(fileName, fileData));
+					} else {
+						System.err.println("Erro ao carregar o anexo: " + fileName);
+					}
+				}
+			} else {
+				System.out.println("Nenhum anexo encontrado para o documento com UNID: " + unid);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println("Erro ao carregar anexos para o documento com UNID: " + unid + ". " + e.getMessage());
+		}
 	}
 
 }
