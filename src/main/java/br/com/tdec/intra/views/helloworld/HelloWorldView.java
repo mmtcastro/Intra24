@@ -22,6 +22,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 
 import br.com.tdec.intra.empresas.model.Empresa;
+import br.com.tdec.intra.utils.Utils;
 import br.com.tdec.intra.utils.UtilsLdap;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
@@ -46,11 +47,15 @@ public class HelloWorldView extends HorizontalLayout {
 	private TextField roleField = new TextField("Role");
 	private Button roleButton = new Button("Set Role");
 	private TextField charSetField = new TextField("Char Set é " + Charset.defaultCharset());
+	VerticalLayout layout = new VerticalLayout();
+	private TextField formNameField;
+	private Span pluralFormLabel;
 
 	private LdapContextSource contextSource;
 
 	public HelloWorldView(LdapContextSource contextSource) {
 		this.contextSource = contextSource;
+		add(layout);
 
 		name = new TextField("Your name");
 		sayHello = new Button("Diga Olá");
@@ -58,6 +63,31 @@ public class HelloWorldView extends HorizontalLayout {
 		sayHello.addClickListener(e -> {
 			Notification.show("Hello " + name.getValue());
 		});
+
+		// Campo de entrada para o nome do formulário
+		formNameField = new TextField("Nome do Form");
+		formNameField.setPlaceholder("Digite o nome do formulário");
+
+		// Rótulo para exibir o resultado do plural gerado
+		pluralFormLabel = new Span();
+		pluralFormLabel.getStyle().set("font-weight", "bold");
+
+		// Botão para calcular o plural
+		Button calculatePluralButton = new Button("Calcular Plural");
+		calculatePluralButton.addClickListener(e -> {
+			String formName = formNameField.getValue();
+			if (formName == null || formName.trim().isEmpty()) {
+				Notification.show("Por favor, insira um nome de formulário válido.", 3000,
+						Notification.Position.MIDDLE);
+			} else {
+				String pluralForm = Utils.getListaNameFromModelName(formName);
+				pluralFormLabel.setText("Resultado do Plural: " + pluralForm);
+			}
+		});
+
+		// Adicionando os componentes ao layout principal
+		layout.add(name, sayHello, formNameField, calculatePluralButton, pluralFormLabel);
+		add(layout);
 
 		Empresa empresa = new Empresa();
 		empresa.setNome("TDEC");

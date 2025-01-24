@@ -245,6 +245,8 @@ public class Utils {
 	public static String addPlural(String sub) {
 		String str;
 		try {
+			// Remove os acentos do texto
+			sub = Normalizer.normalize(sub, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
 			int length = sub.length();
 			if (length >= 2) {
 				String lastTwo = sub.substring(length - 2);
@@ -253,16 +255,16 @@ public class Utils {
 					str = sub + "es";
 					break;
 				case "ao": // Ex: aprovação -> aprovações
-					str = sub.substring(0, length - 2) + "ões";
+					str = sub.substring(0, length - 2) + "oes";
 					break;
 				case "el": // Ex: papel -> papéis
-					str = sub.substring(0, length - 2) + "éis";
+					str = sub.substring(0, length - 2) + "eis";
 					break;
 				case "al": // Ex: animal -> animais
 					str = sub.substring(0, length - 2) + "ais";
 					break;
 				case "ol": // Ex: sol -> sóis
-					str = sub.substring(0, length - 2) + "óis";
+					str = sub.substring(0, length - 2) + "ois";
 					break;
 				case "em": // Ex: item -> itens
 					str = sub.substring(0, length - 2) + "ens";

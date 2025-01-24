@@ -34,7 +34,6 @@ public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
 		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
 	}
 
-	@Override
 	protected void initBinder() {
 		if (isNovo) {
 			binder.forField(codigoField).asRequired("Entre com um código").withNullRepresentation("")
@@ -52,7 +51,7 @@ public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
 
 		binder.setBean(model);
 
-		add(codigoField, descricaoField);
+		binderFields.add(codigoField);
 
 	}
 

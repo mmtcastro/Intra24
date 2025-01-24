@@ -64,22 +64,6 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 		add(grid);
 	}
 
-//	// Método genérico padrão para configurar colunas
-//	public void initGrid() {
-//		// Adiciona colunas genéricas. Subclasses podem sobrescrever este método.
-//		grid.addColumn(model -> model.getCodigo()).setHeader("Código").setSortable(true);
-//		grid.addColumn(model -> model.getDescricao()).setHeader("Descrição");
-//		grid.addColumn(model -> model.getAutor()).setHeader("Autor");
-//		grid.addColumn(model -> {
-//			if (model.getCriacao() != null) {
-//				return model.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-//			} else {
-//				return null;
-//			}
-//		}).setHeader("Criação");
-//		grid.addColumn(model -> model.getUnid()).setHeader("Unid");
-//	}
-
 	public void initGrid() {
 		// Coluna para Código
 		Grid.Column<T> codigoColumn = grid.addColumn(model -> model.getCodigo()).setHeader("Código").setSortable(true);

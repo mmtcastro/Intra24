@@ -562,7 +562,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			ByteArrayResource byteArrayResource = new ByteArrayResource(fileBytes) {
 				@Override
 				public String getFilename() {
-					return sanitizedFileName; // Retorna o nome do arquivo para o backend
+					return fileName; // Retorna o nome do arquivo para o backend
 				}
 			};
 

@@ -135,8 +135,6 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		// Atualize o grid aqui para refletir o estado correto
 		atualizarGrid();
 
-		print("Obs no model eh " + model.getObs().toString());
-
 	}
 
 	private void initGrid() {

@@ -90,7 +90,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	protected MemoryBuffer buffer = new MemoryBuffer();
 
 	protected Upload upload = new Upload(buffer);
-	// protected List<UploadedFile> uploadedFiles = new ArrayList<>();
+	protected boolean showUploads = true; // alguns forms nao querem ter uploads
 	protected HorizontalLayout footer;
 	protected Span autorSpan;
 	protected Span criacaoSpan;
@@ -117,6 +117,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	}
 
 	protected abstract void initBinder();
+
+	protected void showUploads() {
+		showUploads = true;
+	}
 
 //	/**
 //	 * Método abstrato para que as subclasses adicionem seus próprios componentes
@@ -182,7 +186,9 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		}
 
 		// Adiciona os anexos (upload e arquivos)
-		initAnexos();
+		if (showUploads) {
+			initAnexos();
+		}
 
 		// Adiciona os botões de ação
 		initButtons();
@@ -195,77 +201,75 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	 * Inicializa o campo de observações (RichTextEditor) se o modelo tiver o campo
 	 * 'obs'.
 	 */
+
 	private void initObsFieldIfNeeded() {
+		// Verifica se o layout já foi inicializado
+		if (obsFieldLayout != null && binderFields.contains(obsFieldLayout)) {
+			System.out.println("Campo de observações já inicializado, não será criado novamente.");
+			return;
+		}
+
+		// Inicializa o layout para o campo 'obs'
+		obsFieldLayout = new VerticalLayout();
+		obsFieldLayout.setWidthFull();
+		obsFieldLayout.setPadding(false);
+
+		// Verifica se o modelo contém o campo 'obs'
+		boolean hasObsField = false;
+		for (Field field : model.getClass().getDeclaredFields()) {
+			if (field.getName().equals("obs")) {
+				hasObsField = true;
+				break;
+			}
+		}
+
+		if (!hasObsField) {
+			// Caso o campo 'obs' não exista, apenas registre como uma decisão de design
+			System.out.println("O modelo não contém o campo 'obs'. Nenhum campo de observações será inicializado.");
+			return; // Não adiciona obsFieldLayout
+		}
+
+		// Configurações para o campo de observações (RichTextEditor)
 		try {
-			// Verifica se o obsFieldLayout já foi inicializado e adicionado ao binderFields
-			// sem isso ele insere duas vezes o campo quando em modo de edição
-			if (obsFieldLayout != null && binderFields.contains(obsFieldLayout)) {
-				System.out.println("Campo de observações já inicializado, não será criado novamente.");
-				return;
-			}
-			// Verifica se o campo 'obs' existe na classe do modelo usando reflexão
 			Field obsFieldModel = model.getClass().getDeclaredField("obs");
+			obsFieldModel.setAccessible(true);
 
-			if (obsFieldModel != null) {
-				System.out.println("O campo 'obs' existe na classe do modelo");
-
-				// Torna o campo 'obs' acessível
-				obsFieldModel.setAccessible(true);
-
-				// Verifica se o campo 'obs' é null e, se for, inicializa com um novo RichText
-				if (obsFieldModel.get(model) == null) {
-					System.out.println("Inicializando o campo 'obs' com um novo RichText");
-					obsFieldModel.set(model, new RichText());
-				}
-
-				// Inicializa o campo RichTextEditor para observações
-				obsField = new RichTextEditor();
-				obsField.setWidthFull();
-
-				// Configura o binding usando o campo 'obs' via reflexão
-				binder.forField(obsField).withNullRepresentation("") // Representação nula para o campo de entrada
-						.withConverter(new RichTextToMimeConverter()) // Aplicando o conversor
-						.bind(model -> {
-							try {
-								return (RichText) obsFieldModel.get(model);
-							} catch (Exception e) {
-								throw new RuntimeException("Erro ao acessar o campo 'obs' via reflexão", e);
-							}
-						}, (model, value) -> {
-							try {
-								RichText richText = (RichText) value;
-								obsFieldModel.set(model, richText);
-							} catch (Exception e) {
-								throw new RuntimeException("Erro ao definir o campo 'obs' via reflexão", e);
-							}
-						});
-
-				// Layout para o campo de observações
-				obsFieldLayout = new VerticalLayout();
-				obsFieldLayout.setWidthFull();
-				obsFieldLayout.setPadding(false);
-
-				// Rótulo para o campo de observações
-				Span obsFieldLabel = new Span("Observações:");
-				obsFieldLabel.getStyle().set("font-weight", "bold");
-				obsFieldLabel.getStyle().set("margin-top", "10px");
-				obsFieldLabel.getStyle().set("margin-bottom", "0px");
-
-				// Adiciona o rótulo e o campo ao layout
-				obsFieldLayout.add(obsFieldLabel, obsField);
-				setColspan(obsFieldLayout, 2);
-
-				// Adiciona o campo de observações ao binderFields para ser exibido em ordem
-				binderFields.add(obsFieldLayout);
+			// Inicializa o campo 'obs' no modelo, se estiver nulo
+			if (obsFieldModel.get(model) == null) {
+				obsFieldModel.set(model, new RichText());
 			}
-		} catch (NoSuchFieldException e) {
-			System.err.println("Campo 'obs' não encontrado na classe concreta: " + e.getMessage());
-		} catch (IllegalAccessException e) {
-			System.err.println("Erro ao acessar o campo 'obs': " + e.getMessage());
-			e.printStackTrace();
+
+			obsField = new RichTextEditor();
+			obsField.setWidthFull();
+
+			// Configura o binding
+			binder.forField(obsField).withNullRepresentation("").withConverter(new RichTextToMimeConverter())
+					.bind(model -> {
+						try {
+							return (RichText) obsFieldModel.get(model);
+						} catch (Exception e) {
+							throw new RuntimeException("Erro ao acessar o campo 'obs' via reflexão", e);
+						}
+					}, (model, value) -> {
+						try {
+							obsFieldModel.set(model, value);
+						} catch (Exception e) {
+							throw new RuntimeException("Erro ao definir o campo 'obs' via reflexão", e);
+						}
+					});
+
+			// Adiciona o rótulo e o campo ao layout
+			Span obsFieldLabel = new Span("Observações:");
+			obsFieldLabel.getStyle().set("font-weight", "bold");
+
+			obsFieldLayout.add(obsFieldLabel, obsField);
+			setColspan(obsFieldLayout, 2);
+
+			// Adiciona o layout de observações à lista de campos
+			binderFields.add(obsFieldLayout);
+
 		} catch (Exception e) {
-			System.err.println("Erro inesperado: " + e.getMessage());
-			e.printStackTrace();
+			System.err.println("Erro inesperado ao inicializar o campo de observações: " + e.getMessage());
 		}
 	}
 
