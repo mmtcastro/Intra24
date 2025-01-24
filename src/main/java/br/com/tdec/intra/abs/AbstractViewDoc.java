@@ -350,11 +350,14 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		// Título da seção de anexos
 		Icon folderIcon = VaadinIcon.FOLDER.create();
 		folderIcon.getStyle().set("color", "var(--lumo-primary-color)");
-		folderIcon.getStyle().set("margin-right", "10px"); // Espaçamento entre o ícone e o texto
+		folderIcon.getStyle().set("margin-right", "5px"); // Espaçamento entre o ícone e o texto
+		folderIcon.getStyle().set("width", "14px"); // Largura proporcional ao texto 12px
+		folderIcon.getStyle().set("height", "14px"); // Altura proporcional ao texto 12px
 
 		Span anexosLabel = new Span("Anexos");
 		anexosLabel.getStyle().set("font-weight", "bold");
-		anexosLabel.getStyle().set("font-size", "18px");
+		anexosLabel.getStyle().set("font-size", "12px");
+		anexosLabel.getStyle().set("line-height", "14px"); // Alinha o texto com o ícone, se necessário
 
 		// Layout horizontal para o título
 		HorizontalLayout titleLayout = new HorizontalLayout(folderIcon, anexosLabel);

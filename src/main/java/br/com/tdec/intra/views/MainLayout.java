@@ -20,7 +20,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import br.com.tdec.intra.empresas.view.CargosView;
 import br.com.tdec.intra.empresas.view.EmpresasView;
 import br.com.tdec.intra.empresas.view.GruposEconomicosView;
-import br.com.tdec.intra.empresas.view.OrigensClienteView;
+import br.com.tdec.intra.empresas.view.OrigensClientesView;
+import br.com.tdec.intra.empresas.view.TiposEmpresasView;
 import br.com.tdec.intra.empresas.view.VerticaisView;
 import br.com.tdec.intra.utils.UtilsSession;
 import br.com.tdec.intra.views.about.AboutView;
@@ -87,30 +88,25 @@ public class MainLayout extends AppLayout {
 		SideNav nav = new SideNav();
 
 		nav.addItem(new SideNavItem("Hello World", HelloWorldView.class, LineAwesomeIcon.GLOBE_SOLID.create()));
-		nav.addItem(new SideNavItem("About", AboutView.class, LineAwesomeIcon.FILE.create()));
-//		nav.addItem(new SideNavItem("GruposEconômicos", GruposEconomicosView.class,
-//				LineAwesomeIcon.ACQUISITIONS_INCORPORATED.create()));
-//		nav.addItem(
-//				new SideNavItem("Empresas", EmpresasView.class, LineAwesomeIcon.MONEY_BILL_WAVE_ALT_SOLID.create()));
-//		nav.addItem(new SideNavItem("Verticais", VerticaisView.class, LineAwesomeIcon.BUILDING.create()));
-//		nav.addItem(new SideNavItem("Cargos", CargosView.class, LineAwesomeIcon.PEOPLE_CARRY_SOLID.create()));
+		nav.addItem(new SideNavItem("About", AboutView.class, LineAwesomeIcon.INFO_CIRCLE_SOLID.create()));
 
 		SideNavItem empresas = new SideNavItem("Empresas", EmpresasView.class,
-				LineAwesomeIcon.MONEY_BILL_WAVE_ALT_SOLID.create());
-		empresas.addItem(
-				new SideNavItem("Empresas", EmpresasView.class, LineAwesomeIcon.MONEY_BILL_WAVE_ALT_SOLID.create()));
+				LineAwesomeIcon.HANDSHAKE_SOLID.create());
+		empresas.addItem(new SideNavItem("Empresas", EmpresasView.class, LineAwesomeIcon.BUILDING_SOLID.create()));
 		empresas.addItem(new SideNavItem("Grupos Econômicos", GruposEconomicosView.class,
-				LineAwesomeIcon.ACQUISITIONS_INCORPORATED.create()));
-		empresas.addItem(new SideNavItem("Verticais", VerticaisView.class, LineAwesomeIcon.BUILDING.create()));
-		empresas.addItem(new SideNavItem("Cargos", CargosView.class, LineAwesomeIcon.PEOPLE_CARRY_SOLID.create()));
+				LineAwesomeIcon.SITEMAP_SOLID.create()));
+		empresas.addItem(new SideNavItem("Verticais", VerticaisView.class, LineAwesomeIcon.LAYER_GROUP_SOLID.create()));
+		empresas.addItem(new SideNavItem("Cargos", CargosView.class, LineAwesomeIcon.USER.create()));
 
 		// Submenu Configurações Empresas
-		SideNavItem empresas_config = new SideNavItem("Configurações", OrigensClienteView.class,
-				LineAwesomeIcon.MONEY_BILL_WAVE_ALT_SOLID.create());
+		SideNavItem empresas_config = new SideNavItem("Configurações", OrigensClientesView.class,
+				LineAwesomeIcon.COG_SOLID.create());
 		empresas_config.setExpanded(false);
-		SideNavItem origensCliente = new SideNavItem("Origens Cliente", OrigensClienteView.class,
-				LineAwesomeIcon.BUILDING.create());
-		empresas_config.addItem(origensCliente);
+		SideNavItem tiposEmpresas = new SideNavItem("Tipos de Empresas", TiposEmpresasView.class,
+				LineAwesomeIcon.INDUSTRY_SOLID.create());
+		SideNavItem origensCliente = new SideNavItem("Origens Cliente", OrigensClientesView.class,
+				LineAwesomeIcon.USER_PLUS_SOLID.create());
+		empresas_config.addItem(origensCliente, tiposEmpresas);
 		empresas.addItem(empresas_config);
 
 		nav.addItem(empresas);

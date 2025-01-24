@@ -8,8 +8,8 @@ import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
-import br.com.tdec.intra.empresas.model.OrigemCliente;
-import br.com.tdec.intra.empresas.services.OrigemClienteService;
+import br.com.tdec.intra.empresas.model.TipoEmpresa;
+import br.com.tdec.intra.empresas.services.TipoEmpresaService;
 import br.com.tdec.intra.utils.converters.ProperCaseConverter;
 import br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos;
 import br.com.tdec.intra.views.MainLayout;
@@ -19,20 +19,17 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@PageTitle("Origem do Cliente")
-@Route(value = "origemcliente", layout = MainLayout.class)
+@PageTitle("Tipo de Empresa")
+@Route(value = "tipoempresa", layout = MainLayout.class)
 @RolesAllowed("ROLE_EVERYONE")
-public class OrigemClienteView extends AbstractViewDoc<OrigemCliente> {
+public class TipoEmpresaView extends AbstractViewDoc<TipoEmpresa> {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
 
-	public OrigemClienteView(OrigemClienteService service) {
-		super(OrigemCliente.class, service);
+	public TipoEmpresaView(TipoEmpresaService service) {
+		super(TipoEmpresa.class, service);
 		showUploads = false;
 	}
 
@@ -45,15 +42,15 @@ public class OrigemClienteView extends AbstractViewDoc<OrigemCliente> {
 					.withConverter(new ProperCaseConverter())//
 					.withConverter(new RemoveSimbolosEAcentos())
 					.withValidator(new AbstractValidator.CodigoValidator<>(service))
-					.bind(OrigemCliente::getCodigo, OrigemCliente::setCodigo);
+					.bind(TipoEmpresa::getCodigo, TipoEmpresa::setCodigo);
 		} else {
 			binder.forField(codigoField).asRequired("Entre com um código").withNullRepresentation("")
-					.bind(OrigemCliente::getCodigo, OrigemCliente::setCodigo);
+					.bind(TipoEmpresa::getCodigo, TipoEmpresa::setCodigo);
 			readOnlyFields.add(codigoField);
 		}
 
-		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(OrigemCliente::getDescricao,
-				OrigemCliente::setDescricao);
+		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(TipoEmpresa::getDescricao,
+				TipoEmpresa::setDescricao);
 
 		binder.setBean(model);
 
