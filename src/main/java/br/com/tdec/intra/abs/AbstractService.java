@@ -2,6 +2,7 @@ package br.com.tdec.intra.abs;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.ParameterizedType;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
@@ -51,19 +52,22 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	protected WebClientService webClientService;
 	protected WebClient webClient;
 	@Autowired
-	private ObjectMapper objectMapper; // jackson datas
+	protected ObjectMapper objectMapper; // jackson datas
 	protected String scope;
 	protected String form;
 	protected String mode; // usado do Domino Restapi para definir se pode ou não deletar e rodar agentes
 	protected T model;
 	protected Class<T> modelClass;
 
-	public AbstractService(Class<T> modelClass) {
+	@SuppressWarnings("unchecked")
+	public AbstractService() {
+		// Infere o tipo genérico no tempo de execução
+		this.modelClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
+				.getActualTypeArguments()[0];
 		scope = Utils.getScopeFromClass(this.getClass());
 
 		this.mode = "default"; // tem que trocar para DQL ou outro mode caso necessário. Esta aqui para //
 								// simplificar.
-		this.modelClass = modelClass;
 		this.model = createModel();
 		form = model.getClass().getSimpleName(); // Vertical
 	}
@@ -290,7 +294,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 								.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
 									int statusCode = errorResponse.getStatus();
 									String message = errorResponse.getMessage();
-									String details = errorResponse.getDetails();
 
 									if (statusCode == 403) {
 										return Mono.error(new CustomWebClientException("Sem permissão: " + message,
@@ -322,7 +325,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 								.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
 									int statusCode = errorResponse.getStatus();
 									String message = errorResponse.getMessage();
-									String details = errorResponse.getDetails();
 
 									if (statusCode == 403) {
 										return Mono.error(new CustomWebClientException("Sem permissão: " + message,
@@ -399,7 +401,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
 								int statusCode = errorResponse.getStatus();
 								String message = errorResponse.getMessage();
-								String details = errorResponse.getDetails();
 
 								if (statusCode == 403) {
 									return Mono.error(new CustomWebClientException("Sem permissão: " + message,
@@ -1079,6 +1080,61 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			e.printStackTrace();
 			System.err.println("Erro ao carregar anexos para o documento com UNID: " + unid + ". " + e.getMessage());
 		}
+	}
+
+	/**
+	 * Para listas pequenas como funcionariosAtivos, por exemplo, podemos usar a
+	 * funçao para trazer todos os documentos de uma determinada vista
+	 * 
+	 * @return
+	 */
+	public List<Response<T>> findAll() {
+		List<Response<T>> responseList = new ArrayList<>();
+		try {
+			// Monta a URI para buscar todos os documentos
+			String uri = "/lists/_all?dataSource=" + scope;
+
+			// Faz a requisição GET e captura a resposta como String
+			String rawResponse = webClient.get().uri(uri).header("Authorization", "Bearer " + getUser().getToken())
+					.retrieve().onStatus(HttpStatusCode::isError,
+							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
+								return Mono.error(new CustomWebClientException(errorResponse.getMessage(),
+										errorResponse.getStatus(), errorResponse));
+							}))
+					.bodyToMono(String.class).block();
+
+			// Verifica se a resposta está vazia
+			if (rawResponse == null || rawResponse.isEmpty()) {
+				System.out.println("findAll - Resposta vazia da Web API.");
+				return responseList; // Retorna uma lista vazia
+			}
+
+			// Exibe a resposta bruta no console para análise (opcional)
+			System.out.println("findAll - Resposta bruta da Web API: " + rawResponse);
+
+			// Desserializa a resposta para uma lista de objetos do tipo `T`
+			JavaType listType = objectMapper.getTypeFactory().constructCollectionType(List.class, modelClass);
+			List<T> models = objectMapper.readValue(rawResponse, listType);
+
+			// Converte os objetos do tipo `T` para `Response<T>` e adiciona à lista
+			for (T model : models) {
+				Response<T> response = new Response<>(model, "Documento carregado com sucesso.", 200, true);
+				responseList.add(response);
+			}
+
+		} catch (CustomWebClientException e) {
+			ErrorResponse error = e.getErrorResponse();
+			System.err.println("Erro ao buscar todos os documentos. Código HTTP: " + error.getStatus());
+			System.err.println("Mensagem de erro: " + error.getMessage());
+		} catch (WebClientResponseException e) {
+			System.err.println("Erro ao buscar todos os documentos. Código HTTP: " + e.getStatusCode());
+			System.err.println("Mensagem de erro: " + e.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println("Erro inesperado ao buscar todos os documentos.");
+		}
+
+		return responseList;
 	}
 
 }

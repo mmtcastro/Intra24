@@ -13,7 +13,7 @@ import lombok.Setter;
 public class CargoService extends AbstractService<Cargo> {
 
 	public CargoService() {
-		super(Cargo.class);
+		super();
 	}
 
 }

@@ -28,7 +28,6 @@ import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.model.Vertical.Unidade;
-import br.com.tdec.intra.empresas.services.VerticalService;
 import br.com.tdec.intra.utils.converters.ProperCaseConverter;
 import br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos;
 import br.com.tdec.intra.utils.converters.RichTextToMimeConverter;
@@ -54,8 +53,8 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 	private Grid<Unidade> gridUnidades;
 	private Button buttonAdicionarUnidade;
 
-	public VerticalView(VerticalService service) {
-		super(Vertical.class, service);
+	public VerticalView() {
+		super();
 		addClassNames("abstract-view-doc");
 
 	}

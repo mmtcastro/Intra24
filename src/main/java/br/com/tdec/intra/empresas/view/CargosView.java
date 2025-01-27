@@ -11,7 +11,6 @@ import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractViewLista;
 import br.com.tdec.intra.empresas.model.Cargo;
-import br.com.tdec.intra.empresas.services.CargoService;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -26,8 +25,8 @@ public class CargosView extends AbstractViewLista<Cargo> {
 
 	private static final long serialVersionUID = 1L;
 
-	public CargosView(CargoService service) {
-		super(Cargo.class, service);
+	public CargosView() {
+		super();
 	}
 
 	@SuppressWarnings("unused")

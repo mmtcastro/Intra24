@@ -7,7 +7,6 @@ import com.vaadin.flow.router.Route;
 import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.Cargo;
-import br.com.tdec.intra.empresas.services.CargoService;
 import br.com.tdec.intra.utils.converters.ProperCaseConverter;
 import br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos;
 import br.com.tdec.intra.views.MainLayout;
@@ -26,8 +25,8 @@ public class CargoView extends AbstractViewDoc<Cargo> {
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
 
-	public CargoView(CargoService service) {
-		super(Cargo.class, service);
+	public CargoView() {
+		super();
 		// addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO,
 		// Margin.LARGE);
 	}

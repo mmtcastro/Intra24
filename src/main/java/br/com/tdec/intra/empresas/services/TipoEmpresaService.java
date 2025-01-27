@@ -13,7 +13,7 @@ import lombok.Setter;
 public class TipoEmpresaService extends AbstractService<TipoEmpresa> {
 
 	public TipoEmpresaService() {
-		super(TipoEmpresa.class);
+		super();
 	}
 
 }

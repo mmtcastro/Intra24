@@ -90,11 +90,11 @@ public class MainLayout extends AppLayout {
 		nav.addItem(new SideNavItem("Hello World", HelloWorldView.class, LineAwesomeIcon.GLOBE_SOLID.create()));
 		nav.addItem(new SideNavItem("About", AboutView.class, LineAwesomeIcon.INFO_CIRCLE_SOLID.create()));
 
-		SideNavItem empresas = new SideNavItem("Empresas", EmpresasView.class,
+		SideNavItem empresas = new SideNavItem("Empresas", GruposEconomicosView.class,
 				LineAwesomeIcon.HANDSHAKE_SOLID.create());
-		empresas.addItem(new SideNavItem("Empresas", EmpresasView.class, LineAwesomeIcon.BUILDING_SOLID.create()));
 		empresas.addItem(new SideNavItem("Grupos Econômicos", GruposEconomicosView.class,
 				LineAwesomeIcon.SITEMAP_SOLID.create()));
+		empresas.addItem(new SideNavItem("Empresas", EmpresasView.class, LineAwesomeIcon.BUILDING_SOLID.create()));
 		empresas.addItem(new SideNavItem("Verticais", VerticaisView.class, LineAwesomeIcon.LAYER_GROUP_SOLID.create()));
 		empresas.addItem(new SideNavItem("Cargos", CargosView.class, LineAwesomeIcon.USER.create()));
 

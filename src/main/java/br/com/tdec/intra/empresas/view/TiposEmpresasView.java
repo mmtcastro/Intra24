@@ -3,7 +3,6 @@ package br.com.tdec.intra.empresas.view;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-import br.com.tdec.intra.abs.AbstractService;
 import br.com.tdec.intra.abs.AbstractViewLista;
 import br.com.tdec.intra.empresas.model.TipoEmpresa;
 import br.com.tdec.intra.views.MainLayout;
@@ -20,8 +19,8 @@ public class TiposEmpresasView extends AbstractViewLista<TipoEmpresa> {
 
 	private static final long serialVersionUID = 1L;
 
-	public TiposEmpresasView(AbstractService<TipoEmpresa> service) {
-		super(TipoEmpresa.class, service);
+	public TiposEmpresasView() {
+		super();
 	}
 
 }

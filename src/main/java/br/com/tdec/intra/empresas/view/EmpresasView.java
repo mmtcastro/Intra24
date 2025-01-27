@@ -11,7 +11,6 @@ import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractViewLista;
 import br.com.tdec.intra.empresas.model.Empresa;
-import br.com.tdec.intra.empresas.services.EmpresaService;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
@@ -26,8 +25,8 @@ public class EmpresasView extends AbstractViewLista<Empresa> {
 
 	private static final long serialVersionUID = 1L;
 
-	public EmpresasView(EmpresaService service) {
-		super(Empresa.class, service);
+	public EmpresasView() {
+		super();
 
 	}
 

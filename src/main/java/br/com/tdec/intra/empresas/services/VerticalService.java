@@ -13,7 +13,7 @@ import lombok.Setter;
 public class VerticalService extends AbstractService<Vertical> {
 
 	public VerticalService() {
-		super(Vertical.class);
+		super();
 	}
 
 }

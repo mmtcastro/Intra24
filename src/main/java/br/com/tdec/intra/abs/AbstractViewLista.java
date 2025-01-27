@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.springframework.context.ApplicationContext;
+
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -15,6 +17,7 @@ import com.vaadin.flow.data.provider.LazyDataView;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.value.ValueChangeMode;
 
+import br.com.tdec.intra.config.ApplicationContextProvider;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,15 +34,44 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 	protected Class<T> modelType;
 	protected Button novoButton;
 
-	public AbstractViewLista(Class<T> modelType, AbstractService<T> service) {
-		this.service = service;
-		this.modelType = modelType;
+	@SuppressWarnings("unchecked")
+	public AbstractViewLista() {
+		this.modelType = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 		model = createModel(modelType);
+		// Buscar dinamicamente o Service correspondente ao modelo
+		this.service = findService();
+
 		setSizeFull();
 		setSearch();
 		setGrid();
 		updateGrid(grid, "");
 
+	}
+
+	@SuppressWarnings("unchecked")
+	private AbstractService<T> findService() {
+		// Obter o nome do modelo
+		String modelName = modelType.getSimpleName();
+
+		// Construir o nome do serviço a partir do nome do modelo
+		String serviceName = modelName + "Service";
+
+		// Converter para o formato camelCase (primeira letra minúscula)
+		serviceName = Character.toLowerCase(serviceName.charAt(0)) + serviceName.substring(1);
+
+		// Use the ApplicationContextProvider to get the ApplicationContext
+		ApplicationContext context = ApplicationContextProvider.getApplicationContext();
+		if (context == null) {
+			throw new IllegalStateException("ApplicationContext is not initialized.");
+		}
+
+		Object serviceBean = context.getBean(serviceName);
+
+		if (serviceBean instanceof AbstractService) {
+			return (AbstractService<T>) serviceBean;
+		} else {
+			throw new IllegalStateException("Serviço não encontrado ou não é do tipo AbstractService: " + serviceName);
+		}
 	}
 
 	private void setSearch() {

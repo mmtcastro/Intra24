@@ -9,7 +9,7 @@ import br.com.tdec.intra.empresas.model.Empresa;
 public class EmpresaService extends AbstractService<Empresa> {
 
 	public EmpresaService() {
-		super(Empresa.class);
+		super();
 	}
 
 }

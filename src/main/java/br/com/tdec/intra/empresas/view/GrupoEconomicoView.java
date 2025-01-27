@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -11,7 +12,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
-import br.com.tdec.intra.empresas.services.GrupoEconomicoService;
+import br.com.tdec.intra.pessoal.service.ColaboradorService;
 import br.com.tdec.intra.utils.converters.RemoveSpacesConverter;
 import br.com.tdec.intra.utils.converters.UpperCaseConverter;
 import br.com.tdec.intra.views.MainLayout;
@@ -28,10 +29,16 @@ public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
 	private static final long serialVersionUID = 1L;
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
+	private ComboBox<String> responsavelComboBox = new ComboBox<>("Responsável");
 
-	public GrupoEconomicoView(GrupoEconomicoService service) {
-		super(GrupoEconomico.class, service);
+	public GrupoEconomicoView(ColaboradorService colaboradorService) {
+		super();
 		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
+		responsavelComboBox.setItems(colaboradorService.getFuncionariosAtivos());
+		responsavelComboBox.setPlaceholder("Selecione um responsável");
+		responsavelComboBox.setWidthFull();
+
+		// add(responsavelComboBox); // Adiciona o ComboBox ao layout
 	}
 
 	protected void initBinder() {
@@ -46,13 +53,20 @@ public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
 					.bind(GrupoEconomico::getCodigo, GrupoEconomico::setCodigo);
 			readOnlyFields.add(codigoField);
 		}
+
+		// Configura o binding para o ComboBox 'responsavelComboBox'
+		binder.forField(responsavelComboBox).asRequired("Selecione um responsável").bind(GrupoEconomico::getResponsavel,
+				GrupoEconomico::setResponsavel);
+
 		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(GrupoEconomico::getDescricao,
 				GrupoEconomico::setDescricao);
 
 		binder.setBean(model);
 
+		// Adiciona os campos ao binderFields
 		binderFields.add(codigoField);
-
+		binderFields.add(responsavelComboBox);
+		binderFields.add(descricaoField);
 	}
 
 }

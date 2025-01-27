@@ -5,7 +5,6 @@ import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractViewLista;
 import br.com.tdec.intra.empresas.model.Vertical;
-import br.com.tdec.intra.empresas.services.VerticalService;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -20,8 +19,8 @@ public class VerticaisView extends AbstractViewLista<Vertical> {
 
 	private static final long serialVersionUID = 1L;
 
-	public VerticaisView(VerticalService service) {
-		super(Vertical.class, service);
+	public VerticaisView() {
+		super();
 	}
 
 //	private static final long serialVersionUID = 1L;

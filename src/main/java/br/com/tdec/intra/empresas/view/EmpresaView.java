@@ -12,7 +12,6 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.Empresa;
-import br.com.tdec.intra.empresas.services.EmpresaService;
 import br.com.tdec.intra.utils.converters.RemoveSpacesConverter;
 import br.com.tdec.intra.utils.converters.UpperCaseConverter;
 import br.com.tdec.intra.views.MainLayout;
@@ -33,8 +32,8 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 	private TextField descricaoField = new TextField("Descrição");
 	private Binder<Empresa> binder = new Binder<>(Empresa.class, false);
 
-	public EmpresaView(EmpresaService service) {
-		super(Empresa.class, service);
+	public EmpresaView() {
+		super();
 		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
 	}
 

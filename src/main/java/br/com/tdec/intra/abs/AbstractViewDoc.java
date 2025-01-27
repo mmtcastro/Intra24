@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,6 +54,7 @@ import br.com.tdec.intra.abs.AbstractModelDoc.UploadedFile;
 import br.com.tdec.intra.abs.AbstractService.DeleteResponse;
 import br.com.tdec.intra.abs.AbstractService.FileResponse;
 import br.com.tdec.intra.abs.AbstractService.SaveResponse;
+import br.com.tdec.intra.config.ApplicationContextProvider;
 import br.com.tdec.intra.config.MailService;
 import br.com.tdec.intra.utils.converters.RichTextToMimeConverter;
 import lombok.Getter;
@@ -96,9 +99,14 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	protected Span criacaoSpan;
 	protected Span idSpan;
 
-	public AbstractViewDoc(Class<T> modelType, AbstractService<T> service) {
-		this.service = service;
-		this.modelType = modelType;
+	@SuppressWarnings("unchecked")
+	public AbstractViewDoc() {
+
+		this.modelType = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+
+		// Buscar dinamicamente o Service correspondente ao modelo
+		this.service = findService();
+
 		binder = new Binder<>(modelType);
 
 		this.setTitle(title);
@@ -120,6 +128,32 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 
 	protected void showUploads() {
 		showUploads = true;
+	}
+
+	@SuppressWarnings("unchecked")
+	private AbstractService<T> findService() {
+		// Obter o nome do modelo
+		String modelName = modelType.getSimpleName();
+
+		// Construir o nome do serviço a partir do nome do modelo
+		String serviceName = modelName + "Service";
+
+		// Converter para o formato camelCase (primeira letra minúscula)
+		serviceName = Character.toLowerCase(serviceName.charAt(0)) + serviceName.substring(1);
+
+		// Use the ApplicationContextProvider to get the ApplicationContext
+		ApplicationContext context = ApplicationContextProvider.getApplicationContext();
+		if (context == null) {
+			throw new IllegalStateException("ApplicationContext is not initialized.");
+		}
+
+		Object serviceBean = context.getBean(serviceName);
+
+		if (serviceBean instanceof AbstractService) {
+			return (AbstractService<T>) serviceBean;
+		} else {
+			throw new IllegalStateException("Serviço não encontrado ou não é do tipo AbstractService: " + serviceName);
+		}
 	}
 
 //	/**

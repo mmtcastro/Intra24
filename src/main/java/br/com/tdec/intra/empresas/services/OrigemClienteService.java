@@ -13,7 +13,7 @@ import lombok.Setter;
 public class OrigemClienteService extends AbstractService<OrigemCliente> {
 
 	public OrigemClienteService() {
-		super(OrigemCliente.class);
+		super();
 	}
 
 }

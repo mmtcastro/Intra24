@@ -9,7 +9,6 @@ import com.vaadin.flow.router.Route;
 import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.OrigemCliente;
-import br.com.tdec.intra.empresas.services.OrigemClienteService;
 import br.com.tdec.intra.utils.converters.ProperCaseConverter;
 import br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos;
 import br.com.tdec.intra.views.MainLayout;
@@ -31,8 +30,8 @@ public class OrigemClienteView extends AbstractViewDoc<OrigemCliente> {
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
 
-	public OrigemClienteView(OrigemClienteService service) {
-		super(OrigemCliente.class, service);
+	public OrigemClienteView() {
+		super();
 		showUploads = false;
 	}
 

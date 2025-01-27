@@ -9,7 +9,6 @@ import com.vaadin.flow.router.Route;
 import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.model.TipoEmpresa;
-import br.com.tdec.intra.empresas.services.TipoEmpresaService;
 import br.com.tdec.intra.utils.converters.ProperCaseConverter;
 import br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos;
 import br.com.tdec.intra.views.MainLayout;
@@ -28,8 +27,8 @@ public class TipoEmpresaView extends AbstractViewDoc<TipoEmpresa> {
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
 
-	public TipoEmpresaView(TipoEmpresaService service) {
-		super(TipoEmpresa.class, service);
+	public TipoEmpresaView() {
+		super();
 		showUploads = false;
 	}
 
