@@ -226,6 +226,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			String uri = String.format("/lists/_intraCodigos?mode=" + mode + "&dataSource=" + scope
 					+ "&keyAllowPartial=false&documents=true&richTextAs=mime&key=" + codigo + "&key=" + form
 					+ "&scope=documents");
+			// System.out.println("URI findByCodigo: " + uri);
 
 			// Faz a requisição e captura a resposta
 			String rawResponse = webClient.get().uri(uri)//

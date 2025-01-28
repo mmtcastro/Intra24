@@ -4,7 +4,6 @@ import java.lang.reflect.ParameterizedType;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 
 import org.springframework.context.ApplicationContext;
 
@@ -148,12 +147,12 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 		dataView.setItemCountEstimate(8000); // Estimativa de total de itens
 	}
 
-	@SuppressWarnings("unchecked")
-	private Stream<T> captureWildcard(Stream<? extends AbstractModelDoc> stream) {
-		// This casting operation captures the wildcard and returns a stream of
-		// AbstractModelDoc - por causa do <E> no AbstractRepository
-		return (Stream<T>) stream;
-	}
+//	@SuppressWarnings("unchecked")
+//	private Stream<T> captureWildcard(Stream<? extends AbstractModelDoc> stream) {
+//		// This casting operation captures the wildcard and returns a stream of
+//		// AbstractModelDoc - por causa do <E> no AbstractRepository
+//		return (Stream<T>) stream;
+//	}
 
 	protected T createModel(Class<T> modelType) {
 		try {

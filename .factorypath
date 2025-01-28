@@ -40,10 +40,11 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/data/spring-data-ldap/3.4.2/spring-data-ldap-3.4.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/data/spring-data-commons/3.4.2/spring-data-commons-3.4.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-spring-boot-starter/24.6.2/vaadin-spring-boot-starter-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-spring/24.6.2/vaadin-spring-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-server/24.6.2/flow-server-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-spring-boot-starter/24.6.3/vaadin-spring-boot-starter-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-spring/24.6.3/vaadin-spring-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-server/24.6.3/flow-server-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/servletdetector/throw-if-servlet3/1.0.2/throw-if-servlet3-1.0.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/apache/commons/commons-fileupload2-jakarta/2.0.0-M1/commons-fileupload2-jakarta-2.0.0-M1.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/apache/commons/commons-fileupload2-core/2.0.0-M1/commons-fileupload2-core-2.0.0-M1.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/commons-io/commons-io/2.18.0/commons-io-2.18.0.jar" enabled="true" runInBatchMode="false"/>
@@ -54,65 +55,65 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/external/gentyref/1.2.0.vaadin1/gentyref-1.2.0.vaadin1.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/apache/commons/commons-compress/1.27.1/commons-compress-1.27.1.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-push/24.6.2/flow-push-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-push/24.6.3/flow-push-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/external/atmosphere/atmosphere-runtime/3.0.5.slf4jvaadin1/atmosphere-runtime-3.0.5.slf4jvaadin1.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-client/24.6.2/flow-client-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-client/24.6.3/flow-client-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/spring-webmvc/6.2.2/spring-webmvc-6.2.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/spring-websocket/6.2.2/spring-websocket-6.2.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/reflections/reflections/0.10.2/reflections-0.10.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/javassist/javassist/3.30.2-GA/javassist-3.30.2-GA.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-core/24.6.2/vaadin-core-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-core-internal/24.6.2/vaadin-core-internal-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-lit-template/24.6.2/flow-lit-template-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-react/24.6.2/flow-react-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-html-components/24.6.2/flow-html-components-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-dnd/24.6.2/flow-dnd-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-lumo-theme/24.6.2/vaadin-lumo-theme-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-icons-flow/24.6.2/vaadin-icons-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-material-theme/24.6.2/vaadin-material-theme-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-core-components/24.6.2/vaadin-core-components-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-accordion-flow/24.6.2/vaadin-accordion-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-avatar-flow/24.6.2/vaadin-avatar-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-button-flow/24.6.2/vaadin-button-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-checkbox-flow/24.6.2/vaadin-checkbox-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-combo-box-flow/24.6.2/vaadin-combo-box-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-confirm-dialog-flow/24.6.2/vaadin-confirm-dialog-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-custom-field-flow/24.6.2/vaadin-custom-field-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-date-picker-flow/24.6.2/vaadin-date-picker-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-date-time-picker-flow/24.6.2/vaadin-date-time-picker-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-details-flow/24.6.2/vaadin-details-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-time-picker-flow/24.6.2/vaadin-time-picker-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-select-flow/24.6.2/vaadin-select-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-side-nav-flow/24.6.2/vaadin-side-nav-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-dialog-flow/24.6.2/vaadin-dialog-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-form-layout-flow/24.6.2/vaadin-form-layout-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-field-highlighter-flow/24.6.2/vaadin-field-highlighter-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-grid-flow/24.6.2/vaadin-grid-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-virtual-list-flow/24.6.2/vaadin-virtual-list-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-list-box-flow/24.6.2/vaadin-list-box-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-login-flow/24.6.2/vaadin-login-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-messages-flow/24.6.2/vaadin-messages-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-ordered-layout-flow/24.6.2/vaadin-ordered-layout-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-progress-bar-flow/24.6.2/vaadin-progress-bar-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-popover-flow/24.6.2/vaadin-popover-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-radio-button-flow/24.6.2/vaadin-radio-button-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-renderer-flow/24.6.2/vaadin-renderer-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-split-layout-flow/24.6.2/vaadin-split-layout-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-tabs-flow/24.6.2/vaadin-tabs-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-text-field-flow/24.6.2/vaadin-text-field-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-upload-flow/24.6.2/vaadin-upload-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-notification-flow/24.6.2/vaadin-notification-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-app-layout-flow/24.6.2/vaadin-app-layout-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-context-menu-flow/24.6.2/vaadin-context-menu-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-menu-bar-flow/24.6.2/vaadin-menu-bar-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-core/24.6.3/vaadin-core-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-core-internal/24.6.3/vaadin-core-internal-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-lit-template/24.6.3/flow-lit-template-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-react/24.6.3/flow-react-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-html-components/24.6.3/flow-html-components-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-dnd/24.6.3/flow-dnd-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-lumo-theme/24.6.3/vaadin-lumo-theme-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-icons-flow/24.6.3/vaadin-icons-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-material-theme/24.6.3/vaadin-material-theme-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-core-components/24.6.3/vaadin-core-components-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-accordion-flow/24.6.3/vaadin-accordion-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-avatar-flow/24.6.3/vaadin-avatar-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-button-flow/24.6.3/vaadin-button-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-checkbox-flow/24.6.3/vaadin-checkbox-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-combo-box-flow/24.6.3/vaadin-combo-box-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-confirm-dialog-flow/24.6.3/vaadin-confirm-dialog-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-custom-field-flow/24.6.3/vaadin-custom-field-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-date-picker-flow/24.6.3/vaadin-date-picker-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-date-time-picker-flow/24.6.3/vaadin-date-time-picker-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-details-flow/24.6.3/vaadin-details-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-time-picker-flow/24.6.3/vaadin-time-picker-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-select-flow/24.6.3/vaadin-select-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-side-nav-flow/24.6.3/vaadin-side-nav-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-dialog-flow/24.6.3/vaadin-dialog-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-form-layout-flow/24.6.3/vaadin-form-layout-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-field-highlighter-flow/24.6.3/vaadin-field-highlighter-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-grid-flow/24.6.3/vaadin-grid-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-virtual-list-flow/24.6.3/vaadin-virtual-list-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-list-box-flow/24.6.3/vaadin-list-box-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-login-flow/24.6.3/vaadin-login-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-messages-flow/24.6.3/vaadin-messages-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-ordered-layout-flow/24.6.3/vaadin-ordered-layout-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-progress-bar-flow/24.6.3/vaadin-progress-bar-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-popover-flow/24.6.3/vaadin-popover-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-radio-button-flow/24.6.3/vaadin-radio-button-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-renderer-flow/24.6.3/vaadin-renderer-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-split-layout-flow/24.6.3/vaadin-split-layout-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-tabs-flow/24.6.3/vaadin-tabs-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-text-field-flow/24.6.3/vaadin-text-field-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-upload-flow/24.6.3/vaadin-upload-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-notification-flow/24.6.3/vaadin-notification-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-app-layout-flow/24.6.3/vaadin-app-layout-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-context-menu-flow/24.6.3/vaadin-context-menu-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-menu-bar-flow/24.6.3/vaadin-menu-bar-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/collaboration-engine/6.4.0/collaboration-engine-6.4.0.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-dev/24.6.2/vaadin-dev-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-dev-server/24.6.2/vaadin-dev-server-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-dev/24.6.3/vaadin-dev-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-dev-server/24.6.3/vaadin-dev-server-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/github/javaparser/javaparser-core/3.26.2/javaparser-core-3.26.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/methvin/directory-watcher/0.18.0/directory-watcher-0.18.0.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-dev-bundle/24.6.2/vaadin-dev-bundle-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-dev/24.6.2/hilla-dev-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/copilot/24.6.2/copilot-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-dev-bundle/24.6.3/vaadin-dev-bundle-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-dev/24.6.3/hilla-dev-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/copilot/24.6.3/copilot-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/projectreactor/netty/reactor-netty/1.2.2/reactor-netty-1.2.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/projectreactor/netty/incubator/reactor-netty-incubator-quic/0.2.2/reactor-netty-incubator-quic-0.2.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/netty/incubator/netty-incubator-codec-native-quic/0.0.70.Final/netty-incubator-codec-native-quic-0.0.70.Final-linux-x86_64.jar" enabled="true" runInBatchMode="false"/>
@@ -146,23 +147,23 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/io/netty/netty-transport-native-unix-common/4.1.117.Final/netty-transport-native-unix-common-4.1.117.Final.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/netty/netty-resolver-dns-native-macos/4.1.117.Final/netty-resolver-dns-native-macos-4.1.117.Final.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/netty/netty-transport-native-epoll/4.1.117.Final/netty-transport-native-epoll-4.1.117.Final.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla/24.6.2/hilla-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-endpoint/24.6.2/hilla-endpoint-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-engine-core/24.6.2/hilla-engine-core-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-core/24.6.2/hilla-parser-jvm-core-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla/24.6.3/hilla-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-endpoint/24.6.3/hilla-endpoint-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-engine-core/24.6.3/hilla-engine-core-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-core/24.6.3/hilla-parser-jvm-core-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.18.2/jackson-dataformat-yaml-2.18.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-plugin-backbone/24.6.2/hilla-parser-jvm-plugin-backbone-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-plugin-nonnull/24.6.2/hilla-parser-jvm-plugin-nonnull-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-plugin-subtypes/24.6.2/hilla-parser-jvm-plugin-subtypes-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-plugin-model/24.6.2/hilla-parser-jvm-plugin-model-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-plugin-transfertypes/24.6.2/hilla-parser-jvm-plugin-transfertypes-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-plugin-backbone/24.6.3/hilla-parser-jvm-plugin-backbone-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-plugin-nonnull/24.6.3/hilla-parser-jvm-plugin-nonnull-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-plugin-subtypes/24.6.3/hilla-parser-jvm-plugin-subtypes-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-plugin-model/24.6.3/hilla-parser-jvm-plugin-model-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-plugin-transfertypes/24.6.3/hilla-parser-jvm-plugin-transfertypes-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/github/javaparser/javaparser-symbol-solver-core/3.26.2/javaparser-symbol-solver-core-3.26.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-utils/24.6.2/hilla-parser-jvm-utils-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-parser-jvm-utils/24.6.3/hilla-parser-jvm-utils-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/swagger/core/v3/swagger-core/2.2.26/swagger-core-2.2.26.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/swagger/core/v3/swagger-annotations/2.2.26/swagger-annotations-2.2.26.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/swagger/core/v3/swagger-models/2.2.26/swagger-models-2.2.26.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-runtime-plugin-transfertypes/24.6.2/hilla-runtime-plugin-transfertypes-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-engine-runtime/24.6.2/hilla-engine-runtime-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-runtime-plugin-transfertypes/24.6.3/hilla-runtime-plugin-transfertypes-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/hilla-engine-runtime/24.6.3/hilla-engine-runtime-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/boot/spring-boot-starter-web/3.4.2/spring-boot-starter-web-3.4.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/boot/spring-boot-starter-tomcat/3.4.2/spring-boot-starter-tomcat-3.4.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/apache/tomcat/embed/tomcat-embed-core/10.1.34/tomcat-embed-core-10.1.34.jar" enabled="true" runInBatchMode="false"/>
@@ -177,9 +178,9 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/external/gwt/gwt-elemental/2.8.2.vaadin2/gwt-elemental-2.8.2.vaadin2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/github/classgraph/classgraph/4.8.146/classgraph-4.8.146.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/commons-codec/commons-codec/1.17.2/commons-codec-1.17.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-rich-text-editor-flow/24.6.2/vaadin-rich-text-editor-flow-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-flow-components-base/24.6.2/vaadin-flow-components-base-24.6.2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-data/24.6.2/flow-data-24.6.2.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-rich-text-editor-flow/24.6.3/vaadin-rich-text-editor-flow-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/vaadin-flow-components-base/24.6.3/vaadin-flow-components-base-24.6.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/vaadin/flow-data/24.6.3/flow-data-24.6.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-ldap/6.4.2/spring-security-ldap-6.4.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-core/6.4.2/spring-security-core-6.4.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-crypto/6.4.2/spring-security-crypto-6.4.2.jar" enabled="true" runInBatchMode="false"/>

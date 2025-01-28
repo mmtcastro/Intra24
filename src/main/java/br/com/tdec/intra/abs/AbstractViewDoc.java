@@ -444,7 +444,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 					fileListLayout.add(fileRow);
 
 					// Adicionar o anexo ao modelo (se ainda não estiver lá)
-					if (model.getAnexos().stream().noneMatch(a -> a.getFileName().equals(fileName))) {
+					if (model.getUploads().stream().noneMatch(a -> a.getFileName().equals(fileName))) {
 						model.adicionarAnexo(new UploadedFile(fileName, fileData));
 						model.getLogger().info("Anexo adicionado ao modelo: " + fileName);
 					}
@@ -474,7 +474,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	}
 
 	public void initUploadFiles() {
-		model.getLogger().info("upload de arquivos - " + model.getAnexos().size());
+		model.getLogger().info("upload de arquivos - " + model.getUploads().size());
 		UploadI18N i18n = new UploadI18N();
 		i18n.setAddFiles(new UploadI18N.AddFiles().setOne("Adicionar arquivo") // Texto do botão para um arquivo
 				.setMany("Adicionar arquivos")); // Texto do botão para vários arquivos
@@ -541,7 +541,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 					Notification.Position.MIDDLE);
 		}
 
-		model.getLogger().info("Anexos size: " + model.getAnexos().size());
+		model.getLogger().info("Anexos size: " + model.getUploads().size());
 		model.getLogger().info("Anexos para excluir: " + model.getAnexosParaExcluir().size());
 
 		// Atualiza a lista de anexos na interface

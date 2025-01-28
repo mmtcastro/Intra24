@@ -3,15 +3,15 @@ package br.com.tdec.intra.empresas.model;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import br.com.tdec.intra.utils.jackson.BodyDeserializer;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@ToString(callSuper = true)
+@Getter
+@Setter
 public class GrupoEconomico extends AbstractModelDoc {
 	@JsonAlias({ "GerenteConta", "gerenteConta" })
 	private String gerenteConta;
@@ -21,6 +21,12 @@ public class GrupoEconomico extends AbstractModelDoc {
 	private Date dataUltimoNegocio;
 	@JsonAlias({ "parceriaPrimeiroNegocio", "ParceriaPrimeiroNegocio" })
 	private String parceriaPrimeiroNegocio;
+	@JsonAlias({ "origemCliente", "OrigemCliente" })
+	private String origemCliente;
+
+	@JsonAlias({ "obs", "Obs" })
+	@JsonDeserialize(using = BodyDeserializer.class)
+	protected RichText obs;
 
 	public GrupoEconomico() {
 		super();

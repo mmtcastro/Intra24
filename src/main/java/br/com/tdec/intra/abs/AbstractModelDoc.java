@@ -125,7 +125,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 //	protected RichText obs;
 	@JsonAlias({ "fileNames", "$FILES" })
 	protected List<String> fileNames;
-	protected List<UploadedFile> anexos = new ArrayList<>();
+	protected List<UploadedFile> uploads = new ArrayList<>();
 	private List<String> anexosParaExcluir = new ArrayList<>(); // para controle de exclusão de anexos no AbstractView
 
 	public AbstractModelDoc() {
@@ -462,11 +462,11 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	}
 
 	public void adicionarAnexo(UploadedFile anexo) {
-		this.anexos.add(anexo);
+		this.uploads.add(anexo);
 	}
 
 	public void removerAnexo(String fileName) {
-		this.anexos.removeIf(anexo -> anexo.getFileName().equals(fileName));
+		this.uploads.removeIf(anexo -> anexo.getFileName().equals(fileName));
 	}
 
 	@Getter

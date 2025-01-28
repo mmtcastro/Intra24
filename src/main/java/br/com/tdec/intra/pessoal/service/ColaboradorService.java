@@ -26,15 +26,15 @@ public class ColaboradorService extends AbstractService<Colaborador> {
 		super();
 	}
 
-	public List<String> getFuncionariosAtivos() {
-		List<String> funcionarios = new ArrayList<>();
+	public List<Colaborador> getFuncionariosAtivos() {
+		List<Colaborador> funcionarios = new ArrayList<>();
 
 		try {
 			// Monta a URI para buscar todos os documentos de funcionários ativos
 
 			String uri = "/lists/FuncionariosAtivos?dataSource=" + scope + "&mode=" + mode;
 
-			System.out.println("getFuncionariosAtivos - URI: " + uri);
+			// System.out.println("getFuncionariosAtivos - URI: " + uri);
 
 			// Faz a requisição GET e captura a resposta como String
 			String rawResponse = webClient.get().uri(uri).header("Authorization", "Bearer " + getUser().getToken())
@@ -52,7 +52,8 @@ public class ColaboradorService extends AbstractService<Colaborador> {
 			}
 
 			// Exibe a resposta bruta no console para análise (opcional)
-			System.out.println("getFuncionariosAtivos - Resposta bruta da Web API: " + rawResponse);
+			// System.out.println("getFuncionariosAtivos - Resposta bruta da Web API: " +
+			// rawResponse);
 
 			// Desserializa a resposta para uma lista de objetos do tipo `Colaborador`
 			JavaType listType = objectMapper.getTypeFactory().constructCollectionType(List.class, Colaborador.class);
@@ -60,7 +61,7 @@ public class ColaboradorService extends AbstractService<Colaborador> {
 
 			// Filtra os colaboradores ativos e adiciona os nomes à lista `funcionarios`
 			for (Colaborador colaborador : colaboradores) {
-				funcionarios.add(colaborador.getFuncionario());
+				funcionarios.add(colaborador);
 			}
 
 		} catch (CustomWebClientException e) {

@@ -10,6 +10,10 @@ import lombok.Setter;
 @Setter
 public class Colaborador extends AbstractModelDoc {
 	@JsonAlias({ "Funcionario", "funcionario" })
-	public String funcionario;
+	private String funcionario;
+
+	public String getFuncionario() {
+		return funcionario;
+	}
 
 }
