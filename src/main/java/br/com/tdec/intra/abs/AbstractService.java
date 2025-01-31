@@ -214,7 +214,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	 * @return
 	 */
 	public Response<T> findByCodigo(String codigo) {
-
+		System.out.println("findByCodigo - INICIO - codigo = " + codigo + " - form = " + form);
 		// Verifica se o código é nulo ou vazio
 		if (codigo == null || codigo.trim().isEmpty()) {
 			return new Response<>(null, "Código não pode ser nulo ou vazio.", 400, false);
@@ -226,7 +226,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			String uri = String.format("/lists/_intraCodigos?mode=" + mode + "&dataSource=" + scope
 					+ "&keyAllowPartial=false&documents=true&richTextAs=mime&key=" + codigo + "&key=" + form
 					+ "&scope=documents");
-			// System.out.println("URI findByCodigo: " + uri);
+			System.out.println("URI findByCodigo: " + uri);
 
 			// Faz a requisição e captura a resposta
 			String rawResponse = webClient.get().uri(uri)//
