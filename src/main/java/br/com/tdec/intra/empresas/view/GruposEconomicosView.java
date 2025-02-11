@@ -3,8 +3,6 @@ package br.com.tdec.intra.empresas.view;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.data.renderer.TextRenderer;
@@ -40,110 +38,30 @@ public class GruposEconomicosView extends AbstractViewLista<GrupoEconomico> {
 		super();
 	}
 
+	@SuppressWarnings("unused")
 	public void initGrid() {
+		// Adiciona a coluna Código (única coluna ordenável)
 		Column<GrupoEconomico> codigoColumn = grid.addColumn(GrupoEconomico::getCodigo).setHeader("Código")
-				.setSortable(true);
-		codigoColumn.setComparator(Comparator.comparing(GrupoEconomico::getCodigo)).setKey("codigo");
-		Column<GrupoEconomico> descricaoColumn = grid.addColumn(GrupoEconomico::getDescricao).setHeader("Descrição");
-		Grid.Column<GrupoEconomico> autorColumn = grid.addColumn(GrupoEconomico::getAutor).setHeader("Autor");
+				.setSortable(true) // Apenas essa coluna pode ser ordenada
+				.setKey("codigo").setComparator(Comparator.comparing(GrupoEconomico::getCodigo));
+
+		// Adiciona a coluna Tipo antes da Descrição (sem ordenação)
+		Column<GrupoEconomico> tipoColumn = grid.addColumn(GrupoEconomico::getTipo).setHeader("Tipo").setKey("tipo");
+
+		// Adiciona a coluna Descrição (sem ordenação)
+		Column<GrupoEconomico> descricaoColumn = grid.addColumn(GrupoEconomico::getDescricao).setHeader("Descrição")
+				.setKey("descricao");
+
+		// Adiciona a coluna Autor (sem ordenação)
+		Grid.Column<GrupoEconomico> autorColumn = grid.addColumn(GrupoEconomico::getAutor).setHeader("Autor")
+				.setKey("autor");
+
+		// Adiciona a coluna Criação com formatação de data/hora (sem ordenação)
 		Grid.Column<GrupoEconomico> criacaoColumn = grid.addColumn(new TextRenderer<>(item -> {
-			if (item.getCriacao() != null) {
-				return item.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
-			} else {
-				return null; // Or any placeholder text you prefer
-			}
-		})).setHeader("Criação");
-
-		// grid.asSingleSelect().addValueChangeListener(evt ->
-		// editModel(evt.getValue()));
-
-		// grid.asSingleSelect().addValueChangeListener(evt ->
-		// openPage(evt.getValue()));
-
+			return (item.getCriacao() != null)
+					? item.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
+					: "Não Informado"; // Evita valores nulos
+		})).setHeader("Criação").setKey("criacao");
 	}
-
-//	public void openPage(GrupoEconomico grupoEconomico) {
-//		getUI().ifPresent(ui -> ui.navigate("grupoeconomico/" + grupoEconomico.getUnid()));
-//	}
-
-//	public void editModel(GrupoEconomico model) {
-//		this.model = model;
-//		if (model == null) {
-//			defaultForm.closeFormDefault();
-//		} else {
-//			defaultForm.setModel(model);
-//			defaultForm.setVisible(true);
-//			addClassName("abstract-view-lista-editing");
-//		}
-//	}
-
-//	protected void onAttach(AttachEvent attachEvent) {
-//		if (attachEvent.isInitialAttach()) {
-//			Button button = new Button("Converte Grupo Economico", event -> convert());
-//			// setGruposEconomicosReactiveButton.addClickListener(event ->
-//			// setGridValuesReactive());
-//			setGrupoEconomicoSyncButton.addClickListener(event -> setGridValuesSync());
-//			clearButton.addClickListener(event -> clearGrid());
-//			count.addKeyPressListener(Key.ENTER, event -> setGridValuesSync(count.getValue()));
-//			search.setPlaceholder("buscar...");
-//			search.setClearButtonVisible(true);
-//			search.setValueChangeMode(ValueChangeMode.LAZY);
-//			search.addValueChangeListener(e -> updateGrid(grid, search.getValue()));
-//
-//			add(new HorizontalLayout(button, setGruposEconomicosReactiveButton, setGrupoEconomicoSyncButton,
-//					clearButton));
-//			add(new HorizontalLayout(count, search));
-//			add(grid);
-//
-//		}
-//	}
-
-//	private void setGridValuesSync() {
-//		grid.setItems(service.getGruposEconomicosSync());
-//	}
-//
-//	private void setGridValuesSync(String count) {
-//		grid.setItems(service.getGruposEconomicosSync(count));
-//	}
-
-//	private void setGridValuesReactive() {
-//		UI ui = getUI().get();
-//		System.out.println(grupoEconomicoService.getGruposEconomicosReactive().toString());
-//		grupoEconomicoService.getGruposEconomicosReactive().subscribe(e -> System.out.println(e.toString()));
-//		grupoEconomicoService.getGruposEconomicosReactive()
-//				.subscribe(gruposEconomicos -> ui.access(() -> grid.setItems(gruposEconomicos)));
-//	}
-
-//	private void clearGrid() {
-//		grid.setItems(Collections.emptyList());
-//	}
-
-	private GrupoEconomico convert() {
-		String grupo = "{\"@unid\":\"BC4E36F3BBE69F8C832580AE00631ECE\",\"@noteid\":149438,\"@index\":\"9\",\"Codigo\":\"2NET\",\"Tipo\":\"Cliente\",\"Status\":\"Ativo\",\"QuantNegocios\":\"4.0\",\"Criacao\":\"2000-05-29T16:56:54-03:00\",\"DataUltimoNegocio\":\"2000-07-18T16:46:02-03:00\",\"GerenteConta\":\"Cristina Serra\",\"ParceriaPrimeiroNegocio\":\"TDec\",\"Autor\":\"Marcelo Castro\",\"Descricao\":\"\"}";
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.registerModule(new JavaTimeModule());
-		GrupoEconomico grupoEconomico = null;
-		try {
-			grupoEconomico = objectMapper.readValue(grupo, GrupoEconomico.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return grupoEconomico;
-	}
-
-//	public void updateGrid(Grid<GrupoEconomico> grid, String searchText) {
-//		System.out.println("Search eh " + searchText);
-//		LazyDataView<GrupoEconomico> dataView = grid.setItems(q -> captureWildcard(this.service
-//				.findAllByCodigo(q.getOffset(), q.getLimit(), q.getSortOrders(), q.getFilter(), searchText).stream()));
-//
-//		dataView.setItemCountEstimate(8000);
-//	}
-
-//	@SuppressWarnings("unchecked")
-//	private Stream<GrupoEconomico> captureWildcard(Stream<? extends AbstractModelDoc> stream) {
-//		// This casting operation captures the wildcard and returns a stream of
-//		// AbstractModelDoc - por causa do <E> no AbstractRepository
-//		return (Stream<GrupoEconomico>) stream;
-//	}
 
 }

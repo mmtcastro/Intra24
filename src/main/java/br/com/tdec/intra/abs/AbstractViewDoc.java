@@ -741,10 +741,14 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 				String status = deleteResponse.getStatus(); // Certifique-se de que o status sempre será uma string
 				if (status != null) {
 					if (status.equals("403")) {
-						notification.setText("Seu usuário não tem direitos para apagar este documento");
+						// Usar a mensagem retornada pelo DeleteResponse ao invés de uma fixa
+						String errorMessage = deleteResponse.getMessage() != null ? deleteResponse.getMessage()
+								: "Seu usuário não tem direitos para apagar este documento";
+						notification.setText(errorMessage);
 						notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
 						return deleteResponse;
 					}
+
 					if (status.equals("500")) {
 						notification.setText("Erro 500");
 						notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -756,7 +760,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 						return deleteResponse;
 					}
 					if (status.equals("200") || status.equals("OK")) {
-						notification.setText("Documento apagado");
+						notification.setText(model.getForm() + " apagado");
 						notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 						return deleteResponse;
 					}
