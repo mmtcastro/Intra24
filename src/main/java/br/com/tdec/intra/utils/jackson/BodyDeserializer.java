@@ -12,20 +12,34 @@ import br.com.tdec.intra.abs.AbstractModelDoc.RichText;
 
 public class BodyDeserializer extends JsonDeserializer<RichText> {
 
-	public BodyDeserializer() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
-
 	@Override
 	public RichText deserialize(JsonParser jsonParser, DeserializationContext context)
 			throws IOException, JsonProcessingException {
+
 		JsonNode node = jsonParser.getCodec().readTree(jsonParser);
+
+		// Criando um novo objeto RichText
 		RichText richText = new RichText();
-		richText.setType(node.get("type").asText());
-		richText.setEncoding(node.get("encoding").asText());
-		richText.setContent(node.get("content").asText());
+
+		// Verifica se cada campo existe antes de tentar acessá-lo
+		if (node.has("type") && !node.get("type").isNull()) {
+			richText.setType(node.get("type").asText());
+		} else {
+			richText.setType(""); // Definir valor padrão
+		}
+
+		if (node.has("encoding") && !node.get("encoding").isNull()) {
+			richText.setEncoding(node.get("encoding").asText());
+		} else {
+			richText.setEncoding(""); // Definir valor padrão
+		}
+
+		if (node.has("content") && !node.get("content").isNull()) {
+			richText.setContent(node.get("content").asText());
+		} else {
+			richText.setContent(""); // Definir valor padrão
+		}
+
 		return richText;
 	}
-
 }

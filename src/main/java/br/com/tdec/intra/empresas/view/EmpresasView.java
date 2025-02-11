@@ -30,6 +30,7 @@ public class EmpresasView extends AbstractViewLista<Empresa> {
 
 	}
 
+	@SuppressWarnings("unused")
 	public void initGrid() {
 		Column<Empresa> codigoColumn = grid.addColumn(Empresa::getCodigo).setHeader("Código").setSortable(true);
 		codigoColumn.setComparator(Comparator.comparing(Empresa::getCodigo)).setKey("codigo");

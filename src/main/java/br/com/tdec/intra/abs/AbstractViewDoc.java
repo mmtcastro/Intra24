@@ -293,8 +293,12 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 					});
 
 			// Adiciona o rótulo e o campo ao layout
-			Span obsFieldLabel = new Span("Observações:");
-			obsFieldLabel.getStyle().set("font-weight", "bold");
+			Span obsFieldLabel = new Span("Observações");
+			obsFieldLabel.getElement().getStyle().set("font-size", "var(--lumo-font-size-s)");
+			obsFieldLabel.getElement().getStyle().set("color", "var(--lumo-header-text-color)"); // Cor padrão para
+																									// títulos
+			obsFieldLabel.getStyle().set("margin-bottom", "5px"); // Pequena margem abaixo do título
+			obsFieldLabel.getStyle().set("margin-top", "10px"); // Pequena margem abaixo do título
 
 			obsFieldLayout.add(obsFieldLabel, obsField);
 			setColspan(obsFieldLayout, 2);
@@ -823,6 +827,30 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	private void removeFooter() {
 		if (footer != null && footer.getParent().isPresent()) {
 			footer.getElement().removeFromParent();
+		}
+	}
+
+	/**
+	 * Adiciona um componente ao binderFields e define seu tamanho baseado em `1` ou
+	 * `2`.
+	 * 
+	 * - `1` → O componente ocupa as duas colunas (Full Width) - `2` → O componente
+	 * ocupa apenas metade da largura
+	 * 
+	 * @param component O componente a ser adicionado
+	 * @param widthMode 1 para Full Width (duas posições), 2 para metade (uma
+	 *                  posição)
+	 */
+	protected void addComponentToBinderFields(Component component, int widthMode) {
+		binderFields.add(component);
+
+		if (widthMode == 1) {
+			setColspan(component, 2); // Ocupa toda a largura do AbstractViewDoc (2 posições)
+			component.getElement().getStyle().set("width", "100%");
+		} else if (widthMode == 2) {
+			setColspan(component, 1); // Ocupa apenas metade da largura (1 posição)
+		} else {
+			throw new IllegalArgumentException("O widthMode deve ser 1 (Full Width) ou 2 (Meia Largura)");
 		}
 	}
 

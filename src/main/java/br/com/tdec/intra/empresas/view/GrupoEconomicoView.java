@@ -14,9 +14,11 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 
 import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
+import br.com.tdec.intra.empresas.componentes.EmpresasGrid;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import br.com.tdec.intra.empresas.model.OrigemCliente;
 import br.com.tdec.intra.empresas.model.TipoEmpresa;
+import br.com.tdec.intra.empresas.services.GrupoEconomicoService;
 import br.com.tdec.intra.empresas.services.OrigemClienteService;
 import br.com.tdec.intra.empresas.services.TipoEmpresaService;
 import br.com.tdec.intra.pessoal.model.Colaborador;
@@ -40,6 +42,7 @@ public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
 	private ComboBox<String> gerenteContaComboBox = new ComboBox<>("Gerente de Contas");
 	private ComboBox<String> tipoComboBox = new ComboBox<>("Tipo");
 	private ComboBox<String> origemClienteComboBox = new ComboBox<>("Origem do Cliente");
+	private EmpresasGrid empresasGrid;
 
 	public GrupoEconomicoView(ColaboradorService colaboradorService, TipoEmpresaService tipoEmpresaService,
 			OrigemClienteService origemClienteService) {
@@ -139,6 +142,15 @@ public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
 		// Adiciona o campo opcional com base no tipo inicial
 		if ("Cliente".equalsIgnoreCase(model.getTipo())) {
 			binderFields.add(binderFields.indexOf(descricaoField), origemClienteComboBox);
+		}
+
+		if (!this.isNovo) {
+			empresasGrid = new EmpresasGrid(model.getCodigo(), ((GrupoEconomicoService) service));
+			if (empresasGrid != null && empresasGrid.getEmpresas().size() > 0) {
+				// Garante que o grid ocupa toda a largura
+				empresasGrid.setWidthFull();
+				addComponentToBinderFields(empresasGrid, 1);
+			}
 		}
 
 	}

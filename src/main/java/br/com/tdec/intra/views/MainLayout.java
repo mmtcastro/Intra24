@@ -18,6 +18,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
 import br.com.tdec.intra.empresas.view.CargosView;
+import br.com.tdec.intra.empresas.view.ContatosView;
 import br.com.tdec.intra.empresas.view.EmpresasView;
 import br.com.tdec.intra.empresas.view.GruposEconomicosView;
 import br.com.tdec.intra.empresas.view.OrigensClientesView;
@@ -95,6 +96,7 @@ public class MainLayout extends AppLayout {
 		empresas.addItem(new SideNavItem("Grupos Econômicos", GruposEconomicosView.class,
 				LineAwesomeIcon.SITEMAP_SOLID.create()));
 		empresas.addItem(new SideNavItem("Empresas", EmpresasView.class, LineAwesomeIcon.BUILDING_SOLID.create()));
+		empresas.addItem(new SideNavItem("Contatos", ContatosView.class, LineAwesomeIcon.USERS_SOLID.create()));
 		empresas.addItem(new SideNavItem("Verticais", VerticaisView.class, LineAwesomeIcon.LAYER_GROUP_SOLID.create()));
 		empresas.addItem(new SideNavItem("Cargos", CargosView.class, LineAwesomeIcon.USER.create()));
 

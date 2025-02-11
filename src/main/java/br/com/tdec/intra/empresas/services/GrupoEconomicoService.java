@@ -1,15 +1,26 @@
 package br.com.tdec.intra.empresas.services;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import com.fasterxml.jackson.databind.JavaType;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.abs.AbstractService;
 import br.com.tdec.intra.compras.service.CompraService;
+import br.com.tdec.intra.empresas.model.Empresa;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import br.com.tdec.intra.sales.service.NegocioService;
+import br.com.tdec.intra.utils.exceptions.CustomWebClientException;
+import br.com.tdec.intra.utils.exceptions.ErrorResponse;
 import lombok.Getter;
 import lombok.Setter;
+import reactor.core.publisher.Mono;
 
 @Service
 @Getter
@@ -28,6 +39,12 @@ public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 
 	@Override
 	public DeleteResponse delete(AbstractModelDoc grupoEconomico) {
+		// Verifica se há Empresas associadas ao Grupo Econômico
+		if (!findEmpresasByGrupoEconomico(grupoEconomico.getCodigo()).isEmpty()) {
+			return createDeleteErrorResponse(grupoEconomico,
+					"Este Grupo Econômico não pode ser apagado porque há Empresas associadas a ele.");
+		}
+
 		// Verifica se há negócios vinculados ao Grupo Econômico
 		if (negocioService.grupoEconomicoFezNegocio(grupoEconomico.getCodigo())) {
 			return createDeleteErrorResponse(grupoEconomico,
@@ -63,7 +80,6 @@ public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 			return createDeleteErrorResponse(grupoEconomico,
 					"Erro inesperado ao tentar excluir o Grupo Econômico: " + e.getMessage());
 		}
-
 	}
 
 	/**
@@ -77,6 +93,65 @@ public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 		response.setMessage(errorMessage);
 		response.setUnid(grupoEconomico.getUnid());
 		return response;
+	}
+
+	public List<Empresa> findEmpresasByGrupoEconomico(String codigoGrupoEconomico) {
+		List<Empresa> empresas = new ArrayList<>();
+
+		// Validação do código do grupo econômico
+		if (codigoGrupoEconomico == null || codigoGrupoEconomico.trim().isEmpty()) {
+			throw new IllegalArgumentException("Código do Grupo Econômico não pode ser nulo ou vazio.");
+		}
+
+		try {
+			int count = 50; // Limite de registros retornados
+			String direction = "asc";
+			int offset = 0;
+
+			// Construção da URL para buscar empresas associadas ao Grupo Econômico
+			String uri = "/lists/C9B265D6D3C015C7832580F800657EA8?mode=" + mode + "&dataSource=empresas&key="
+					+ codigoGrupoEconomico + "&count=" + count + "&direction=" + direction + "&start=" + offset;
+
+			// Realiza a requisição GET e captura a resposta como String
+			String rawResponse = webClient.get().uri(uri).header("Authorization", "Bearer " + getUser().getToken())
+					.retrieve().onStatus(HttpStatusCode::isError,
+							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
+								if (clientResponse.statusCode().value() == 302) {
+									return Mono.<Throwable>error(new CustomWebClientException(
+											"Erro de acesso ao servidor RESTAPI", 302, errorResponse));
+								}
+								return Mono.<Throwable>error(new CustomWebClientException(errorResponse.getMessage(),
+										errorResponse.getStatus(), errorResponse));
+							}))
+					.bodyToMono(String.class).block(); // Aguarda a resposta síncrona
+
+			// Se a resposta for nula ou vazia, retorna uma lista vazia
+			if (rawResponse == null || rawResponse.trim().isEmpty()) {
+				System.err.println("Erro: Resposta da API veio vazia!");
+				return new ArrayList<>();
+			}
+
+			// System.out.println("Resposta da API GrupoEconomicoByCodigo: " + rawResponse);
+
+			// Desserializa a resposta JSON para uma lista de objetos Empresa
+			JavaType listType = objectMapper.getTypeFactory().constructCollectionType(List.class, Empresa.class);
+			empresas = objectMapper.readValue(rawResponse, listType);
+
+		} catch (CustomWebClientException e) {
+			ErrorResponse error = e.getErrorResponse();
+			System.err.println("Erro ao buscar lista de empresas. Código HTTP: " + error.getStatus());
+			System.err.println("Mensagem de erro: " + error.getMessage());
+			if (error.getStatus() == 302) {
+				System.err.println("Erro de acesso ao servidor RESTAPI");
+			}
+		} catch (WebClientResponseException e) {
+			System.err.println("Erro: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return empresas;
 	}
 
 }

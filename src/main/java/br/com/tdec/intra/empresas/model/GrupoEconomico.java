@@ -26,7 +26,7 @@ public class GrupoEconomico extends AbstractModelDoc {
 
 	@JsonAlias({ "obs", "Obs" })
 	@JsonDeserialize(using = BodyDeserializer.class)
-	protected RichText obs;
+	private RichText obs;
 
 	public GrupoEconomico() {
 		super();
