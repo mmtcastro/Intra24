@@ -117,7 +117,7 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 
 		// Adicionar o rótulo e o campo ao layout
 		bodyFieldLayout.add(bodyFieldLabel, bodyField);
-		setColspan(bodyFieldLayout, 2);
+		// setColspan(bodyFieldLayout, 2);
 
 		binder.setBean(model);
 
@@ -125,7 +125,10 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		binderFields.add(codigoField);
 		binderFields.add(dataField);
 		binderFields.add(descricaoField);
-		binderFields.add(bodyFieldLayout); // Adiciona o campo diretamente para controle de readOnly
+		// binderFields.add(bodyFieldLayout); // Adiciona o campo diretamente para
+		// controle de readOnly
+		bodyFieldLayout.setWidthFull();
+		addComponentToBinderFields(bodyFieldLayout, 1);
 
 		// Grid Unidades
 		initGrid();
@@ -179,13 +182,37 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		// Coluna para o campo "Valor"
 		Grid.Column<Unidade> valorColumn = gridUnidades.addColumn(unidade -> {
 			NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"));
-			return currencyFormat.format(unidade.getValor());
-		}).setHeader("Valor")//
-				.setSortable(true)//
-				.setAutoWidth(true)//
-				.setResizable(true)//
-				.setWidth("150px")//
-				.setFlexGrow(1);
+			Object valorObj = unidade.getValor(); // Pode ser qualquer tipo
+
+			try {
+				// Se for null, retorna um valor padrão
+				if (valorObj == null) {
+					return "R$ 0,00";
+				}
+
+				// Se já for um Double, apenas formata
+				if (valorObj instanceof Double) {
+					return currencyFormat.format(valorObj);
+				}
+
+				// Se for Integer, converte para Double antes de formatar
+				if (valorObj instanceof Integer) {
+					return currencyFormat.format(((Integer) valorObj).doubleValue());
+				}
+
+				// Se for String, tenta converter para Double
+				if (valorObj instanceof String) {
+					String valorStr = ((String) valorObj).replace(",", ".").trim(); // Troca vírgula por ponto se
+																					// necessário
+					Double valorDouble = Double.valueOf(valorStr);
+					return currencyFormat.format(valorDouble);
+				}
+			} catch (NumberFormatException e) {
+				return "Valor inválido"; // Se der erro na conversão
+			}
+
+			return "Valor inválido"; // Caso caia em um cenário inesperado
+		}).setHeader("Valor").setSortable(true).setAutoWidth(true).setResizable(true).setWidth("150px").setFlexGrow(1);
 
 		// Campo de edição para "Valor"
 		TextField valorField = new TextField();

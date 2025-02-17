@@ -16,6 +16,10 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL) // Permite valores nulos sem quebrar a serialização
 public class Empresa extends AbstractModelDoc implements Comparable<AbstractModelDoc> {
 
+	@JsonProperty("CodigoGrupoEconomico")
+	@JsonAlias({ "codigoGrupoEconomico", "CODIGOGRUPOECONOMICO" })
+	private String codigoGrupoEconomico;
+
 	@JsonProperty("Cliente")
 	@JsonAlias({ "cliente", "CLIENTE" })
 	private String cliente;

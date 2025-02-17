@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatusCode;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.util.UriUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -33,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
 
 import br.com.tdec.intra.config.WebClientService;
 import br.com.tdec.intra.directory.model.User;
@@ -58,6 +62,8 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	protected String mode; // usado do Domino Restapi para definir se pode ou não deletar e rodar agentes
 	protected T model;
 	protected Class<T> modelClass;
+
+	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	@SuppressWarnings("unchecked")
 	public AbstractService() {
@@ -854,64 +860,73 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 	public List<T> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, String search,
 			Class<T> model) {
-		List<T> ret = new ArrayList<>();
+		List<T> resultados = new ArrayList<>();
 		try {
-			count = 50; // Define um limite fixo para a contagem, ajustável conforme necessário
-			String direction = "";
+			// Define um limite fixo para a contagem, ajustável conforme necessário
+			final int limiteRegistros = 50;
+			count = Math.min(count, limiteRegistros);
+
+			// Define a ordenação padrão
+			String direction = "asc";
+			String column = "Codigo"; // Coluna padrão para ordenação
+
+			log.info("Sort Orders recebidos: " + sortOrders.toString());
+
+			// Se houver ordenação, pega a primeira coluna e a direção
 			if (sortOrders != null && !sortOrders.isEmpty()) {
-				QuerySortOrder sortOrder = sortOrders.get(0); // Use o primeiro critério de ordenação
-				if (sortOrder.getDirection() != null
-						&& sortOrder.getDirection().toString().equalsIgnoreCase("ASCENDING")) {
-					direction = "&direction=asc";
-				} else {
-					direction = "&direction=desc";
-				}
+				QuerySortOrder sortOrder = sortOrders.get(0);
+				column = sortOrder.getSorted(); // Nome da coluna a ser ordenada
+				direction = sortOrder.getDirection() == SortDirection.ASCENDING ? "asc" : "desc";
 			}
 
-			// Realiza a requisição GET e captura a resposta como String
-			String rawResponse = webClient.get()
-					.uri("/lists/" + Utils.getListaNameFromModelName(model.getSimpleName()) + "?dataSource=" + scope
-							+ "&count=" + count + direction + "&column=Codigo&start=" + offset + "&startsWith="
-							+ search)
-					.header("Authorization", "Bearer " + getUser().getToken())//
-					.retrieve()//
-					.onStatus(HttpStatusCode::isError, clientResponse -> {
-						return clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
-							// Verifica se o erro é um redirecionamento (302)
-							if (clientResponse.statusCode().value() == 302) {
-								return Mono.<Throwable>error(new CustomWebClientException(
-										"Erro de acesso ao servidor RESTAPI", 302, errorResponse));
-							}
-							// Trata outros erros como 404 e demais status
-							return Mono.<Throwable>error(new CustomWebClientException(errorResponse.getMessage(),
-									errorResponse.getStatus(), errorResponse));
-						});
-					}).bodyToMono(String.class) // Captura como string bruta
-					.block(); // Bloqueia e espera a resposta
+			// Sanitiza o termo de busca
+			String searchQuery = (search != null && !search.trim().isEmpty())
+					? "&startsWith=" + UriUtils.encode(search, StandardCharsets.UTF_8)
+					: "";
 
-			// Exibe a resposta bruta no console para análise
-			// System.out.println("Resposta bruta da Web API: " + rawResponse);
+			// Monta a URL para requisição
+			String uri = String.format("/lists/%s?dataSource=%s&mode=%s&count=%d&start=%d&direction=%s%s",
+					Utils.getListaNameFromModelName(model.getSimpleName()), // Nome da lista
+					scope, // Fonte de dados
+					mode, // Modo de consulta
+					count, // Quantidade de registros
+					offset, // Offset (paginação)
+					direction, // Direção da ordenação (asc/desc)
+					searchQuery // Filtro startsWith, se houver
+			);
 
-			// Usa o ObjectMapper injetado para desserializar a lista
+			log.info("URI do findAllByCodigo: " + uri);
+
+			// Executa a requisição GET
+			String rawResponse = webClient.get().uri(uri).header("Authorization", "Bearer " + getUser().getToken())
+					.retrieve().onStatus(HttpStatusCode::isError,
+							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
+								int statusCode = clientResponse.statusCode().value();
+								return Mono.<Throwable>error(new CustomWebClientException(errorResponse.getMessage(),
+										statusCode, errorResponse));
+							}))
+					.bodyToMono(String.class).block(); // Bloqueia até receber a resposta
+
+			// Desserializa a resposta JSON para Lista<T>
 			JavaType listType = objectMapper.getTypeFactory().constructCollectionType(List.class, model);
-			ret = objectMapper.readValue(rawResponse, listType);
+			resultados = objectMapper.readValue(rawResponse, listType);
+
+			log.info("rawResponse do findAllByCodigo: " + rawResponse);
 
 		} catch (CustomWebClientException e) {
-			// Lida com o erro customizado
 			ErrorResponse error = e.getErrorResponse();
-			System.err.println("Erro ao buscar lista. Código HTTP: " + error.getStatus());
-			System.err.println("Mensagem de erro: " + error.getMessage());
+			log.error("Erro ao buscar lista (HTTP {}): {}", error.getStatus(), error.getMessage());
 			if (error.getStatus() == 302) {
-				System.err.println("Erro de acesso ao servidor RESTAPI");
+				log.warn("Erro de acesso ao servidor RESTAPI - Possível redirecionamento inesperado.");
 			}
 		} catch (WebClientResponseException e) {
-			// Lida com erros do WebClient
-			System.err.println("Erro: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+			log.error("Erro WebClient (HTTP {}): {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
 			throw e;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Erro inesperado ao buscar lista", e);
 		}
-		return ret;
+
+		return resultados;
 	}
 
 	@SuppressWarnings("hiding")
@@ -1136,6 +1151,67 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		}
 
 		return responseList;
+	}
+
+	public List<T> search(int offset, int count, List<QuerySortOrder> sortOrders, String ftSearchQuery,
+			Class<T> model) {
+		List<T> resultados = new ArrayList<>();
+		try {
+			// Define um limite fixo para a contagem, ajustável conforme necessário
+			final int limiteRegistros = 50;
+			count = Math.min(count, limiteRegistros);
+
+			// Define a ordenação (ascendente ou descendente)
+			String direction = "asc";
+			if (sortOrders != null && !sortOrders.isEmpty()) {
+				direction = sortOrders.get(0).getDirection() == SortDirection.ASCENDING ? "asc" : "desc";
+			}
+
+			// Sanitiza o termo de busca
+			String searchQuery = (ftSearchQuery != null && !ftSearchQuery.trim().isEmpty())
+					? UriUtils.encode(ftSearchQuery, StandardCharsets.UTF_8)
+					: "";
+
+			// Monta a URL para requisição com base no cURL fornecido
+			String uri = String.format(
+					"/api/v1/lists/%s?mode=default&dataSource=empresas&ftSearchQuery=%s&count=%d&direction=%s&start=%d",
+					Utils.getListaNameFromModelName(model.getSimpleName()), searchQuery, count, direction, offset);
+
+			log.info("Executando busca com URI: " + uri);
+
+			// Executa a requisição GET
+			String rawResponse = webClient.get().uri(uri).header("Authorization", "Bearer " + getUser().getToken())
+					.retrieve().onStatus(HttpStatusCode::isError,
+							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
+								int statusCode = clientResponse.statusCode().value();
+								return Mono.<Throwable>error(new CustomWebClientException(errorResponse.getMessage(),
+										statusCode, errorResponse));
+							}))
+					.bodyToMono(String.class).block(); // Bloqueia até receber a resposta
+
+			// Verifica se a resposta está vazia para evitar erro de desserialização
+			if (rawResponse == null || rawResponse.trim().isEmpty()) {
+				log.warn("A resposta da API veio vazia.");
+				return new ArrayList<>();
+			}
+
+			// Desserializa a resposta JSON para Lista<T>
+			JavaType listType = objectMapper.getTypeFactory().constructCollectionType(List.class, model);
+			resultados = objectMapper.readValue(rawResponse, listType);
+
+		} catch (CustomWebClientException e) {
+			ErrorResponse error = e.getErrorResponse();
+			log.error("Erro ao buscar lista (HTTP {}): {}", error.getStatus(), error.getMessage());
+			if (error.getStatus() == 302) {
+				log.warn("Erro de acesso ao servidor RESTAPI - Possível redirecionamento inesperado.");
+			}
+		} catch (WebClientResponseException e) {
+			log.error("Erro WebClient (HTTP {}): {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Erro inesperado ao buscar lista", e);
+		}
+		return resultados;
 	}
 
 }

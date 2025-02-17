@@ -1,10 +1,12 @@
 package br.com.tdec.intra.empresas.view;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -24,15 +26,6 @@ import lombok.Setter;
 public class GruposEconomicosView extends AbstractViewLista<GrupoEconomico> {
 
 	private static final long serialVersionUID = 1L;
-	// private final GrupoEconomicoService service;
-//	//private Grid<GrupoEconomico> grid = new Grid<>(GrupoEconomico.class, false);
-//	private Button setGruposEconomicosReactiveButton = new Button("Set Grupos Economicos Reactive");
-//	private Button setGrupoEconomicoSyncButton = new Button("Set Grupo Economico Sync");
-//	private Button clearButton = new Button("Clear");
-//	private TextField count = new TextField("Count");
-//	private TextField search = new TextField("Search");
-//	private DefaultForm defaultForm;
-//	private GrupoEconomico model;
 
 	public GruposEconomicosView() {
 		super();
@@ -40,10 +33,13 @@ public class GruposEconomicosView extends AbstractViewLista<GrupoEconomico> {
 
 	@SuppressWarnings("unused")
 	public void initGrid() {
+		grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 		// Adiciona a coluna Código (única coluna ordenável)
-		Column<GrupoEconomico> codigoColumn = grid.addColumn(GrupoEconomico::getCodigo).setHeader("Código")
-				.setSortable(true) // Apenas essa coluna pode ser ordenada
-				.setKey("codigo").setComparator(Comparator.comparing(GrupoEconomico::getCodigo));
+		grid.addColumn(new ComponentRenderer<Anchor, GrupoEconomico>(grupoEconomico -> {
+			Anchor link = new Anchor("grupoeconomico/" + grupoEconomico.getUnid(), grupoEconomico.getCodigo());
+			link.getElement().setAttribute("router-link", true); // Permite navegação sem recarregar
+			return link;
+		})).setHeader("Código").setSortable(true).setResizable(true).setAutoWidth(true);
 
 		// Adiciona a coluna Tipo antes da Descrição (sem ordenação)
 		Column<GrupoEconomico> tipoColumn = grid.addColumn(GrupoEconomico::getTipo).setHeader("Tipo").setKey("tipo");
