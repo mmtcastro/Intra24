@@ -72,7 +72,7 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 				query.getLimit(), //
 				sortOrders, //
 				query.getFilter().orElse(""), GrupoEconomico.class //
-		).stream().map(GrupoEconomico::getCodigo));
+				, false).stream().map(GrupoEconomico::getCodigo));
 
 		codigoGrupoEconomicoField.setPlaceholder("Selecione um Grupo Econômico");
 		codigoGrupoEconomicoField.setWidthFull();

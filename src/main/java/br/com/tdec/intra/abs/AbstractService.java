@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriUtils;
@@ -62,6 +63,7 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	protected String mode; // usado do Domino Restapi para definir se pode ou não deletar e rodar agentes
 	protected T model;
 	protected Class<T> modelClass;
+	protected Integer totalCount;
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -859,59 +861,119 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	}
 
 	public List<T> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, String search,
-			Class<T> model) {
+			Class<T> model, boolean fulltextsearch) {
 		List<T> resultados = new ArrayList<>();
+		log.info("🔄 Atualizando Grid - searchText: '{}', fulltextsearch: {}", search, fulltextsearch);
 		try {
-			// Define um limite fixo para a contagem, ajustável conforme necessário
-			final int limiteRegistros = 50;
-			count = Math.min(count, limiteRegistros);
 
-			// Define a ordenação padrão
-			String direction = "asc";
-			String column = "Codigo"; // Coluna padrão para ordenação
+			// Define valores padrão caso não haja ordenação
+			String column = "Codigo"; // Nome padrão
+			String direction = "asc"; // Direção padrão
 
-			log.info("Sort Orders recebidos: " + sortOrders.toString());
-
-			// Se houver ordenação, pega a primeira coluna e a direção
+			// Se houver ordenação na Grid
 			if (sortOrders != null && !sortOrders.isEmpty()) {
-				QuerySortOrder sortOrder = sortOrders.get(0);
-				column = sortOrder.getSorted(); // Nome da coluna a ser ordenada
-				direction = sortOrder.getDirection() == SortDirection.ASCENDING ? "asc" : "desc";
+				QuerySortOrder sortOrder = sortOrders.get(0); // Obtém a primeira ordenação
+				// column = sortOrder.getSorted(); // Obtém o nome da coluna, mas nao uso pois
+				// volta inicio com minuscula
+				direction = sortOrder.getDirection() == SortDirection.ASCENDING ? "asc" : "desc"; // Converte para
+																									// asc/desc
 			}
 
-			// Sanitiza o termo de busca
-			String searchQuery = (search != null && !search.trim().isEmpty())
-					? "&startsWith=" + UriUtils.encode(search, StandardCharsets.UTF_8)
-					: "";
+			log.info("Ordenação recebida: Coluna = " + column + ", Direção = " + direction);
 
-			// Monta a URL para requisição
-			String uri = String.format("/lists/%s?dataSource=%s&mode=%s&count=%d&start=%d&direction=%s%s",
+			// Sanitiza o termo de busca com base no tipo de pesquisa
+			String searchQuery = "";
+
+			if (search != null && !search.trim().isEmpty()) {
+				search = search.trim(); // Remove espaços extras
+
+				if (fulltextsearch) {
+					searchQuery = "&ftSearchQuery=" + search;
+					log.info("🔍 Pesquisa fulltext: {}", searchQuery);
+				} else {
+					searchQuery = "&startsWith=" + search;
+					log.info("🔍 Pesquisa padrão: {}", searchQuery);
+				}
+			} else {
+				searchQuery = "";
+				log.info("🔍 Nenhuma pesquisa aplicada.");
+			}
+
+			// Monta a URL para requisição, incluindo o novo parâmetro `column`
+			String uri = String.format("/lists/%s?dataSource=%s&mode=%s&count=%d&start=%d&column=%s&direction=%s%s",
 					Utils.getListaNameFromModelName(model.getSimpleName()), // Nome da lista
 					scope, // Fonte de dados
 					mode, // Modo de consulta
 					count, // Quantidade de registros
 					offset, // Offset (paginação)
+					column, // Coluna usada na ordenação
 					direction, // Direção da ordenação (asc/desc)
-					searchQuery // Filtro startsWith, se houver
+					searchQuery // Filtro startsWith ou ftSearchQuery, dependendo do `fulltextsearch`
 			);
 
 			log.info("URI do findAllByCodigo: " + uri);
 
-			// Executa a requisição GET
+			ClientResponse clientResponse = webClient.get().uri(uri)
+					.header("Authorization", "Bearer " + getUser().getToken())//
+					.exchangeToMono(Mono::just).blockOptional() // Evita possíveis erros se a resposta for nula
+					.orElse(null);
+
+			if (clientResponse == null) {
+				log.error("Erro: Resposta nula do servidor");
+				return resultados;
+			}
+
+			// Verifica o status da resposta antes de processar
+			if (clientResponse.statusCode().isError()) {
+				log.error("Erro ao chamar API: HTTP " + clientResponse.statusCode().value());
+				return resultados;
+			}
+
+			// 📌 Obtém o corpo da resposta (JSON) com uma nova requisição para garantir o
+			// conteúdo
 			String rawResponse = webClient.get().uri(uri).header("Authorization", "Bearer " + getUser().getToken())
-					.retrieve().onStatus(HttpStatusCode::isError,
-							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
-								int statusCode = clientResponse.statusCode().value();
-								return Mono.<Throwable>error(new CustomWebClientException(errorResponse.getMessage(),
-										statusCode, errorResponse));
-							}))
-					.bodyToMono(String.class).block(); // Bloqueia até receber a resposta
+					.retrieve()//
+					.bodyToMono(String.class)//
+					.blockOptional()//
+					.orElse("");
+
+			// Loga status HTTP
+//			/log.info("Status da resposta: " + clientResponse.statusCode());
+
+			// Loga headers
+//			clientResponse.headers().asHttpHeaders()
+//					.forEach((key, value) -> log.info("Header: " + key + " = " + value));
+
+			// Verifica se o corpo está vazio
+			if (rawResponse.isBlank()) {
+				log.error("Erro: Resposta da API vazia para a URI: " + uri);
+				return resultados;
+			}
+
+			// log.info("rawResponse do findAllByCodigo: " + rawResponse);
 
 			// Desserializa a resposta JSON para Lista<T>
 			JavaType listType = objectMapper.getTypeFactory().constructCollectionType(List.class, model);
 			resultados = objectMapper.readValue(rawResponse, listType);
 
-			log.info("rawResponse do findAllByCodigo: " + rawResponse);
+			// Captura o cabeçalho `x-totalcount`
+			String totalCountHeader = clientResponse.headers().header("x-totalcount").stream().findFirst().orElse(null);
+
+			// Se não há filtro, usa `x-totalcount` da API
+			if (search == null || search.isBlank()) {
+				if (totalCountHeader != null) {
+					this.totalCount = Integer.parseInt(totalCountHeader);
+				} else {
+					this.totalCount = resultados.size();
+				}
+			} else {
+				// Se há filtro, usa o tamanho da resposta JSON
+				this.totalCount = resultados.size();
+			}
+
+			log.info("Total de registros disponíveis: " + this.totalCount);
+
+			// log.info("rawResponse do findAllByCodigo: " + rawResponse);
 
 		} catch (CustomWebClientException e) {
 			ErrorResponse error = e.getErrorResponse();

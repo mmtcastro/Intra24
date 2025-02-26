@@ -185,7 +185,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		}
 
 		updateView();
-		initFooter();
+		// initFooter();
 
 	}
 

@@ -4,7 +4,6 @@ import java.time.format.DateTimeFormatter;
 
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
-import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
@@ -33,13 +32,18 @@ public class GruposEconomicosView extends AbstractViewLista<GrupoEconomico> {
 
 	@SuppressWarnings("unused")
 	public void initGrid() {
-		grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
 		// Adiciona a coluna Código (única coluna ordenável)
 		grid.addColumn(new ComponentRenderer<Anchor, GrupoEconomico>(grupoEconomico -> {
 			Anchor link = new Anchor("grupoeconomico/" + grupoEconomico.getUnid(), grupoEconomico.getCodigo());
 			link.getElement().setAttribute("router-link", true); // Permite navegação sem recarregar
 			return link;
-		})).setHeader("Código").setSortable(true).setResizable(true).setAutoWidth(true);
+		}))//
+				.setHeader("Código")//
+				.setSortable(true)//
+				.setKey("codigo") // 🔥 Como usei ComponentRenderer, preciso informar a chave da coluna
+				.setResizable(true)//
+				.setAutoWidth(true);
 
 		// Adiciona a coluna Tipo antes da Descrição (sem ordenação)
 		Column<GrupoEconomico> tipoColumn = grid.addColumn(GrupoEconomico::getTipo).setHeader("Tipo").setKey("tipo");

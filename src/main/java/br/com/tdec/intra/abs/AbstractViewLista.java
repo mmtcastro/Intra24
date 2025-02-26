@@ -4,14 +4,18 @@ import java.lang.reflect.ParameterizedType;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -31,7 +35,8 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 	private static final long serialVersionUID = 1L;
 
 	protected AbstractService<T> service;
-	protected TextField searchText = new TextField("Buscar");
+	protected TextField searchText;
+	protected Button searchButton;
 	protected Grid<T> grid;
 	protected T model;
 	protected Class<T> modelType;
@@ -49,7 +54,7 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 		setSizeFull();
 		setSearch();
 		setGrid();
-		updateGrid(grid, "");
+		updateGrid(grid, "", false);
 
 	}
 
@@ -80,17 +85,43 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 	}
 
 	private void setSearch() {
+		searchText = new TextField("Buscar");
 		searchText.setPlaceholder("buscar...");
 		searchText.setClearButtonVisible(true);
 		searchText.setValueChangeMode(ValueChangeMode.LAZY);
-		searchText.addValueChangeListener(e -> updateGrid(grid, searchText.getValue()));
+		// Evita buscas desnecessárias caso o usuário apague tudo
+		searchText.addValueChangeListener(e -> {
+			String searchTerm = e.getValue() != null ? e.getValue().trim() : "";
+			log.info("🔍 Pesquisa automática (LAZY): '{}'", searchTerm);
+			updateGrid(grid, searchTerm, false);
+		});
+		// o enter no botão também aciona o fulltextsearch
+		searchText.addKeyPressListener(Key.ENTER, event -> {
+			String searchTerm = searchText.getValue() != null ? searchText.getValue().trim() : "";
+
+			if (!searchTerm.isEmpty()) {
+				log.info("🔍 Pesquisa manual acionada pelo ENTER: '{}'", searchTerm);
+				updateGrid(grid, searchTerm, true);
+			} else {
+				log.warn("⚠️ Pesquisa ignorada: Campo de busca vazio.");
+			}
+		});
 
 		// Ícone de lupa para busca
-		Button searchButton = new Button(VaadinIcon.SEARCH.create());
+		searchButton = new Button(VaadinIcon.SEARCH.create());
 		searchButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
 
 		// Chama a função de busca ao clicar no ícone
-		searchButton.addClickListener(e -> updateGrid(grid, searchText.getValue()));
+		searchButton.addClickListener(e -> {
+			String searchTerm = searchText.getValue() != null ? searchText.getValue().trim() : "";
+
+			if (!searchTerm.isEmpty()) {
+				log.info("🔍 Pesquisa manual acionada pelo botão: '{}'", searchTerm);
+				updateGrid(grid, searchTerm, true);
+			} else {
+				log.warn("⚠️ Pesquisa ignorada: Campo de busca vazio.");
+			}
+		});
 
 		criarButton = new Button("Criar " + model.getClass().getSimpleName(), e -> novo());
 
@@ -111,6 +142,7 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 		grid = new Grid<>(modelType, false);
 		grid.setSizeFull();
 		grid.addClassName("abstract-view-lista-grid");
+		grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 		grid.asSingleSelect().addValueChangeListener(evt -> openPage(evt.getValue()));
 		initGrid();
 
@@ -157,22 +189,58 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 		getUI().ifPresent(ui -> ui.navigate(model.getClass().getSimpleName().toLowerCase() + "/"));
 	}
 
-	public void updateGrid(Grid<T> grid, String searchText) {
+	public void updateGrid(Grid<T> grid, String searchText, boolean fulltextsearch) {
+		log.info("🔄 Chamando updateGrid() - searchText='{}', fulltextsearch={}", searchText, fulltextsearch);
+
+		// 🔹 Inicializa o totalCount como 0 antes de buscar os registros
+		service.setTotalCount(0);
+
+		// 🔹 Busca inicial com um número maior de registros para garantir que o
+		// totalCount seja atualizado corretamente
+		List<T> tempResultados = service.findAllByCodigo(0, 50, List.of(), searchText, getModelClass(), fulltextsearch);
+
+		// ⚠️ Verifica se a busca retornou algo e atualiza totalCount
+		if (tempResultados != null && !tempResultados.isEmpty()) {
+			int realTotalCount = tempResultados.size();
+			service.setTotalCount(realTotalCount);
+			log.info("✅ TotalCount atualizado corretamente: {}", realTotalCount);
+		} else {
+			log.warn("⚠️ Nenhum resultado encontrado. TotalCount será 0.");
+		}
+
+		// 🔄 Configura o DataProvider com o totalCount correto
 		DataProvider<T, Void> dataProvider = DataProvider.fromCallbacks(query -> {
-			// Pegando o offset, limite e ordens de ordenação da query
 			int offset = query.getOffset();
 			int limit = query.getLimit();
 			List<QuerySortOrder> sortOrders = query.getSortOrders();
 
-			log.info("Solicitando dados: offset={}, limit={}", offset, limit);
-			log.info("Ordenação recebida: " + sortOrders); // Depuração
+			int totalCount = Optional.ofNullable(service.getTotalCount()).orElse(0);
+			log.info("📊 totalCount={} | offset={} | limit={} | fulltextsearch={}", totalCount, offset, limit,
+					fulltextsearch);
 
-			// Chama o serviço com os parâmetros apropriados
-			return this.service.findAllByCodigo(offset, limit, sortOrders, searchText, getModelClass()).stream();
-		}, query -> 10000 // Estimativa de total de itens
-		);
+			if (totalCount == 0) {
+				log.warn("⚠️ Nenhum dado disponível. Retornando lista vazia.");
+				return Stream.empty();
+			}
+
+			int adjustedLimit = Math.min(limit, totalCount - offset);
+			if (adjustedLimit <= 0) {
+				log.warn("⚠️ Offset maior que totalCount. Retornando lista vazia.");
+				return Stream.empty();
+			}
+
+			log.info("🔍 Buscando registros com offset={} e limit={} | fulltextsearch={}", offset, adjustedLimit,
+					fulltextsearch);
+
+			return this.service
+					.findAllByCodigo(offset, adjustedLimit, sortOrders, searchText, getModelClass(), fulltextsearch)
+					.stream();
+		}, query -> Optional.ofNullable(service.getTotalCount()).orElse(0));
 
 		grid.setDataProvider(dataProvider);
+		grid.getDataProvider().refreshAll();
+
+		log.info("🚀 Grid atualizada com sucesso! TotalCount final: {}", service.getTotalCount());
 	}
 
 	protected T createModel(Class<T> modelType) {

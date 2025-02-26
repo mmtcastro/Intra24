@@ -1,5 +1,7 @@
 package br.com.tdec.intra.empresas.view;
 
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -21,6 +23,19 @@ public class VerticaisView extends AbstractViewLista<Vertical> {
 
 	public VerticaisView() {
 		super();
+	}
+
+	public void initGrid() {
+		grid.addColumn(new ComponentRenderer<Anchor, Vertical>(vertical -> {
+			Anchor link = new Anchor("vertical/" + vertical.getUnid(), vertical.getCodigo());
+			link.getElement().setAttribute("router-link", true); // Permite navegação sem recarregar
+			return link;
+		}))//
+				.setHeader("Código")//
+				.setSortable(true)//
+				.setKey("codigo")//
+				.setResizable(true);//
+		grid.addColumn(Vertical::getDescricao).setHeader("Descrição");
 	}
 
 }

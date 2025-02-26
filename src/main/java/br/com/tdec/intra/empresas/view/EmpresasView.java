@@ -1,10 +1,11 @@
 package br.com.tdec.intra.empresas.view;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -32,8 +33,16 @@ public class EmpresasView extends AbstractViewLista<Empresa> {
 
 	@SuppressWarnings("unused")
 	public void initGrid() {
-		Column<Empresa> codigoColumn = grid.addColumn(Empresa::getCodigo).setHeader("Código").setSortable(true);
-		codigoColumn.setComparator(Comparator.comparing(Empresa::getCodigo)).setKey("codigo");
+		grid.addColumn(new ComponentRenderer<Anchor, Empresa>(empresa -> {
+			Anchor link = new Anchor("empresa/" + empresa.getUnid(), empresa.getCodigo());
+			link.getElement().setAttribute("router-link", true); // Permite navegação sem recarregar
+			return link;
+		}))//
+				.setHeader("Código")//
+				.setSortable(true)//
+				.setKey("codigo")//
+				.setResizable(true);//
+		// codigoColumn.setComparator(Comparator.comparing(Empresa::getCodigo)).setKey("codigo");
 		Column<Empresa> nomeColumn = grid.addColumn(Empresa::getNome).setHeader("Nome");
 		Column<Empresa> statusColumn = grid.addColumn(Empresa::getStatus).setHeader("Status");
 		Column<Empresa> estadoColumn = grid.addColumn(Empresa::getEstado).setHeader("UF");

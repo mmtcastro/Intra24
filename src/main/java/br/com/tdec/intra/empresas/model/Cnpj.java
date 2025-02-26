@@ -54,4 +54,13 @@ public class Cnpj extends AbstractModelDoc {
 
 	private String ultima_atualizacao;
 
+	public Cnpj() {
+		// Construtor vazio para Jackson
+	}
+
+	// 🔹 Construtor que aceita uma String (para desserialização correta)
+	public Cnpj(String cnpj) {
+		this.cnpj = cnpj;
+	}
+
 }

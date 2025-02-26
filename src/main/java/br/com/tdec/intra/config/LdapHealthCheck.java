@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.naming.directory.DirContext;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.ldap.core.AttributesMapper;
@@ -18,7 +17,6 @@ public class LdapHealthCheck {
 	private final LdapTemplate ldapTemplate;
 	private final LdapProperties ldapProperties;
 
-	@Autowired
 	public LdapHealthCheck(LdapTemplate ldapTemplate, LdapProperties ldapProperties) {
 		this.ldapTemplate = ldapTemplate;
 		this.ldapProperties = ldapProperties;
