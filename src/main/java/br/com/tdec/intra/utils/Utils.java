@@ -693,4 +693,19 @@ public class Utils {
 		return sanitized;
 	}
 
+	public static List<String> getUfs() {
+		return List.of("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR",
+				"PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO");
+	}
+
+	public static List<String> getPaises() {
+		List<String> lista = new ArrayList<>();
+		Locale localePT = Locale.of("pt", "BR"); // Use Locale.of() instead of new Locale()
+
+		for (String codigo : Locale.getISOCountries()) {
+			Locale locale = Locale.of("", codigo); // Updated method
+			lista.add(locale.getDisplayCountry(localePT)); // Get country name in Portuguese
+		}
+		return lista;
+	}
 }

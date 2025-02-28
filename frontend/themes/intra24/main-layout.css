@@ -1,11 +1,31 @@
+/* Ajusta o espaçamento do menu lateral */
 vaadin-scroller[slot="drawer"] {
-  padding: var(--lumo-space-s);
+  padding: 0; /* Remove o padding extra que estava criando espaço vazio */
 }
 
+/* Ajusta a altura do header no menu lateral */
+[slot="drawer"] header {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  height: 50px; /* Ajuste conforme necessário */
+  padding: var(--lumo-space-s) var(--lumo-space-m);
+  font-weight: bold;
+  font-size: var(--lumo-font-size-l);
+  background-color: var(--lumo-contrast-10pct); /* Dá um leve destaque */
+}
+
+/* Garante que o SideNav ocupe a altura total do drawer */
+vaadin-side-nav {
+  height: 100%;
+}
+
+/* Ajusta a posição do ícone no menu */
 vaadin-side-nav-item vaadin-icon {
   padding: 0;
 }
 
+/* Ajusta a exibição de header e footer dentro do drawer */
 [slot="drawer"]:is(header, footer) {
   display: flex;
   align-items: center;
@@ -15,6 +35,30 @@ vaadin-side-nav-item vaadin-icon {
   box-sizing: border-box;
 }
 
+/* Esconde headers ou footers vazios no drawer */
 [slot="drawer"]:is(header, footer):is(:empty) {
   display: none;
 }
+
+[slot="drawer"] {
+  /*background-color: green !important; /* Teste de fundo verde */
+  }
+
+/* Define estilos para os itens do SideNav */
+vaadin-side-nav-item {
+  font-size: var(--lumo-font-size-m);
+  font-weight: 500;
+}
+
+/* Ajusta o espaçamento do conteúdo da navbar */
+[part="navbar"] {
+  padding: var(--lumo-space-s) var(--lumo-space-m);
+  background-color: var(--lumo-base-color);
+}
+
+/* Ajuste para evitar cortes e sobreposições */
+vaadin-app-layout {
+  --vaadin-app-layout-navbar-offset-size: 50px;
+  --vaadin-app-layout-drawer-offset-size: 250px;
+}
+

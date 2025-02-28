@@ -4,6 +4,7 @@ import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
@@ -31,6 +32,7 @@ import br.com.tdec.intra.views.helloworld.HelloWorldView;
 /**
  * The main view is a top-level placeholder for other views.
  */
+@CssImport("./themes/intra24/main-layout.css")
 public class MainLayout extends AppLayout {
 
 	private static final long serialVersionUID = 1L;
@@ -39,7 +41,8 @@ public class MainLayout extends AppLayout {
 
 	public MainLayout(br.com.tdec.intra.config.SecurityService securityService) {
 		this.securityService = securityService;
-		setPrimarySection(Section.DRAWER);
+
+		setPrimarySection(Section.DRAWER); // 🔹 Força o menu a ficar no topo sempre
 		addDrawerContent();
 		addHeaderContent();
 	}

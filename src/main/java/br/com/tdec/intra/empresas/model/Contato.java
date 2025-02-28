@@ -155,6 +155,16 @@ public class Contato extends AbstractModelDoc {
 	@JsonAlias({ "linkedinEmpresaId", "LINKEDINEMPRESAID" })
 	private String linkedinEmpresaId;
 
+	public String getFirstName() {
+		String[] partesNome = nome.trim().split(" ");
+		return partesNome.length > 0 ? partesNome[0] : "";
+	}
+
+	public String getLastName() {
+		String[] partesNome = nome.trim().split(" ");
+		return partesNome.length > 1 ? partesNome[partesNome.length - 1] : "";
+	}
+
 	// Implementação de equals() e hashCode() para evitar problemas com Set/Map
 	@Override
 	public boolean equals(Object obj) {

@@ -4,6 +4,7 @@ import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.Validator;
 import com.vaadin.flow.data.binder.ValueContext;
 
+import br.com.tdec.intra.services.Response;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,7 +29,7 @@ public class AbstractValidator<T extends AbstractModelDoc> extends Abstract {
 
 		@Override
 		public ValidationResult apply(String value, ValueContext context) {
-			AbstractService<T>.Response<T> response = this.service.findByCodigo(value);
+			Response<T> response = this.service.findByCodigo(value);
 			if (response.getModel() != null) {
 				return ValidationResult.error("O código " + response.getModel().getCodigo() + " já existe");
 			} else {

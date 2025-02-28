@@ -33,7 +33,7 @@ public class Empresa extends AbstractModelDoc implements Comparable<AbstractMode
 	private String estado;
 
 	@JsonProperty("Cgc")
-	@JsonAlias({ "CGC", "cgc", "CNPJ", "cnpj" })
+	@JsonAlias({ "CGC", "cgc" })
 	private String cgc;
 
 	@JsonProperty("Codigo")
@@ -152,9 +152,9 @@ public class Empresa extends AbstractModelDoc implements Comparable<AbstractMode
 	@JsonAlias({ "contaDigito", "CONTA_DIGITO" })
 	private String contaDigito;
 
-	@JsonProperty("Cnpj")
-	@JsonAlias({ "cnpj", "CNPJ" })
-	private Cnpj cnpj;
+//	@JsonProperty("Cnpj")
+//	@JsonAlias({ "cnpj", "CNPJ" })
+//	private Receitaws cnpj;
 
 	@JsonProperty("StatusCnpj")
 	@JsonAlias({ "statusCnpj", "STATUS_CNPJ" })

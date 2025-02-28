@@ -60,7 +60,8 @@ public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserve
 		setAlignItems(Alignment.CENTER);
 		setJustifyContentMode(JustifyContentMode.CENTER);
 
-		login.setAction("login");
+		// 🔴 Remova esta linha!
+		// login.setAction("login");
 
 		add(new H1("Intranet TDec"), login);
 

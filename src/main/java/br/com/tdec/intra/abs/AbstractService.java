@@ -41,6 +41,7 @@ import com.vaadin.flow.data.provider.SortDirection;
 
 import br.com.tdec.intra.config.WebClientService;
 import br.com.tdec.intra.directory.model.User;
+import br.com.tdec.intra.services.Response;
 import br.com.tdec.intra.utils.Utils;
 import br.com.tdec.intra.utils.exceptions.CustomWebClientException;
 import br.com.tdec.intra.utils.exceptions.ErrorResponse;
@@ -991,23 +992,23 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		return resultados;
 	}
 
-	@SuppressWarnings("hiding")
-	@Getter
-	@Setter
-	public class Response<T> {
-		private T model;
-		private String message;
-		private int status;
-		private boolean success;
-
-		public Response(T body, String message, int status, boolean success) {
-			this.model = body;
-			this.message = message;
-			this.status = status;
-			this.success = success;
-		}
-
-	}
+//	@SuppressWarnings("hiding")
+//	@Getter
+//	@Setter
+//	public class Response<T> {
+//		private T model;
+//		private String message;
+//		private int status;
+//		private boolean success;
+//
+//		public Response(T body, String message, int status, boolean success) {
+//			this.model = body;
+//			this.message = message;
+//			this.status = status;
+//			this.success = success;
+//		}
+//
+//	}
 
 	public FileResponse getAttachmentNames(String unid) {
 		FileResponse response = new FileResponse();

@@ -56,6 +56,7 @@ import br.com.tdec.intra.abs.AbstractService.FileResponse;
 import br.com.tdec.intra.abs.AbstractService.SaveResponse;
 import br.com.tdec.intra.config.ApplicationContextProvider;
 import br.com.tdec.intra.config.MailService;
+import br.com.tdec.intra.services.Response;
 import br.com.tdec.intra.utils.converters.RichTextToMimeConverter;
 import lombok.Getter;
 import lombok.Setter;
@@ -229,6 +230,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 
 		// Atualiza o estado de readOnly
 		updateReadOnlyState();
+
 	}
 
 	/**
@@ -642,7 +644,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	}
 
 	protected T findByUnid(String unid) {
-		AbstractService<T>.Response<T> response = service.findByUnid(unid);
+		Response<T> response = service.findByUnid(unid);
 		if (response.isSuccess()) {
 			return response.getModel(); // Retorna o modelo do tipo `T`, não `AbstractModelDoc`
 		} else {
@@ -842,14 +844,21 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	 *                  posição)
 	 */
 	protected void addComponentToBinderFields(Component component, int widthMode) {
+		if (component == null) {
+			throw new IllegalArgumentException("O componente não pode ser nulo");
+		}
+
 		binderFields.add(component);
 
-		if (widthMode == 1) {
-			setColspan(component, 2); // Ocupa toda a largura do AbstractViewDoc (2 posições)
+		switch (widthMode) {
+		case 1:
+			setColspan(component, 2); // Ocupa toda a largura (2 colunas)
 			component.getElement().getStyle().set("width", "100%");
-		} else if (widthMode == 2) {
-			setColspan(component, 1); // Ocupa apenas metade da largura (1 posição)
-		} else {
+			break;
+		case 2:
+			setColspan(component, 1); // Ocupa apenas 1 coluna (meia largura)
+			break;
+		default:
 			throw new IllegalArgumentException("O widthMode deve ser 1 (Full Width) ou 2 (Meia Largura)");
 		}
 	}
