@@ -21,16 +21,14 @@ public class ApolloLinkedinController {
 	}
 
 	/**
-	 * 🔹 Endpoint para buscar um contato no LinkedIn pelo email (opcionalmente nome
-	 * e sobrenome)
+	 * 🔹 Busca um contato no LinkedIn pelo email, nome e sobrenome.
 	 */
 	@GetMapping("/buscar")
 	public Mono<ResponseEntity<ApolloLinkedinModel>> buscarLinkedin(@RequestParam String email,
 			@RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName) {
 
 		return apolloLinkedinService.buscarApolloLinkedinModel(email, firstName, lastName).map(ResponseEntity::ok)
-				.defaultIfEmpty(ResponseEntity.notFound().build())
-				.doOnError(error -> System.err.println("❌ Erro no Controller: " + error.getMessage()));
+				.defaultIfEmpty(ResponseEntity.notFound().build());
 	}
 
 }
