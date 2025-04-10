@@ -30,7 +30,7 @@ import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Mono;
 
-@Route("loginAsync")
+@Route("login")
 @PageTitle("Login | Intra")
 @AnonymousAllowed
 @Getter
@@ -65,21 +65,65 @@ public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserve
 
 		add(new H1("Intranet TDec"), login);
 
+//		login.addLoginListener(e -> {
+//			authenticated = SecurityUtils.authenticate(e.getUsername(), e.getPassword());
+//
+//			if (authenticated) {
+//				try {
+//					user = authenticateAndFetchUser(e.getUsername(), e.getPassword());
+//					VaadinSession.getCurrent().setAttribute("user", user);
+//					setRolesInAuthority(user);
+//					UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL);
+//				} catch (Exception ex) {
+//					ex.printStackTrace();
+//					login.setError(true);
+//				}
+//			} else {
+//				System.out.println("Login Form - Erro ao autenticar");
+//				login.setError(true);
+//			}
+//		});
+
 		login.addLoginListener(e -> {
+			VaadinSession session = VaadinSession.getCurrent();
+			User sessionUser = session.getAttribute(User.class);
+
+			// Se o usuário já estiver autenticado, apenas redireciona para a página
+			// principal
+			if (sessionUser != null) {
+				System.out.println("Usuário já autenticado: " + sessionUser.getUsername());
+				UI.getCurrent().access(() -> UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL));
+				return;
+			}
+
+			// 🔴 Remover qualquer sessão anterior antes de autenticar novamente
+			session.setAttribute("user", null);
+			session.close();
+			VaadinSession.getCurrent().getSession().invalidate();
+			VaadinSession.getCurrent().setAttribute(User.class, null);
+
+			System.out.println("Tentando autenticar usuário: " + e.getUsername());
 			authenticated = SecurityUtils.authenticate(e.getUsername(), e.getPassword());
 
 			if (authenticated) {
 				try {
 					user = authenticateAndFetchUser(e.getUsername(), e.getPassword());
-					VaadinSession.getCurrent().setAttribute("user", user);
+					session = VaadinSession.getCurrent();
+					session.setAttribute("user", user); // Salva na sessão
+					session.setAttribute(User.class, user);
 					setRolesInAuthority(user);
-					UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL);
+
+					System.out.println("Usuário autenticado com sucesso: " + user.getUsername());
+
+					// Redirecionamento para a home após autenticação bem-sucedida
+					UI.getCurrent().access(() -> UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL));
 				} catch (Exception ex) {
 					ex.printStackTrace();
+					System.out.println("Erro ao autenticar o usuário: " + e.getUsername());
 					login.setError(true);
 				}
 			} else {
-				System.out.println("Login Form - Erro ao autenticar");
+				System.out.println("Login Form - Erro ao autenticar usuário: " + e.getUsername());
 				login.setError(true);
 			}
 		});
