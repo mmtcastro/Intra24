@@ -4,6 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -16,23 +22,29 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 import br.com.tdec.intra.config.LdapConfig;
 import br.com.tdec.intra.config.WebClientProperties;
 import br.com.tdec.intra.config.WebClientService;
+import br.com.tdec.intra.directory.model.IntraUserDetails;
 import br.com.tdec.intra.directory.model.TokenData;
 import br.com.tdec.intra.directory.model.User;
 import br.com.tdec.intra.utils.SecurityUtils;
 import br.com.tdec.intra.utils.UtilsAuthentication;
+import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.Getter;
 import lombok.Setter;
-import reactor.core.publisher.Mono;
 
 @Route("login")
 @PageTitle("Login | Intra")
-@AnonymousAllowed
+@AnonymousAllowed // vaaadin opcional
+@PermitAll
 @Getter
 @Setter
 public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserver {
@@ -49,7 +61,7 @@ public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserve
 
 	public LoginViewAsync(WebClientService webClientService, LdapConfig ldapConfig,
 			WebClientProperties webClientProperties) {
-		System.out.println("Iniciando autenticacao");
+		System.out.println("🔧 LoginViewAsync iniciado");
 		this.webClientService = webClientService;
 		this.webClient = webClientService.getWebClient();
 		this.webClientProperties = webClientProperties;
@@ -60,86 +72,93 @@ public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserve
 		setAlignItems(Alignment.CENTER);
 		setJustifyContentMode(JustifyContentMode.CENTER);
 
-		// 🔴 Remova esta linha!
-		// login.setAction("login");
-
 		add(new H1("Intranet TDec"), login);
 
-//		login.addLoginListener(e -> {
-//			authenticated = SecurityUtils.authenticate(e.getUsername(), e.getPassword());
-//
-//			if (authenticated) {
-//				try {
-//					user = authenticateAndFetchUser(e.getUsername(), e.getPassword());
-//					VaadinSession.getCurrent().setAttribute("user", user);
-//					setRolesInAuthority(user);
-//					UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL);
-//				} catch (Exception ex) {
-//					ex.printStackTrace();
-//					login.setError(true);
-//				}
-//			} else {
-//				System.out.println("Login Form - Erro ao autenticar");
-//				login.setError(true);
-//			}
-//		});
-
 		login.addLoginListener(e -> {
+			String username = e.getUsername();
+			String password = e.getPassword();
+
+			System.out.println("🔐 Tentando autenticar usuário: " + username);
 			VaadinSession session = VaadinSession.getCurrent();
 			User sessionUser = session.getAttribute(User.class);
 
-			// Se o usuário já estiver autenticado, apenas redireciona para a página
-			// principal
 			if (sessionUser != null) {
-				System.out.println("Usuário já autenticado: " + sessionUser.getUsername());
-				UI.getCurrent().access(() -> UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL));
+				System.out.println("⚠️ Usuário já autenticado: " + sessionUser.getUsername());
+				UI.getCurrent().getPage().executeJs("window.location.href = '/'");
 				return;
 			}
 
-			// 🔴 Remover qualquer sessão anterior antes de autenticar novamente
+			// Limpa a sessão Vaadin
 			session.setAttribute("user", null);
-			session.close();
-			VaadinSession.getCurrent().getSession().invalidate();
-			VaadinSession.getCurrent().setAttribute(User.class, null);
+			session.setAttribute(User.class, null);
 
-			System.out.println("Tentando autenticar usuário: " + e.getUsername());
-			authenticated = SecurityUtils.authenticate(e.getUsername(), e.getPassword());
+			authenticated = SecurityUtils.authenticate(username, password);
 
 			if (authenticated) {
 				try {
-					user = authenticateAndFetchUser(e.getUsername(), e.getPassword());
-					session = VaadinSession.getCurrent();
-					session.setAttribute("user", user); // Salva na sessão
+					user = authenticateAndFetchUser(username, password);
+					System.out.println("✅ Token recebido: " + user.getToken());
+					System.out.println("🔎 Roles atribuídas: " + user.getRoles());
+
+					// Cria UserDetails e Authentication
+					IntraUserDetails userDetails = new IntraUserDetails(user);
+					Authentication authToken = new UsernamePasswordAuthenticationToken(userDetails, null,
+							userDetails.getAuthorities());
+
+					// Registra no SecurityContext
+					SecurityContext context = SecurityContextHolder.createEmptyContext();
+					context.setAuthentication(authToken);
+
+					// Persiste o contexto na sessão HTTP real
+					HttpServletRequest request = ((VaadinServletRequest) VaadinService.getCurrentRequest())
+							.getHttpServletRequest();
+					HttpSession httpSession = request.getSession();
+					httpSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+
+					// Sincroniza com VaadinSession
+					VaadinSession vaadinSession = VaadinSession.getCurrent();
+					vaadinSession.getSession().setAttribute(HttpSession.class.getName(), httpSession);
+
+					System.out.println("🧠 SecurityContext armazenado na sessão: " + httpSession.getId());
+					System.out.println("👤 Auth principal: " + authToken.getPrincipal());
+					System.out.println("🍪 Cookie JSESSIONID (login): " + request.getRequestedSessionId());
+
+					// Também guarda na VaadinSession (opcional)
+					session.setAttribute("user", user);
 					session.setAttribute(User.class, user);
+
 					setRolesInAuthority(user);
 
-					System.out.println("Usuário autenticado com sucesso: " + user.getUsername());
+					// Redireciona após login
+					System.out.println("➡️ Redirecionando para: " + LOGIN_SUCCESS_URL);
+					// UI.getCurrent().getPage().executeJs("window.location.href = '" +
+					// LOGIN_SUCCESS_URL + "'");
+					UI.getCurrent().access(() -> UI.getCurrent().navigate(""));
 
-					// Redirecionamento para a home após autenticação bem-sucedida
-					UI.getCurrent().access(() -> UI.getCurrent().getPage().setLocation(LOGIN_SUCCESS_URL));
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					System.out.println("Erro ao autenticar o usuário: " + e.getUsername());
+					System.out.println("❌ Erro ao autenticar o usuário: " + username);
 					login.setError(true);
 				}
 			} else {
-				System.out.println("Login Form - Erro ao autenticar usuário: " + e.getUsername());
+				System.out.println("❌ Credenciais inválidas para: " + username);
 				login.setError(true);
 			}
 		});
-
 	}
 
 	private User authenticateAndFetchUser(String username, String pw) throws JsonProcessingException {
+		System.out.println("🌐 Iniciando chamada ao Domino RestAPI...");
 		User user = new User();
 		user.setUsername(username);
+
 		Map<String, String> credentials = new HashMap<>();
-		credentials.put("username", user.getUsername());
+		credentials.put("username", username);
 		credentials.put("password", pw);
 
-		Mono<String> tokenResponse = webClient.post().uri("/auth").contentType(MediaType.APPLICATION_JSON)
-				.bodyValue(credentials).retrieve().bodyToMono(String.class);
-		String jsonString = tokenResponse.block();
+		String jsonString = webClient.post().uri("/auth").contentType(MediaType.APPLICATION_JSON).bodyValue(credentials)
+				.retrieve().bodyToMono(String.class).block();
+
 		ObjectMapper mapper = new ObjectMapper();
 		TokenData tokenData = mapper.readValue(jsonString, TokenData.class);
 		user.setTokenData(tokenData);
@@ -147,9 +166,9 @@ public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserve
 
 		User tempUser = webClient.get().uri("/userinfo").header("Authorization", "Bearer " + user.getToken()).retrieve()
 				.bodyToMono(User.class).block();
-		user.addAddicionalUserInformation(tempUser);
 
-		System.out.println("authenticateAndFetchUser - Fim autenticação " + tokenData);
+		user.addAddicionalUserInformation(tempUser);
+		System.out.println("✅ Fim da autenticação - token e dados carregados");
 		return user;
 	}
 
@@ -162,16 +181,18 @@ public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserve
 
 	@Override
 	public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-		// User user = (User) VaadinSession.getCurrent().getAttribute("user");
-//		if (user == null) {
-//			System.out.println("User is null in beforeEnter");
-//		} else {
-//			System.out.println("User is not null in beforeEnter");
-//		}
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		HttpServletRequest request = ((VaadinServletRequest) VaadinService.getCurrentRequest()).getHttpServletRequest();
+		System.out.println("🔁 [beforeEnter] Authentication: " + auth);
+		System.out.println("🍪 Cookie JSESSIONID (beforeEnter): " + request.getRequestedSessionId());
+
+		if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+			System.out.println("🔁 [beforeEnter] Usuário já autenticado, redirecionando");
+			beforeEnterEvent.forwardTo("");
+		}
 
 		if (beforeEnterEvent.getLocation().getQueryParameters().getParameters().containsKey("error")) {
 			login.setError(true);
 		}
 	}
-
 }

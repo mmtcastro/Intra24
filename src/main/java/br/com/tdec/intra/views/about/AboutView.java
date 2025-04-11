@@ -81,11 +81,26 @@ public class AboutView extends VerticalLayout {
 		setDefaultHorizontalComponentAlignment(Alignment.CENTER);
 		getStyle().set("text-align", "center");
 
-		String username = securityService.getAuthenticatedUser().getUsername();
+		// String username = securityService.getAuthenticatedUser().getUsername();
 
-		VaadinSession.getCurrent().setAttribute("grupos", ldapConfig.findGroupsForUser(username));
+		User user = (User) VaadinSession.getCurrent().getAttribute(User.class);
 
-		User user = (User) UI.getCurrent().getSession().getAttribute("user");
+		String username;
+		if (user != null) {
+			username = user.getUsername();
+		} else {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			if (auth != null && auth.isAuthenticated()) {
+				username = auth.getName(); // pode cair aqui como fallback
+			} else {
+				username = "Usuário não autenticado";
+			}
+		}
+
+		// VaadinSession.getCurrent().setAttribute("grupos",
+		// ldapConfig.findGroupsForUser(username));
+
+		user = (User) UI.getCurrent().getSession().getAttribute("user");
 		// H3 token = new H3("Token: " + user.getToken());
 		// add(token);
 

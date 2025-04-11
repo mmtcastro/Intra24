@@ -32,13 +32,14 @@ import lombok.Setter;
 @Setter
 public class LdapConfig {
 
-	private LdapProperties ldapProperties;
+	private final LdapProperties ldapProperties;
 	private LdapTemplate ldapTemplate;
 
 	public LdapConfig(LdapProperties ldapProperties) {
 		this.ldapProperties = ldapProperties;
-		System.out.println("LdapConfigUrls: " + ldapProperties.getUrls());
-		System.out.println("LdapConfigUrl: " + ldapProperties.getUrls().toArray(new String[0]));
+		// System.out.println("LdapConfigUrls: " + ldapProperties.getUrls());
+		// System.out.println("LdapConfigUrl: " + ldapProperties.getUrls().toArray(new
+		// String[0]));
 	}
 
 	@Bean

@@ -77,6 +77,14 @@ public class User {
 		return names.stream().map(this::convertGroupNameToRole).toList();
 	}
 
+//	public List<String> getRoles() {
+//		return names.stream().map(this::convertGroupNameToRole).map(role -> role.replaceAll("[^A-Z0-9_]", "_")) // remove
+//																												// caracteres
+//																												// inválidos
+//				.filter(role -> role.length() < 50 && !role.contains("*")) // filtra perigosos
+//				.toList();
+//	}
+
 	public String convertGroupNameToRole(String groupName) {
 		String role = "ROLE_" + groupName.trim().toUpperCase();
 		return role;

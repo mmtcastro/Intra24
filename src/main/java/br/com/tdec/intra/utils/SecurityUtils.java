@@ -27,22 +27,21 @@ public class SecurityUtils {
 	public static boolean authenticate(String username, String password) {
 		VaadinServletRequest request = VaadinServletRequest.getCurrent();
 		if (request == null) {
-			// This is in a background thread and we can't access the request to
-			// log in the user
-			System.out.println(
-					"Erro: Não é possível obter a requisição atual. Talvez isso esteja sendo chamado em um thread de segundo plano.");
+			System.out.println("Erro: Não é possível obter a requisição atual.");
 			return false;
 		}
 		try {
-			System.out.println("Tentando autenticar usuário: " + username);
+			System.out.println("🔐 Tentando autenticar usuário: " + username);
 			request.login(username, password);
-			// change session ID to protect against session fixation
-			request.getHttpServletRequest().changeSessionId();
-			System.out.println("Autenticação bem-sucedida para o usuário: " + username);
+
+			// ❌ Remova essa linha abaixo para manter a sessão ativa corretamente
+			// request.getHttpServletRequest().changeSessionId();
+
+			System.out.println("✅ Autenticação bem-sucedida para o usuário: " + username);
 			return true;
 		} catch (ServletException e) {
-			System.err.println("Erro ao autenticar o usuário: " + username);
-			System.err.println("Mensagem de erro: " + e.getMessage());
+			System.err.println("❌ Erro ao autenticar o usuário: " + username);
+			System.err.println("📛 Mensagem: " + e.getMessage());
 			return false;
 		}
 	}
