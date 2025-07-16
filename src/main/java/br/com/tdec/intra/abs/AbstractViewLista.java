@@ -1,5 +1,6 @@
 package br.com.tdec.intra.abs;
 
+import java.io.Serial;
 import java.lang.reflect.ParameterizedType;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -32,7 +33,8 @@ import lombok.Setter;
 @Setter
 public abstract class AbstractViewLista<T extends AbstractModelDoc> extends VerticalLayout {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	protected AbstractService<T> service;
 	protected TextField searchText;

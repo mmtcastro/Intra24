@@ -1,5 +1,6 @@
 package br.com.tdec.intra.utils.validators;
 
+import java.io.Serial;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -10,10 +11,11 @@ import com.vaadin.flow.data.binder.ValueContext;
 
 public class DataValidator implements Validator<String> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	@Override

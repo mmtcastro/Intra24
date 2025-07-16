@@ -6,9 +6,12 @@ import com.vaadin.flow.data.converter.Converter;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
 
+import java.io.Serial;
+
 public class RichTextToStringConverter implements Converter<String, AbstractModelDoc.RichText> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	@Override
 	public Result<AbstractModelDoc.RichText> convertToModel(String value, ValueContext context) {

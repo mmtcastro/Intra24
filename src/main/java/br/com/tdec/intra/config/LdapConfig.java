@@ -58,11 +58,11 @@ public class LdapConfig {
 
 	}
 
-	/**
-	 * Bean do LdapTemplate para executar consultas LDAP
-	 */
-	@Bean
-	public LdapTemplate ldapTemplate(LdapContextSource contextSource) {
+    /**
+     * Bean do LdapTemplate para executar consultas LDAP
+     */
+    @Bean
+    LdapTemplate ldapTemplate(LdapContextSource contextSource) {
 		System.out.println("✅ LdapTemplate inicializado!");
 		return new LdapTemplate(contextSource);
 	}

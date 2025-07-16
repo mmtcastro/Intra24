@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +32,8 @@ import jakarta.annotation.security.PermitAll;
 @PermitAll
 public class FocusLayout extends VerticalLayout {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	 private List<String> draggedItems;
 	    private Grid<String> dragSource;
 	    
@@ -133,7 +135,8 @@ public class FocusLayout extends VerticalLayout {
 	    }
 
 	    public class MyLayout extends FlexLayout implements Focusable<MyLayout> {
-			private static final long serialVersionUID = 1L;
+            @Serial
+            private static final long serialVersionUID = 1L;
 
 			public MyLayout() {
 	            this.setTabIndex(0);

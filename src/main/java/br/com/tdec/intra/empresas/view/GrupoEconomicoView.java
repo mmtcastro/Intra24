@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +37,8 @@ import lombok.Setter;
 @PageTitle("Grupo Econômico")
 @RolesAllowed("ROLE_EVERYONE")
 public class GrupoEconomicoView extends AbstractViewDoc<GrupoEconomico> {
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
 	private ComboBox<String> gerenteContaComboBox = new ComboBox<>("Gerente de Contas");

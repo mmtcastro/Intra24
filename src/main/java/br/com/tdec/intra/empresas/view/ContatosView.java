@@ -10,6 +10,8 @@ import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serial;
+
 @Getter
 @Setter
 @Route(value = "contatos", layout = MainLayout.class)
@@ -17,6 +19,7 @@ import lombok.Setter;
 @RolesAllowed("ROLE_EVERYONE")
 public class ContatosView extends AbstractViewLista<Contato> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 }

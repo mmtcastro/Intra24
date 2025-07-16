@@ -14,6 +14,8 @@ import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serial;
+
 @Getter
 @Setter
 @Route(value = "cargo", layout = MainLayout.class)
@@ -21,7 +23,8 @@ import lombok.Setter;
 @RolesAllowed("ROLE_EVERYONE")
 public class CargoView extends AbstractViewDoc<Cargo> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
 

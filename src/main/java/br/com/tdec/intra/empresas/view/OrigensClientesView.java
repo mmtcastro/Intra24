@@ -10,6 +10,8 @@ import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serial;
+
 @Getter
 @Setter
 @PageTitle("Origens dos Clientes")
@@ -17,7 +19,8 @@ import lombok.Setter;
 @RolesAllowed("ROLE_EVERYONE")
 public class OrigensClientesView extends AbstractViewLista<OrigemCliente> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	public OrigensClientesView() {
 		super();

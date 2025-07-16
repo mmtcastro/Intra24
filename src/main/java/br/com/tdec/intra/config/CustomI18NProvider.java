@@ -1,5 +1,6 @@
 package br.com.tdec.intra.config;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -11,7 +12,8 @@ import com.vaadin.flow.i18n.I18NProvider;
 @Component
 public class CustomI18NProvider implements I18NProvider {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	private static final String BUNDLE_NAME = "i18n/messages"; // Location of your .properties files
 	private static final Locale LOCALE_EN = Locale.ENGLISH; // Use predefined constant for English
@@ -28,7 +30,7 @@ public class CustomI18NProvider implements I18NProvider {
 
 		if (bundle.containsKey(key)) {
 			String value = bundle.getString(key);
-			return (params.length > 0) ? String.format(value, params) : value;
+			return (params.length > 0) ? value.formatted(params) : value;
 		}
 
 		// Return the key itself if not found

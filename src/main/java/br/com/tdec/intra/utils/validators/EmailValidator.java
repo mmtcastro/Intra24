@@ -1,5 +1,6 @@
 package br.com.tdec.intra.utils.validators;
 
+import java.io.Serial;
 import java.util.regex.Pattern;
 
 import com.vaadin.flow.data.binder.ValidationResult;
@@ -8,7 +9,8 @@ import com.vaadin.flow.data.binder.ValueContext;
 
 public class EmailValidator implements Validator<String> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private static final String EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
 	private static final Pattern pattern = Pattern.compile(EMAIL_PATTERN);
 

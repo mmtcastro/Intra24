@@ -3,6 +3,8 @@ package br.com.tdec.intra.views;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import com.vaadin.flow.component.applayout.AppLayout;
+
+import java.io.Serial;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Anchor;
@@ -35,7 +37,8 @@ import br.com.tdec.intra.views.helloworld.HelloWorldView;
 @CssImport("./themes/intra24/main-layout.css")
 public class MainLayout extends AppLayout {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private H2 viewTitle;
 	private final br.com.tdec.intra.config.SecurityService securityService;
 

@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.io.Serial;
 import java.time.format.DateTimeFormatter;
 
 import com.vaadin.flow.component.grid.Grid;
@@ -24,7 +25,8 @@ import lombok.Setter;
 @RolesAllowed("ROLE_EVERYONE")
 public class GruposEconomicosView extends AbstractViewLista<GrupoEconomico> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	public GruposEconomicosView() {
 		super();

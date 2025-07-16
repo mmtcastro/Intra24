@@ -232,9 +232,9 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		Response<T> response = null;
 		try {
 			// Monta a URI com o código e form
-			String uri = String.format("/lists/_intraCodigos?mode=" + mode + "&dataSource=" + scope
-					+ "&keyAllowPartial=false&documents=true&richTextAs=mime&key=" + codigo + "&key=" + form
-					+ "&scope=documents");
+			String uri = ("/lists/_intraCodigos?mode=" + mode + "&dataSource=" + scope
+                    + "&keyAllowPartial=false&documents=true&richTextAs=mime&key=" + codigo + "&key=" + form
+                    + "&scope=documents").formatted();
 			System.out.println("URI findByCodigo: " + uri);
 
 			// Faz a requisição e captura a resposta
@@ -901,16 +901,16 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			}
 
 			// Monta a URL para requisição, incluindo o novo parâmetro `column`
-			String uri = String.format("/lists/%s?dataSource=%s&mode=%s&count=%d&start=%d&column=%s&direction=%s%s",
-					Utils.getListaNameFromModelName(model.getSimpleName()), // Nome da lista
-					scope, // Fonte de dados
-					mode, // Modo de consulta
-					count, // Quantidade de registros
-					offset, // Offset (paginação)
-					column, // Coluna usada na ordenação
-					direction, // Direção da ordenação (asc/desc)
-					searchQuery // Filtro startsWith ou ftSearchQuery, dependendo do `fulltextsearch`
-			);
+			String uri = "/lists/%s?dataSource=%s&mode=%s&count=%d&start=%d&column=%s&direction=%s%s".formatted(
+                    Utils.getListaNameFromModelName(model.getSimpleName()), // Nome da lista
+                    scope, // Fonte de dados
+                    mode, // Modo de consulta
+                    count, // Quantidade de registros
+                    offset, // Offset (paginação)
+                    column, // Coluna usada na ordenação
+                    direction, // Direção da ordenação (asc/desc)
+                    searchQuery // Filtro startsWith ou ftSearchQuery, dependendo do `fulltextsearch`
+            );
 
 			log.info("URI do findAllByCodigo: " + uri);
 
@@ -1236,9 +1236,8 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 					: "";
 
 			// Monta a URL para requisição com base no cURL fornecido
-			String uri = String.format(
-					"/api/v1/lists/%s?mode=default&dataSource=empresas&ftSearchQuery=%s&count=%d&direction=%s&start=%d",
-					Utils.getListaNameFromModelName(model.getSimpleName()), searchQuery, count, direction, offset);
+			String uri = "/api/v1/lists/%s?mode=default&dataSource=empresas&ftSearchQuery=%s&count=%d&direction=%s&start=%d".formatted(
+                    Utils.getListaNameFromModelName(model.getSimpleName()), searchQuery, count, direction, offset);
 
 			log.info("Executando busca com URI: " + uri);
 

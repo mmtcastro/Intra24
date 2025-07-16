@@ -1,5 +1,6 @@
 package br.com.tdec.intra.views.about;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +41,8 @@ import lombok.Setter;
 @Setter
 public class AboutView extends VerticalLayout {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private final br.com.tdec.intra.config.SecurityService securityService;
 	private final LdapConfig ldapConfig;
 	private final WebClientProperties webClientProperties;

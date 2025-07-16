@@ -3,6 +3,7 @@ package br.com.tdec.intra.abs;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serial;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.time.format.DateTimeFormatter;
@@ -67,7 +68,8 @@ import lombok.Setter;
 public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLayout
 		implements HasUrlParameter<String>, BeforeLeaveObserver {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	protected T model;
 	protected Class<T> modelType;
 	protected AbstractService<T> service;
@@ -317,9 +319,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 	 * Aplica o estado de readOnly a todos os componentes do formulário.
 	 */
 	private void applyReadOnlyState(Component component, boolean isReadOnly) {
-		if (component instanceof HasValue) {
-			// Se o componente é um campo, aplica o estado de readOnly
-			HasValue<?, ?> field = (HasValue<?, ?>) component;
+		if (component instanceof HasValue<?, ?> field) {
 			if (isReadOnly || readOnlyFields.contains(field)) {
 				field.setReadOnly(true);
 			} else {
@@ -638,7 +638,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends FormLa
 		}
 
 		// Adiciona o footer diretamente ao layout da página (UI), fora do FormLayout
-		if (!footer.getParent().isPresent()) {
+		if (footer.getParent().isEmpty()) {
 			UI.getCurrent().getElement().appendChild(footer.getElement());
 		}
 	}

@@ -7,9 +7,12 @@ import com.vaadin.flow.data.binder.Binder;
 
 import br.com.tdec.intra.api.model.Receitaws;
 
+import java.io.Serial;
+
 public class ReceitawsView extends VerticalLayout {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private final TextField status = new TextField("Status");
 	private final TextField ultimaAtualizacao = new TextField("Última Atualização");
 	private final TextField cnpj = new TextField("CNPJ");

@@ -1,5 +1,6 @@
 package br.com.tdec.intra.views.helloworld;
 
+import java.io.Serial;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,8 @@ import lombok.Setter;
 @Setter
 public class HelloWorldView extends HorizontalLayout {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	private TextField name;
 	private Button sayHello;

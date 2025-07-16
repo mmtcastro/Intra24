@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.componentes;
 
+import java.io.Serial;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +20,8 @@ import lombok.Setter;
 @Setter
 public class EnderecoForm<T extends AbstractModelDoc> extends FormLayout {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private T model;
 	private Binder<T> binder;
 

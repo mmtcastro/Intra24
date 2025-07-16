@@ -4,9 +4,12 @@ import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.Validator;
 import com.vaadin.flow.data.binder.ValueContext;
 
+import java.io.Serial;
+
 public class CpfValidator implements Validator<String> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	@Override
 	public ValidationResult apply(String value, ValueContext context) {

@@ -3,6 +3,8 @@ package br.com.tdec.intra.config;
 import org.springframework.stereotype.Component;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
+
+import java.io.Serial;
 import com.vaadin.flow.server.AppShellSettings;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.theme.Theme;
@@ -11,11 +13,12 @@ import com.vaadin.flow.theme.Theme;
 @Theme(value = "intra24")
 @PWA(name = "My Application", shortName = "App", iconPath = "icons/icons8-mapa-mental-48.png")
 public class AppShellConfiguration implements AppShellConfigurator {
-	/*
-	 * no final eu crie esta classe só para mudar o favicon
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    /*
+     * no final eu crie esta classe só para mudar o favicon
+     * 
+     */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	@Override
 	public void configurePage(AppShellSettings settings) {

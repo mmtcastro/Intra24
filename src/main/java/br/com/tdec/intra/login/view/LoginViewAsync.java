@@ -1,5 +1,6 @@
 package br.com.tdec.intra.login.view;
 
+import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +50,8 @@ import lombok.Setter;
 @Setter
 public class LoginViewAsync extends VerticalLayout implements BeforeEnterObserver {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private final LdapConfig ldapConfig;
 	private final LoginForm login = new LoginForm();
 	private static final String LOGIN_SUCCESS_URL = "/";

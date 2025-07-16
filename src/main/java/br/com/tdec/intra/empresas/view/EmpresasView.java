@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.io.Serial;
 import java.time.format.DateTimeFormatter;
 
 import com.vaadin.flow.component.grid.Grid;
@@ -24,7 +25,8 @@ import lombok.Setter;
 @Setter
 public class EmpresasView extends AbstractViewLista<Empresa> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	public EmpresasView() {
 		super();

@@ -1,5 +1,6 @@
 package br.com.tdec.intra.utils.validators;
 
+import java.io.Serial;
 import java.net.URI;
 
 import com.vaadin.flow.data.binder.ValidationResult;
@@ -8,7 +9,8 @@ import com.vaadin.flow.data.binder.ValueContext;
 
 public class UrlValidator implements Validator<String> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private final boolean required;
 
 	public UrlValidator(boolean required) {

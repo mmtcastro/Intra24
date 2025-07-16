@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.io.Serial;
 import java.time.LocalDate;
 
 import com.vaadin.flow.component.textfield.TextField;
@@ -23,7 +24,8 @@ import lombok.Setter;
 @RolesAllowed("ROLE_EVERYONE")
 public class TipoEmpresaView extends AbstractViewDoc<TipoEmpresa> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
 

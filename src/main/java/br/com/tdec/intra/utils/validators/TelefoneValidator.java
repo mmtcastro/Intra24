@@ -1,5 +1,6 @@
 package br.com.tdec.intra.utils.validators;
 
+import java.io.Serial;
 import java.util.regex.Pattern;
 
 import com.vaadin.flow.data.binder.ValidationResult;
@@ -8,10 +9,11 @@ import com.vaadin.flow.data.binder.ValueContext;
 
 public class TelefoneValidator implements Validator<String> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private static final Pattern TELEFONE_PATTERN = Pattern.compile("^\\+?[0-9\\s()-]{10,20}$");
 
 	@Override

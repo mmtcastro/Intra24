@@ -14,13 +14,13 @@ import br.com.tdec.intra.utils.jackson.ZonedDateTimeDeserializer;
 @Configuration
 public class JacksonConfig {
 
-	/*
-	 * Sem este WebClientConfig, o ZonedDateTime não é deserializado corretamente e
-	 * não é gravado do Domino
-	 * 
-	 */
-	@Bean
-	public ObjectMapper objectMapper() {
+    /*
+     * Sem este WebClientConfig, o ZonedDateTime não é deserializado corretamente e
+     * não é gravado do Domino
+     * 
+     */
+    @Bean
+    ObjectMapper objectMapper() {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JavaTimeModule javaTimeModule = new JavaTimeModule();
 

@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.io.Serial;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 
@@ -23,7 +24,8 @@ import lombok.Setter;
 @RolesAllowed("ROLE_EVERYONE")
 public class CargosView extends AbstractViewLista<Cargo> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	public CargosView() {
 		super();

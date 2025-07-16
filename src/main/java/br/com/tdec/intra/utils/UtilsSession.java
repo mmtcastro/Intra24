@@ -75,10 +75,10 @@ public class UtilsSession {
 		if (authentication != null && authentication.isAuthenticated()) {
 			Object principal = authentication.getPrincipal();
 
-			if (principal instanceof UserDetails) {
-				return ((UserDetails) principal).getUsername();
-			} else if (principal instanceof String) {
-				return (String) principal;
+			if (principal instanceof UserDetails details) {
+				return details.getUsername();
+			} else if (principal instanceof String string) {
+				return string;
 			}
 		}
 		return null; // No user is authenticated

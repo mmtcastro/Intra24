@@ -37,8 +37,8 @@ public class SecurityConfiguration extends VaadinWebSecurity {
 		setLoginView(http, LoginViewAsync.class);
 	}
 
-	@Bean
-	public PasswordEncoder passwordEncoder() {
+    @Bean
+    PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder(); // Substitui NoOpPasswordEncoder por uma opção segura
 	}
 }

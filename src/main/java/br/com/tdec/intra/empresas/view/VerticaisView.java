@@ -12,6 +12,8 @@ import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serial;
+
 @PageTitle("Verticais")
 @Route(value = "verticais", layout = MainLayout.class)
 @Getter
@@ -19,7 +21,8 @@ import lombok.Setter;
 @RolesAllowed("ROLE_EVERYONE")
 public class VerticaisView extends AbstractViewLista<Vertical> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	public VerticaisView() {
 		super();

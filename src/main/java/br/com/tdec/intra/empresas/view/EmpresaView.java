@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.io.Serial;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,7 +50,8 @@ import lombok.Setter;
 @PageTitle("Empresa")
 @RolesAllowed("ROLE_EVERYONE")
 public class EmpresaView extends AbstractViewDoc<Empresa> {
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private GrupoEconomico grupoEconomico;
 	private ComboBox<String> codigoGrupoEconomicoComboBox = new ComboBox<>("Grupo Econômico");
 	private TextField codigoField = new TextField("Código");
@@ -90,25 +92,6 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 
 		configureComboBoxes();
 		configureFieldActions();
-	}
-
-	@Override
-	public void updateView() {
-		System.out.println("Model é: " + model); // Teste para saber se o modelo está chegando
-
-		if (model == null) {
-			System.err.println("🚨 ERRO: Model ainda está NULL em updateView!");
-			return;
-		}
-
-		// 🚀 Criar EnderecoForm antes de chamar super.updateView()
-		if (enderecoForm == null) {
-			enderecoForm = new EnderecoForm<>(binder, model);
-			binderFields.add(enderecoForm); // 🚀 Adicionar à lista antes de updateView()
-		}
-
-		super.updateView(); // Agora o binderFields.forEach(this::add) já terá enderecoForm
-
 	}
 
 	private void configureComboBoxes() {

@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.componentes;
 
+import java.io.Serial;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -19,7 +20,8 @@ import lombok.Setter;
 @Setter
 public class EmpresasGrid extends VerticalLayout {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private Grid<Empresa> grid;
 	private GrupoEconomicoService grupoEconomicoService;
 	private List<Empresa> empresas;

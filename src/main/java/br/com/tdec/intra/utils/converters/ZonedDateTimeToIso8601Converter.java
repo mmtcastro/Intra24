@@ -1,5 +1,6 @@
 package br.com.tdec.intra.utils.converters;
 
+import java.io.Serial;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -11,7 +12,8 @@ import com.vaadin.flow.data.binder.ValueContext;
 import com.vaadin.flow.data.converter.Converter;
 
 public class ZonedDateTimeToIso8601Converter implements Converter<LocalDate, ZonedDateTime> {
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	// Usa o formatador ISO para garantir apenas data, hora e offset, sem o ID de
 	// zona
 	private static final DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;

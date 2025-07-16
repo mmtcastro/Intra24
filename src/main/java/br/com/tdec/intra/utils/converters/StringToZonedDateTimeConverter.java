@@ -1,5 +1,6 @@
 package br.com.tdec.intra.utils.converters;
 
+import java.io.Serial;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -12,7 +13,8 @@ import com.vaadin.flow.data.converter.Converter;
 
 public class StringToZonedDateTimeConverter implements Converter<String, ZonedDateTime> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
 	@Override

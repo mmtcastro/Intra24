@@ -11,11 +11,14 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
+
+import java.io.Serial;
 import br.com.tdec.intra.utils.UtilsConverter;
 
 public class DefaultForm extends FormLayout {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	TextField codigo = new TextField("Código");
 	TextField descricao = new TextField("Descrição");

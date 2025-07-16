@@ -1,5 +1,6 @@
 package br.com.tdec.intra.utils.converters;
 
+import java.io.Serial;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -10,7 +11,8 @@ import com.vaadin.flow.data.converter.Converter;
 
 public class ZonedDateTimeToLocalDateConverter implements Converter<LocalDate, ZonedDateTime> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	@Override
 	public Result<ZonedDateTime> convertToModel(LocalDate value, ValueContext context) {

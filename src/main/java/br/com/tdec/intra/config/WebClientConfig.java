@@ -25,8 +25,8 @@ public class WebClientConfig {
 	private final AtomicInteger index = new AtomicInteger(0);
 	private static final Logger logger = LoggerFactory.getLogger(WebClientConfig.class);
 
-	@Bean
-	public WebClient webClient(ObjectMapper objectMapper, WebClientProperties webClientProperties) {
+    @Bean
+    WebClient webClient(ObjectMapper objectMapper, WebClientProperties webClientProperties) {
 		ExchangeStrategies strategies = ExchangeStrategies.builder().codecs(clientDefaultCodecsConfigurer -> {
 			clientDefaultCodecsConfigurer.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(objectMapper));
 			clientDefaultCodecsConfigurer.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(objectMapper));

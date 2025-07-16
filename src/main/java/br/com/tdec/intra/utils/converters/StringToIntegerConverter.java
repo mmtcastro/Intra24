@@ -4,9 +4,12 @@ import com.vaadin.flow.data.binder.Result;
 import com.vaadin.flow.data.binder.ValueContext;
 import com.vaadin.flow.data.converter.Converter;
 
+import java.io.Serial;
+
 public class StringToIntegerConverter implements Converter<String, Integer> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	@Override
 	public Result<Integer> convertToModel(String fieldValue, ValueContext context) {

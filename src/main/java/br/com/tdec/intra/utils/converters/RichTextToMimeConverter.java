@@ -1,5 +1,6 @@
 package br.com.tdec.intra.utils.converters;
 
+import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -11,7 +12,8 @@ import br.com.tdec.intra.abs.AbstractModelDoc;
 
 public class RichTextToMimeConverter implements Converter<String, AbstractModelDoc.RichText> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	@Override
 	public Result<AbstractModelDoc.RichText> convertToModel(String value, ValueContext context) {

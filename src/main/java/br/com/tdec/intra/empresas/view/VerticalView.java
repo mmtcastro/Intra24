@@ -1,5 +1,6 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.io.Serial;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -43,7 +44,8 @@ import lombok.Setter;
 @RolesAllowed("ROLE_EVERYONE")
 public class VerticalView extends AbstractViewDoc<Vertical> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private DatePicker dataField = new DatePicker("Data");
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
@@ -196,13 +198,13 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 				}
 
 				// Se for Integer, converte para Double antes de formatar
-				if (valorObj instanceof Integer) {
-					return currencyFormat.format(((Integer) valorObj).doubleValue());
+				if (valorObj instanceof Integer integer) {
+					return currencyFormat.format(integer.doubleValue());
 				}
 
 				// Se for String, tenta converter para Double
-				if (valorObj instanceof String) {
-					String valorStr = ((String) valorObj).replace(",", ".").trim(); // Troca vírgula por ponto se
+				if (valorObj instanceof String string) {
+					String valorStr = string.replace(",", ".").trim(); // Troca vírgula por ponto se
 																					// necessário
 					Double valorDouble = Double.valueOf(valorStr);
 					return currencyFormat.format(valorDouble);

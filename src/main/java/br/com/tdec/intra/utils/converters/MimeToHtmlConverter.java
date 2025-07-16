@@ -1,6 +1,7 @@
 package br.com.tdec.intra.utils.converters;
 
 import java.io.ByteArrayInputStream;
+import java.io.Serial;
 import java.util.Base64;
 
 import com.vaadin.flow.data.binder.Result;
@@ -12,7 +13,8 @@ import jakarta.mail.util.ByteArrayDataSource;
 
 public class MimeToHtmlConverter implements Converter<String, String> {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 	@Override
 	public Result<String> convertToModel(String htmlContent, ValueContext context) {

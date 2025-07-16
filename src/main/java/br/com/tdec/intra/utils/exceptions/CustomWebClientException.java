@@ -3,11 +3,14 @@ package br.com.tdec.intra.utils.exceptions;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serial;
+
 @Getter
 @Setter
 public class CustomWebClientException extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 	private int status;
 	private ErrorResponse errorResponse;
 
