@@ -216,8 +216,8 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 	}
 
 	/**
-	 * Esta funcao retorna um array. Como só pode existir um codigo para cada tipo
-	 * de form, retorno o primeiro da List<String>
+	 * Esta funcao retorna um Response com apenas o conteudo da vista (ViewEntry)
+	 * sem mime. com apenas um documento pois apenas um codigo pode existir no banco
 	 * 
 	 * @param codigo
 	 * @return
@@ -233,8 +233,8 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		try {
 			// Monta a URI com o código e form
 			String uri = ("/lists/_intraCodigos?mode=" + mode + "&dataSource=" + scope
-                    + "&keyAllowPartial=false&documents=true&richTextAs=mime&key=" + codigo + "&key=" + form
-                    + "&scope=documents").formatted();
+					+ "&keyAllowPartial=false&documents=false&richTextAs=mime&key=" + codigo + "&key=" + form)
+					.formatted();
 			System.out.println("URI findByCodigo: " + uri);
 
 			// Faz a requisição e captura a resposta
@@ -902,15 +902,15 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 			// Monta a URL para requisição, incluindo o novo parâmetro `column`
 			String uri = "/lists/%s?dataSource=%s&mode=%s&count=%d&start=%d&column=%s&direction=%s%s".formatted(
-                    Utils.getListaNameFromModelName(model.getSimpleName()), // Nome da lista
-                    scope, // Fonte de dados
-                    mode, // Modo de consulta
-                    count, // Quantidade de registros
-                    offset, // Offset (paginação)
-                    column, // Coluna usada na ordenação
-                    direction, // Direção da ordenação (asc/desc)
-                    searchQuery // Filtro startsWith ou ftSearchQuery, dependendo do `fulltextsearch`
-            );
+					Utils.getListaNameFromModelName(model.getSimpleName()), // Nome da lista
+					scope, // Fonte de dados
+					mode, // Modo de consulta
+					count, // Quantidade de registros
+					offset, // Offset (paginação)
+					column, // Coluna usada na ordenação
+					direction, // Direção da ordenação (asc/desc)
+					searchQuery // Filtro startsWith ou ftSearchQuery, dependendo do `fulltextsearch`
+			);
 
 			log.info("URI do findAllByCodigo: " + uri);
 
@@ -926,7 +926,12 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 
 			// Verifica o status da resposta antes de processar
 			if (clientResponse.statusCode().isError()) {
-				log.error("Erro ao chamar API: HTTP " + clientResponse.statusCode().value());
+				// log.error("Erro ao chamar API: HTTP " + clientResponse.statusCode().value());
+//				String errorBody = clientResponse.bodyToMono(String.class).blockOptional().orElse("Sem detalhes.");			
+//				log.error("Erro ao chamar API: HTTP {} - Corpo da resposta: {}", clientResponse.statusCode().value(),
+//						errorBody);
+				String errorBody = clientResponse.bodyToMono(String.class).block();
+				log.error("❌ Erro ao chamar API: HTTP {} - corpo: {}", clientResponse.statusCode().value(), errorBody);
 				return resultados;
 			}
 
@@ -1132,6 +1137,16 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 		return response;
 	}
 
+	/**
+	 * Apaga todos os anexos de um doc. Uso quando gravo um doc. Apago e gravo todos
+	 * os da memória por cima para gerar uma sensação de sync
+	 * 
+	 * @param unid
+	 */
+	public void deleteAnexos(String unid) {
+
+	}
+
 	public void loadAnexos(T model, String unid) {
 		if (model == null || unid == null || unid.trim().isEmpty()) {
 			return; // Não há anexos para carregar
@@ -1236,8 +1251,9 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 					: "";
 
 			// Monta a URL para requisição com base no cURL fornecido
-			String uri = "/api/v1/lists/%s?mode=default&dataSource=empresas&ftSearchQuery=%s&count=%d&direction=%s&start=%d".formatted(
-                    Utils.getListaNameFromModelName(model.getSimpleName()), searchQuery, count, direction, offset);
+			String uri = "/api/v1/lists/%s?mode=default&dataSource=empresas&ftSearchQuery=%s&count=%d&direction=%s&start=%d"
+					.formatted(Utils.getListaNameFromModelName(model.getSimpleName()), searchQuery, count, direction,
+							offset);
 
 			log.info("Executando busca com URI: " + uri);
 
@@ -1274,6 +1290,35 @@ public abstract class AbstractService<T extends AbstractModelDoc> {
 			log.error("Erro inesperado ao buscar lista", e);
 		}
 		return resultados;
+	}
+
+	protected Response<T> buscarPrimeiroDaLista(String uri) {
+		Response<T> response;
+		try {
+			String rawResponse = webClient.get().uri(uri).header("Authorization", "Bearer " + getUser().getToken())
+					.retrieve()
+					.onStatus(HttpStatusCode::isError,
+							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class)
+									.flatMap(errorResponse -> Mono.<Throwable>error(new CustomWebClientException(
+											errorResponse.getMessage(), errorResponse.getStatus(), errorResponse))))
+					.bodyToMono(String.class).block();
+
+			System.out.println("Resposta bruta: " + rawResponse);
+
+			List<T> resultList = objectMapper.readValue(rawResponse,
+					objectMapper.getTypeFactory().constructCollectionType(List.class, modelClass));
+
+			if (!resultList.isEmpty()) {
+				T resultModel = resultList.get(0);
+				response = new Response<>(resultModel, "Documento encontrado.", 200, true);
+			} else {
+				response = new Response<>(null, "Nenhum documento encontrado.", 404, false);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response = new Response<>(null, "Erro ao buscar documento.", 500, false);
+		}
+		return response;
 	}
 
 }

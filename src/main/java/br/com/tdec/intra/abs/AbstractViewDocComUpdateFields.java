@@ -23,12 +23,12 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Anchor;
@@ -44,6 +44,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.richtexteditor.RichTextEditor;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.BeforeLeaveEvent;
@@ -69,13 +70,15 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Composite<VerticalLayout>
+@CssImport(value = "./themes/intra24/views/abstract-view-doc.css", themeFor = "vaadin-form-layout")
+public abstract class AbstractViewDocComUpdateFields<T extends AbstractModelDoc> extends FormLayout
 		implements HasUrlParameter<String>, BeforeLeaveObserver {
+	{
+
+	}
 
 	@Serial
 	private static final long serialVersionUID = 1L;
-	protected VerticalLayout layout;
-	protected FormLayout form;
 	protected T model;
 	protected Class<T> modelType;
 	protected AbstractService<T> service;
@@ -99,36 +102,20 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 	protected Set<HasValue<?, ?>> readOnlyFields = new HashSet<>();
 	protected HorizontalLayout horizontalLayoutButtons;
 	protected VerticalLayout verticalLayoutAnexos;
-	// protected MemoryBuffer buffer = new MemoryBuffer();
+	protected MemoryBuffer buffer = new MemoryBuffer();
 
 	// protected Upload upload = new Upload(buffer);
 	protected Map<String, byte[]> arquivos = new HashMap<>(); // Para armazenar os uploads em memória
 	protected Upload upload;
 
 	protected boolean showUploads = true; // alguns forms nao querem ter uploads
-	protected boolean showObs = true; // alguns forms nao querem ter observações
 	protected HorizontalLayout footer;
 	protected Span autorSpan;
 	protected Span criacaoSpan;
 	protected Span idSpan;
 
 	@SuppressWarnings("unchecked")
-	public AbstractViewDoc() {
-		layout = getContent();
-		layout.setWidthFull();
-		layout.setPadding(true);
-		layout.setSpacing(true);
-
-		form = new FormLayout();
-		form.setExpandColumns(true); // Expande as colunas para ocupar o espaço disponível
-		form.setExpandFields(true); // Expande os campos para ocupar o espaço disponível
-		form.setWidthFull();
-		form.setAutoResponsive(true);
-		form.setResponsiveSteps(//
-				new FormLayout.ResponsiveStep("0", 1), //
-				new FormLayout.ResponsiveStep("600px", 2), //
-				new FormLayout.ResponsiveStep("900px", 3));
-		layout.add(form);
+	public AbstractViewDocComUpdateFields() {
 
 		this.modelType = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 
@@ -145,7 +132,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 
 		// Ao clicar duas no form, entra em modo de edição
 
-		layout.addDoubleClickListener(event -> edit());
+		this.addDoubleClickListener(event -> edit());
 
 		// Listener para desmontagem do componente
 		addDetachListener(this::removeFooter);
@@ -184,11 +171,11 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 		}
 	}
 
-//	/**
-//	 * Método abstrato para que as subclasses adicionem seus próprios componentes
-//	 * personalizados. Será chamado entre a adição dos campos do Binder e os botões.
-//	 */
-//	protected abstract void addCustomComponents();
+//		/**
+//		 * Método abstrato para que as subclasses adicionem seus próprios componentes
+//		 * personalizados. Será chamado entre a adição dos campos do Binder e os botões.
+//		 */
+//		protected abstract void addCustomComponents();
 
 	@Override
 	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
@@ -217,16 +204,34 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 
 	}
 
+	/**
+	 * sempre que algum componente foi alterado, tenho que refazer toda a tela.
+	 * Apenas adicinoar um componente em caso de edit, por exemplo, ira colocá-lo
+	 * fora de ordem. Primeiro o Binder, depois os richtext, depois o upload, depois
+	 * os files, depois os botoes e depois o foooter.
+	 */
 	public void updateView() {
 		// Inicializa o Binder
 		initBinder();
 
+		// Inicializa o campo de observações, se necessário
+		initObsFieldIfNeeded();
+
 		// Define o modelo
 		binder.setBean(model);
-		// Inicializa o campo de observações, se necessário
-		if (showObs) {
-			initObsFieldIfNeeded();
 
+		// Limpa o layout e adiciona os campos do Binder na ordem correta
+		this.removeAll();
+		binderFields.forEach(this::add);
+
+//			// Chama o método abstrato para adicionar componentes personalizados da
+//			// subclasse
+//			addCustomComponents();
+
+		// Adiciona explicitamente o campo de observações (obsFieldLayout) após os
+		// componentes personalizados
+		if (obsFieldLayout != null) {
+			add(obsFieldLayout);
 		}
 
 		// Adiciona os anexos (upload e arquivos)
@@ -256,7 +261,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 
 		// Inicializa o layout para o campo 'obs'
 		obsFieldLayout = new VerticalLayout();
-		// obsFieldLayout.setWidthFull();
+		obsFieldLayout.setWidthFull();
 		obsFieldLayout.setPadding(false);
 
 		// Verifica se o modelo contém o campo 'obs'
@@ -285,6 +290,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 			}
 
 			obsField = new RichTextEditor();
+			obsField.setWidthFull();
 
 			// Configura o binding
 			binder.forField(obsField).withNullRepresentation("").withConverter(new RichTextToMimeConverter())
@@ -311,12 +317,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 			obsFieldLabel.getStyle().set("margin-top", "10px"); // Pequena margem abaixo do título
 
 			obsFieldLayout.add(obsFieldLabel, obsField);
+			setColspan(obsFieldLayout, 2);
 
-			if (obsFieldLayout != null) {
-				form.addFormRow(obsFieldLayout);
-				form.setColspan(obsFieldLayout, 2); // Colspan para ocupar duas colunas
-			}
-			// this.setColspan(obsFieldLayout, 2);
+			// Adiciona o layout de observações à lista de campos
+			binderFields.add(obsFieldLayout);
 
 		} catch (Exception e) {
 			System.err.println("Erro inesperado ao inicializar o campo de observações: " + e.getMessage());
@@ -350,9 +354,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 			boolean isObsEmpty = (value == null || value.trim().isEmpty() || value.equals("<p><br></p>"));
 
 			// Esconder o campo obsField se estiver vazio e o documento for readOnly
-			if (obsFieldLayout != null) {
-				obsFieldLayout.setVisible(!(isReadOnly && isObsEmpty));
-			}
+			obsFieldLayout.setVisible(!(isReadOnly && isObsEmpty));
 		}
 	}
 
@@ -374,7 +376,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 		// Inicializa o layout de anexos
 		if (verticalLayoutAnexos == null) {
 			verticalLayoutAnexos = new VerticalLayout();
-			// verticalLayoutAnexos.setWidthFull();
+			verticalLayoutAnexos.setWidthFull();
 			verticalLayoutAnexos.setPadding(true);
 			verticalLayoutAnexos.setSpacing(true);
 
@@ -413,9 +415,9 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 		VerticalLayout fileListLayout = new VerticalLayout();
 		fileListLayout.setPadding(false);
 		fileListLayout.setSpacing(false);
-		// fileListLayout.setWidthFull();
+		fileListLayout.setWidthFull();
 
-//		// Adiciona os arquivos anexados à lista
+//			// Adiciona os arquivos anexados à lista
 		if (model.getFileNames() != null && !model.getFileNames().isEmpty()) {
 			// System.out.println("AbstactViewDow InitAnexos - Arquivos anexados: " +
 			// model.getFileNames());
@@ -436,7 +438,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 
 					// Layout horizontal para alinhar o link e o botão
 					HorizontalLayout fileRow = new HorizontalLayout();
-					// fileRow.setWidthFull();
+					fileRow.setWidthFull();
 					fileRow.setAlignItems(Alignment.CENTER);
 
 					// Adicionar o botão "Excluir" apenas se não estiver em modo read-only
@@ -451,11 +453,11 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 
 					fileListLayout.add(fileRow);
 
-//					// Adicionar o anexo ao modelo (se ainda não estiver lá)
-//					if (model.getUploads().stream().noneMatch(a -> a.getFileName().equals(fileName))) {
-//						model.adicionarAnexo(new UploadedFile(fileName, fileData));
-//						model.getLogger().info("Anexo adicionado ao modelo: " + fileName);
-//					}
+//						// Adicionar o anexo ao modelo (se ainda não estiver lá)
+//						if (model.getUploads().stream().noneMatch(a -> a.getFileName().equals(fileName))) {
+//							model.adicionarAnexo(new UploadedFile(fileName, fileData));
+//							model.getLogger().info("Anexo adicionado ao modelo: " + fileName);
+//						}
 				}
 			}
 		} else {
@@ -477,62 +479,61 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 		// anexosCarregados = true;
 
 		// Adiciona o layout de anexos ao formulário
-		form.addFormRow(verticalLayoutAnexos);
-		form.setColspan(verticalLayoutAnexos, 2); // Colspan para ocupar duas colunas
+		add(verticalLayoutAnexos);
 
 	}
 
-//	public void initUploadFiles() {
-//		model.getLogger().info("upload de arquivos - " + model.getUploads().size());
-//		UploadI18N i18n = new UploadI18N();
-//		i18n.setAddFiles(new UploadI18N.AddFiles().setOne("Adicionar arquivo") // Texto do botão para um arquivo
-//				.setMany("Adicionar arquivos")); // Texto do botão para vários arquivos
-//		i18n.setDropFiles(new UploadI18N.DropFiles().setOne("Arraste o arquivo aqui") // Texto para arrastar um arquivo
-//				.setMany("Arraste os arquivos aqui")); // Texto para arrastar vários arquivos
-//		upload.setI18n(i18n);
-//
-//		upload.setMaxFiles(10);
-//		upload.setMaxFileSize(50 * 1024 * 1024); // 50 MB
-//
-//		upload.setAcceptedFileTypes("application/pdf");
-//
-//		// Listener para uploads com falha
-//		upload.addFailedListener(event -> {
-//			String errorMessage = "Falha ao enviar o arquivo. Verifique o tamanho ou o formato.";
-//
-//			Throwable reason = event.getReason();
-//			if (reason instanceof MaxUploadSizeExceededException) {
-//				errorMessage = "O arquivo excede o tamanho máximo permitido pelo servidor!";
-//			}
-//
-//			Notification.show(errorMessage, 5000, Notification.Position.MIDDLE);
-//		});
-//
-//		upload.addSucceededListener(event -> {
-//			// Obter o nome do arquivo e o conteúdo
-//			String fileName = event.getFileName();
-//			InputStream fileData = buffer.getInputStream();
-//			try {
-//				// Salvar o arquivo na lista temporária
-//				byte[] fileBytes = fileData.readAllBytes();
-//				// uploadedFiles.add(new UploadedFile(fileName, fileBytes));
-//				model.adicionarAnexo(new UploadedFile(fileName, fileBytes));
-//				// Persistir o anexo no backend Domino
-//				FileResponse response = service.uploadAnexo(model.getMeta().getUnid(), "anexos", fileName,
-//						new ByteArrayInputStream(fileBytes));
-//				if (response != null && response.isSuccess()) {
-//					Notification.show("Arquivo enviado com sucesso: " + fileName, 3000, Notification.Position.MIDDLE);
-//				} else {
-//					Notification.show("Erro ao salvar o arquivo no backend Domino.", 5000,
-//							Notification.Position.MIDDLE);
+//		public void initUploadFiles() {
+//			model.getLogger().info("upload de arquivos - " + model.getUploads().size());
+//			UploadI18N i18n = new UploadI18N();
+//			i18n.setAddFiles(new UploadI18N.AddFiles().setOne("Adicionar arquivo") // Texto do botão para um arquivo
+//					.setMany("Adicionar arquivos")); // Texto do botão para vários arquivos
+//			i18n.setDropFiles(new UploadI18N.DropFiles().setOne("Arraste o arquivo aqui") // Texto para arrastar um arquivo
+//					.setMany("Arraste os arquivos aqui")); // Texto para arrastar vários arquivos
+//			upload.setI18n(i18n);
+	//
+//			upload.setMaxFiles(10);
+//			upload.setMaxFileSize(50 * 1024 * 1024); // 50 MB
+	//
+//			upload.setAcceptedFileTypes("application/pdf");
+	//
+//			// Listener para uploads com falha
+//			upload.addFailedListener(event -> {
+//				String errorMessage = "Falha ao enviar o arquivo. Verifique o tamanho ou o formato.";
+	//
+//				Throwable reason = event.getReason();
+//				if (reason instanceof MaxUploadSizeExceededException) {
+//					errorMessage = "O arquivo excede o tamanho máximo permitido pelo servidor!";
 //				}
-//			} catch (IOException e) {
-//				Notification.show("Erro ao processar o arquivo: " + e.getMessage(), 3000, Notification.Position.MIDDLE);
-//			}
-//		});
-//		// verticalLayoutAnexos.add(upload);
-//
-//	}
+	//
+//				Notification.show(errorMessage, 5000, Notification.Position.MIDDLE);
+//			});
+	//
+//			upload.addSucceededListener(event -> {
+//				// Obter o nome do arquivo e o conteúdo
+//				String fileName = event.getFileName();
+//				InputStream fileData = buffer.getInputStream();
+//				try {
+//					// Salvar o arquivo na lista temporária
+//					byte[] fileBytes = fileData.readAllBytes();
+//					// uploadedFiles.add(new UploadedFile(fileName, fileBytes));
+//					model.adicionarAnexo(new UploadedFile(fileName, fileBytes));
+//					// Persistir o anexo no backend Domino
+//					FileResponse response = service.uploadAnexo(model.getMeta().getUnid(), "anexos", fileName,
+//							new ByteArrayInputStream(fileBytes));
+//					if (response != null && response.isSuccess()) {
+//						Notification.show("Arquivo enviado com sucesso: " + fileName, 3000, Notification.Position.MIDDLE);
+//					} else {
+//						Notification.show("Erro ao salvar o arquivo no backend Domino.", 5000,
+//								Notification.Position.MIDDLE);
+//					}
+//				} catch (IOException e) {
+//					Notification.show("Erro ao processar o arquivo: " + e.getMessage(), 3000, Notification.Position.MIDDLE);
+//				}
+//			});
+//			// verticalLayoutAnexos.add(upload);
+	//
+//		}
 
 	public void initUploadFiles() {
 		model.getLogger().info("Upload de arquivos - iniciando");
@@ -547,6 +548,17 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 
 				// Adiciona ao modelo
 				model.adicionarAnexo(new UploadedFile(fileName, fileBytes));
+
+//					// Envia para o backend Domino (nao posso mandar antes de ter o UNID. Tenho que gravar o doc antes
+//					FileResponse response = service.uploadAnexo(model.getMeta().getUnid(), "anexos", fileName,
+//							new ByteArrayInputStream(fileBytes));
+				//
+//					if (response != null && response.isSuccess()) {
+//						Notification.show("Arquivo enviado com sucesso: " + fileName, 3000, Notification.Position.MIDDLE);
+//					} else {
+//						Notification.show("Erro ao salvar o arquivo no backend Domino.", 5000,
+//								Notification.Position.MIDDLE);
+//					}
 
 			} catch (IOException e) {
 				model.getLogger().warn("Erro ao processar o arquivo: " + e.getMessage());
@@ -649,33 +661,33 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 		} else {
 			Notification.show("Erro mostrando os botoes de ação.");
 		}
-		layout.add(horizontalLayoutButtons);
-		// layout.setColspan(horizontalLayoutButtons, 2);
+		add(horizontalLayoutButtons);
+		setColspan(horizontalLayoutButtons, 2);
 
 	}
 
-//	public void initFooter() {
-//		if (model != null) {
-//			footer = new HorizontalLayout();
-//			footer.addClassName("abstract-view-doc-footer");
-//			autorSpan = new Span("Autor: " + model.getAutor());
-//			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-//			if (model.getCriacao() != null) {
-//				criacaoSpan = new Span("Criação: " + model.getCriacao().format(formatter));
-//			} else {
-//				criacaoSpan = new Span("");
+//		public void initFooter() {
+//			if (model != null) {
+//				footer = new HorizontalLayout();
+//				footer.addClassName("abstract-view-doc-footer");
+//				autorSpan = new Span("Autor: " + model.getAutor());
+//				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+//				if (model.getCriacao() != null) {
+//					criacaoSpan = new Span("Criação: " + model.getCriacao().format(formatter));
+//				} else {
+//					criacaoSpan = new Span("");
+//				}
+	//
+//				idSpan = new Span("Id: " + model.getId());
+//				footer.add(autorSpan, criacaoSpan, idSpan);
+//				add(footer, 3);
 //			}
-//
-//			idSpan = new Span("Id: " + model.getId());
-//			footer.add(autorSpan, criacaoSpan, idSpan);
-//			add(footer, 3);
 //		}
-//	}
 
 	public void initFooter() {
 		if (footer == null) {
 			footer = new HorizontalLayout();
-			// footer.setWidthFull();
+			footer.setWidthFull();
 			footer.addClassName("abstract-view-doc-footer");
 
 			// Estilos para integrar o footer
@@ -817,6 +829,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 	 */
 	protected void readOnly() {
 		isReadOnly = true;
+
 	}
 
 	/**
@@ -871,20 +884,11 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 
 	protected void edit() {
 		if (!isReadOnly) {
-			return;
+			return; // Já está em modo de edição, não faz nada
 		}
 		isReadOnly = false;
-		setReadOnlyRecursive(layout, false); // Aplica em tudo
-		initAnexos();
-		showButtons();
+		updateView();
 
-	}
-
-	private void setReadOnlyRecursive(Component component, boolean readOnly) {
-		if (component instanceof HasValue<?, ?> hasValue) {
-			hasValue.setReadOnly(readOnly);
-		}
-		component.getChildren().forEach(child -> setReadOnlyRecursive(child, readOnly));
 	}
 
 	protected void openPage(T model) {
@@ -898,10 +902,10 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 	}
 
 	protected void cancel() {
-//		// Remove o footer antes de voltar
-//		if (footer != null && footer.getParent().isPresent()) {
-//			footer.getElement().removeFromParent();
-//		}
+//			// Remove o footer antes de voltar
+//			if (footer != null && footer.getParent().isPresent()) {
+//				footer.getElement().removeFromParent();
+//			}
 		UI.getCurrent().getPage().getHistory().back();
 	}
 
@@ -949,15 +953,14 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 
 		switch (widthMode) {
 		case 1:
-			// setColspan(component, 2); // Ocupa toda a largura (2 colunas)
+			setColspan(component, 2); // Ocupa toda a largura (2 colunas)
 			component.getElement().getStyle().set("width", "100%");
 			break;
 		case 2:
-			// setColspan(component, 1); // Ocupa apenas 1 coluna (meia largura)
+			setColspan(component, 1); // Ocupa apenas 1 coluna (meia largura)
 			break;
 		default:
 			throw new IllegalArgumentException("O widthMode deve ser 1 (Full Width) ou 2 (Meia Largura)");
 		}
 	}
-
 }

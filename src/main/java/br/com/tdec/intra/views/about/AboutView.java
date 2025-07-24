@@ -63,7 +63,9 @@ public class AboutView extends VerticalLayout {
 		H2 header = new H2("Informações de Versão e Ambiente");
 		header.addClassNames(Margin.Top.XLARGE, Margin.Bottom.MEDIUM);
 		add(header);
+H1 heading12 = new H1("Heading 1");
 		H1 heading1 = new H1("Heading 1");
+add(heading12);
 		add(heading1);
 		add(new Paragraph("It’s a place where you can grow your own UI 🤗"));
 		String vaadinVersion = Version.getFullVersion();

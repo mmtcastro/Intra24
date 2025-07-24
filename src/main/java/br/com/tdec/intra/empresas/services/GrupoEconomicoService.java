@@ -16,6 +16,7 @@ import br.com.tdec.intra.compras.service.CompraService;
 import br.com.tdec.intra.empresas.model.Empresa;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import br.com.tdec.intra.sales.service.NegocioService;
+import br.com.tdec.intra.services.Response;
 import br.com.tdec.intra.utils.exceptions.CustomWebClientException;
 import br.com.tdec.intra.utils.exceptions.ErrorResponse;
 import lombok.Getter;
@@ -152,6 +153,12 @@ public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 		}
 
 		return empresas;
+	}
+
+	public Response<GrupoEconomico> findGrupoEconomicoSemMime() {
+		return buscarPrimeiroDaLista(
+				"/lists/_intraCodigos?mode=nomime&dataSource=empresas&keyAllowPartial=false&documents=true&key=123TESTE&key=GrupoEconomico&scope=documents");
+
 	}
 
 }

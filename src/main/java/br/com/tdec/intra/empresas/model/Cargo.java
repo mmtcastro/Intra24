@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 public class Cargo extends AbstractModelDoc {
 
-	@JsonAlias({ "obs", "Obs" })
+	@JsonAlias({ "obs", "Obs", "OBS" })
 	@JsonDeserialize(using = BodyDeserializer.class)
 	protected RichText obs;
 }

@@ -1,18 +1,21 @@
 package br.com.tdec.intra.views;
 
+import java.io.Serial;
+
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
-
-import java.io.Serial;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
@@ -26,21 +29,28 @@ import br.com.tdec.intra.empresas.view.EmpresasView;
 import br.com.tdec.intra.empresas.view.GruposEconomicosView;
 import br.com.tdec.intra.empresas.view.OrigensClientesView;
 import br.com.tdec.intra.empresas.view.TiposEmpresasView;
+import br.com.tdec.intra.empresas.view.TiposExcecoesTributarias;
 import br.com.tdec.intra.empresas.view.VerticaisView;
+import br.com.tdec.intra.inter.view.HasTopActions;
 import br.com.tdec.intra.utils.UtilsSession;
 import br.com.tdec.intra.views.about.AboutView;
 import br.com.tdec.intra.views.helloworld.HelloWorldView;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * The main view is a top-level placeholder for other views.
  */
+@Getter
+@Setter
 @CssImport("./themes/intra24/main-layout.css")
 public class MainLayout extends AppLayout {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 1L;
 	private H2 viewTitle;
 	private final br.com.tdec.intra.config.SecurityService securityService;
+	private final HorizontalLayout topActionBar = new HorizontalLayout();
 
 	public MainLayout(br.com.tdec.intra.config.SecurityService securityService) {
 		this.securityService = securityService;
@@ -56,28 +66,29 @@ public class MainLayout extends AppLayout {
 
 		viewTitle = new H2();
 		viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
-		viewTitle.getStyle().set("white-space", "nowrap"); // Evitar quebra de linha
+		viewTitle.getStyle().set("white-space", "nowrap");
 
-		addToNavbar(true, toggle, viewTitle);
+		// Placeholder para menu contextual (topActionBar será preenchido depois)
+		topActionBar.setSpacing(true);
+		topActionBar.setAlignItems(Alignment.CENTER);
 
-		// String username = securityService.getAuthenticatedUser().getUsername();
+		// Logout
 		String username = UtilsSession.getCurrentUserName();
-
-		// Button logout = new Button("Log out " + username, e ->
-		// securityService.logout());
-		Anchor logout = new Anchor("logout", "Log out");
-		logout.addClassNames(LumoUtility.Margin.Left.AUTO);
-
+		Anchor logout = new Anchor("logout", "Logout " + username);
 		logout.getElement().addEventListener("click", event -> securityService.logout());
 
-		var header = new HorizontalLayout(logout);
+		// Espaçador flexível
+		Div spacer = new Div();
+		spacer.getStyle().set("flex-grow", "1");
 
-		header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+		// Layout principal da barra superior
+		HorizontalLayout headerLayout = new HorizontalLayout(toggle, viewTitle, topActionBar, spacer, logout);
+		headerLayout.setWidthFull();
+		headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+		headerLayout.setPadding(true);
+		headerLayout.setSpacing(true);
 
-		header.setWidthFull();
-		header.addClassNames(LumoUtility.Padding.Vertical.NONE, LumoUtility.Padding.Horizontal.MEDIUM);
-
-		addToNavbar(header);
+		addToNavbar(true, headerLayout);
 
 	}
 
@@ -114,7 +125,9 @@ public class MainLayout extends AppLayout {
 				LineAwesomeIcon.INDUSTRY_SOLID.create());
 		SideNavItem origensCliente = new SideNavItem("Origens Cliente", OrigensClientesView.class,
 				LineAwesomeIcon.USER_PLUS_SOLID.create());
-		empresas_config.addItem(origensCliente, tiposEmpresas);
+		SideNavItem tiposExecaoTrib = new SideNavItem("Tipos Excecao Trib", TiposExcecoesTributarias.class,
+				LineAwesomeIcon.USER_PLUS_SOLID.create());
+		empresas_config.addItem(origensCliente, tiposEmpresas, tiposExecaoTrib);
 		empresas.addItem(empresas_config);
 
 		nav.addItem(empresas);
@@ -131,10 +144,33 @@ public class MainLayout extends AppLayout {
 	protected void afterNavigation() {
 		super.afterNavigation();
 		viewTitle.setText(getCurrentPageTitle());
+
+		// Limpa ações anteriores
+		clearTopActions();
+
+		// Verifica se a view implementa HasTopActions
+		Component content = getContent();
+		if (content instanceof HasTopActions topActionView) {
+			Component topActions = topActionView.getTopActions();
+			if (topActions != null) {
+				showTopActions(topActions);
+			}
+		}
+
+	}
+
+	private void showTopActions(Component actions) {
+		topActionBar.removeAll();
+		topActionBar.add(actions);
+	}
+
+	private void clearTopActions() {
+		topActionBar.removeAll();
 	}
 
 	private String getCurrentPageTitle() {
 		PageTitle title = getContent().getClass().getAnnotation(PageTitle.class);
 		return title == null ? "" : title.value();
 	}
+
 }

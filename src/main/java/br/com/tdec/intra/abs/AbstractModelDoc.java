@@ -57,6 +57,8 @@ public abstract class AbstractModelDoc extends AbstractModel {
 	protected String id;
 	@JsonAlias({ "Uid", "uid" })
 	protected String uid;
+	@JsonAlias({ "UnidOrigem", "unidOrigem" })
+	protected String unidOrigem;
 	@JsonAlias({ "IdOrigem", "idOrigem" })
 	protected String idOrigem;
 	@JsonAlias({ "CodigoOrigem", "codigoOrigem" })

@@ -1,4 +1,4 @@
-package br.com.tdec.intra.api.services;
+package br.com.tdec.intra.empresas.api.service;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -11,13 +11,13 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.tdec.intra.api.model.Receitaws;
+import br.com.tdec.intra.empresas.api.model.ReceitaWs;
 
 @Service
-public class ReceitawsService {
+public class ReceitaWsService {
 	private static final String API_URL = "https://receitaws.com.br/v1/cnpj/";
 
-	public static Receitaws findCnpj(String cnpj) throws IOException, InterruptedException {
+	public static ReceitaWs findCnpj(String cnpj) throws IOException, InterruptedException {
 		// Constrói a URI com o CNPJ fornecido
 		String url = API_URL + cnpj;
 
@@ -33,7 +33,7 @@ public class ReceitawsService {
 		if (response.statusCode() == HttpURLConnection.HTTP_OK) {
 			// Converte JSON para o objeto Cnpj usando Jackson
 			ObjectMapper objectMapper = new ObjectMapper();
-			return objectMapper.readValue(response.body(), Receitaws.class);
+			return objectMapper.readValue(response.body(), ReceitaWs.class);
 		} else {
 			throw new IOException("Erro ao consultar CNPJ. Status: " + response.statusCode());
 		}

@@ -1,10 +1,10 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.io.Serial;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vaadin.flow.component.button.Button;
-
-import java.io.Serial;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -24,8 +24,8 @@ import lombok.Setter;
 @RolesAllowed("ROLE_EVERYONE")
 public class ContatoView extends AbstractViewDoc<Contato> {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 1L;
 	private TextField codigoField = new TextField("Código");
 	private TextField nomeField = new TextField("Nome");
 	private TextField emailField = new TextField("Email");
@@ -65,4 +65,5 @@ public class ContatoView extends AbstractViewDoc<Contato> {
 		binderFields.add(linkedinButton);
 
 	}
+
 }

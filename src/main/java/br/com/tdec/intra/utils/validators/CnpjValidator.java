@@ -1,18 +1,40 @@
 package br.com.tdec.intra.utils.validators;
 
+import java.io.Serial;
+
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.Validator;
 import com.vaadin.flow.data.binder.ValueContext;
 
-import java.io.Serial;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class CnpjValidator implements Validator<String> {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 1L;
+	private final ComboBox<String> paisField;
+
+	public CnpjValidator(ComboBox<String> paisField) {
+		this.paisField = paisField;
+	}
 
 	@Override
 	public ValidationResult apply(String value, ValueContext context) {
+
+		String pais = paisField.getValue();
+		if (pais == null || pais.isBlank()) {
+			return ValidationResult.error("Selecione um país antes de informar o CNPJ");
+		}
+
+		// CNPJ só é obrigatório e validado se o país for Brasil
+		if (!pais.equalsIgnoreCase("Brasil")) {
+			return ValidationResult.ok(); // ignora validação se for outro país
+		}
+
 		if (value == null || value.trim().isEmpty()) {
 			return ValidationResult.error("CNPJ não pode estar vazio");
 		}

@@ -14,11 +14,9 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.grid.editor.Editor;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.richtexteditor.RichTextEditor;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.converter.StringToDoubleConverter;
@@ -31,7 +29,6 @@ import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.model.Vertical.Unidade;
 import br.com.tdec.intra.utils.converters.ProperCaseConverter;
 import br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos;
-import br.com.tdec.intra.utils.converters.RichTextToMimeConverter;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -44,12 +41,12 @@ import lombok.Setter;
 @RolesAllowed("ROLE_EVERYONE")
 public class VerticalView extends AbstractViewDoc<Vertical> {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 1L;
 	private DatePicker dataField = new DatePicker("Data");
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
-	private RichTextEditor bodyField = new RichTextEditor();
+	// private RichTextEditor bodyField = new RichTextEditor();
 	private VerticalLayout bodyFieldLayout;
 	private VerticalLayout verticalLayoutGrid = new VerticalLayout();
 	private Grid<Unidade> gridUnidades;
@@ -96,45 +93,38 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(Vertical::getDescricao,
 				Vertical::setDescricao);
 
-		binder.forField(bodyField).withNullRepresentation("") // Representação nula para o campo de entrada
-				.withConverter(new RichTextToMimeConverter()) // Aplicando o converter
-				.bind(Vertical::getBody, Vertical::setBody);
+//		binder.forField(bodyField).withNullRepresentation("") // Representação nula para o campo de entrada
+//				.withConverter(new RichTextToMimeConverter()) // Aplicando o converter
+//				.bind(Vertical::getBody, Vertical::setBody);
 
-		// Remove o layout existente antes de recriá-lo
-		binderFields.remove(bodyFieldLayout);
-		// Configuração do RichTextEditor
-		bodyField.setWidthFull(); // Alinha o RichTextEditor com os outros campos
-		bodyField.getStyle().set("min-height", "300px"); // Ajusta a altura mínima para melhor visualização
-
-		// Layout para o campo de texto rico
-		bodyFieldLayout = new VerticalLayout();
-		bodyFieldLayout.setWidthFull();
-		bodyFieldLayout.setPadding(false);
-
-		// Rótulo para o campo de observações
-		Span bodyFieldLabel = new Span("Body:");
-		bodyFieldLabel.getStyle().set("font-weight", "bold");
-		bodyFieldLabel.getStyle().set("margin-top", "10px"); // Aumenta o espaçamento em relação ao campo acima
-		bodyFieldLabel.getStyle().set("margin-bottom", "0px"); // Reduz a distância entre o rótulo e o campo
+//		// Layout para o campo de texto rico
+//		bodyFieldLayout = new VerticalLayout();
+//		bodyFieldLayout.setWidthFull();
+//		bodyFieldLayout.setPadding(false);
+//
+//		// Rótulo para o campo de observações
+//		Span bodyFieldLabel = new Span("Body:");
+//		bodyFieldLabel.getStyle().set("font-weight", "bold");
+//		bodyFieldLabel.getStyle().set("margin-top", "10px"); // Aumenta o espaçamento em relação ao campo acima
+//		bodyFieldLabel.getStyle().set("margin-bottom", "0px"); // Reduz a distância entre o rótulo e o campo
 
 		// Adicionar o rótulo e o campo ao layout
-		bodyFieldLayout.add(bodyFieldLabel, bodyField);
+
 		// setColspan(bodyFieldLayout, 2);
 
 		binder.setBean(model);
 
 		// Adicionar o campo ao binderFields para controle de readOnly
-		binderFields.add(codigoField);
-		binderFields.add(dataField);
-		binderFields.add(descricaoField);
+		form.addFormRow(codigoField);
+		form.addFormRow(dataField);
+		form.addFormRow(descricaoField);
 		// binderFields.add(bodyFieldLayout); // Adiciona o campo diretamente para
 		// controle de readOnly
-		bodyFieldLayout.setWidthFull();
-		addComponentToBinderFields(bodyFieldLayout, 1);
+		// form.addFormRow(bodyFieldLayout);
 
 		// Grid Unidades
 		initGrid();
-		binderFields.add(verticalLayoutGrid);
+		form.addFormRow(verticalLayoutGrid);
 
 		// Atualize o grid aqui para refletir o estado correto
 		atualizarGrid();
@@ -205,7 +195,7 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 				// Se for String, tenta converter para Double
 				if (valorObj instanceof String string) {
 					String valorStr = string.replace(",", ".").trim(); // Troca vírgula por ponto se
-																					// necessário
+																		// necessário
 					Double valorDouble = Double.valueOf(valorStr);
 					return currencyFormat.format(valorDouble);
 				}

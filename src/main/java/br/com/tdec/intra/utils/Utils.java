@@ -471,7 +471,7 @@ public class Utils {
 	 * @param class1
 	 * @return
 	 */
-	public static Class<?> getModelClassFromServiceClass(Class<? extends AbstractService> serviceClass) {
+	public static Class<?> getModelClassFromServiceClass(Class<? extends AbstractService<?>> serviceClass) {
 		Class<?> ret = null;
 		String className = "";
 		try {
@@ -708,4 +708,39 @@ public class Utils {
 		}
 		return lista;
 	}
+
+	public static boolean isCnpjValido(String cnpj) {
+		if (cnpj == null)
+			return false;
+
+		// Remove caracteres não numéricos
+		cnpj = cnpj.replaceAll("[^\\d]", "");
+
+		if (cnpj.length() != 14 || cnpj.matches("(\\d)\\1{13}")) {
+			return false;
+		}
+
+		int[] pesos1 = { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+		int[] pesos2 = { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+
+		try {
+			int soma1 = 0;
+			int soma2 = 0;
+			for (int i = 0; i < 12; i++) {
+				int digito = Character.getNumericValue(cnpj.charAt(i));
+				soma1 += digito * pesos1[i];
+				soma2 += digito * pesos2[i];
+			}
+
+			int digito1 = (soma1 % 11 < 2) ? 0 : (11 - soma1 % 11);
+			soma2 += digito1 * pesos2[12];
+			int digito2 = (soma2 % 11 < 2) ? 0 : (11 - soma2 % 11);
+
+			return digito1 == Character.getNumericValue(cnpj.charAt(12))
+					&& digito2 == Character.getNumericValue(cnpj.charAt(13));
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
 }

@@ -3,15 +3,21 @@ package br.com.tdec.intra.empresas.view;
 import java.io.Serial;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.ValidationResult;
+import com.vaadin.flow.data.binder.Validator;
+import com.vaadin.flow.data.binder.ValueContext;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility.Display;
@@ -21,14 +27,16 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 
 import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
-import br.com.tdec.intra.api.model.Receitaws;
 import br.com.tdec.intra.api.model.Viacep;
-import br.com.tdec.intra.api.services.ReceitawsService;
 import br.com.tdec.intra.api.services.ViacepService;
+import br.com.tdec.intra.empresas.api.model.ReceitaWs;
+import br.com.tdec.intra.empresas.api.service.ReceitaWsService;
+import br.com.tdec.intra.empresas.api.view.ReceitaWsView;
 import br.com.tdec.intra.empresas.componentes.EnderecoForm;
 import br.com.tdec.intra.empresas.model.Empresa;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import br.com.tdec.intra.empresas.model.TipoEmpresa;
+import br.com.tdec.intra.empresas.services.EmpresaService;
 import br.com.tdec.intra.empresas.services.GrupoEconomicoService;
 import br.com.tdec.intra.empresas.services.TipoEmpresaService;
 import br.com.tdec.intra.pessoal.model.Colaborador;
@@ -49,9 +57,9 @@ import lombok.Setter;
 @Route(value = "empresa", layout = MainLayout.class)
 @PageTitle("Empresa")
 @RolesAllowed("ROLE_EVERYONE")
-public class EmpresaView extends AbstractViewDoc<Empresa> {
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnterObserver {
+	@Serial
+	private static final long serialVersionUID = 1L;
 	private GrupoEconomico grupoEconomico;
 	private ComboBox<String> codigoGrupoEconomicoComboBox = new ComboBox<>("Grupo Econômico");
 	private TextField codigoField = new TextField("Código");
@@ -76,12 +84,13 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 	private GrupoEconomicoService grupoEconomicoService;
 	private TipoEmpresaService tipoEmpresaService;
 	private ColaboradorService colaboradorService;
-	private ReceitawsService cnpjService;
+	private ReceitaWsService cnpjService;
 	private ViacepService viacepService;
 	private EnderecoForm<Empresa> enderecoForm;
+	private ReceitaWsView receitaWsView;
 
 	public EmpresaView(GrupoEconomicoService grupoEconomicoService, TipoEmpresaService tipoEmpresaService,
-			ColaboradorService colaboradorService, ReceitawsService cnpjService, ViacepService viacepService) {
+			ColaboradorService colaboradorService, ReceitaWsService cnpjService, ViacepService viacepService) {
 		super();
 		this.tipoEmpresaService = tipoEmpresaService;
 		this.colaboradorService = colaboradorService;
@@ -91,7 +100,7 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 		addClassNames("abstract-view-doc.css", Width.FULL, Display.FLEX, Flex.AUTO, Margin.LARGE);
 
 		configureComboBoxes();
-		configureFieldActions();
+
 	}
 
 	private void configureComboBoxes() {
@@ -111,10 +120,16 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 		// Copia o grupo econômico para o campo "código" automaticamente quando for novo
 		codigoGrupoEconomicoComboBox.addValueChangeListener(event -> {
 			if (isNovo && event.getValue() != null) {
-				codigoField.setValue(event.getValue() + "..."); // Adiciona "..." para indicar que o código será
-																// copiado");
-				Response<GrupoEconomico> response = grupoEconomicoService.findByCodigo(event.getValue());
+				print("Buscando event.getValue = " + event.getValue());
+				// Response<GrupoEconomico> response =
+				// grupoEconomicoService.findByCodigo(event.getValue());
+				Response<GrupoEconomico> response = grupoEconomicoService.findGrupoEconomicoSemMime();
+
 				grupoEconomico = response.getModel();
+				if (grupoEconomico != null) {
+					preencheCamposVindosDoGrupoEconomico();
+				}
+
 			}
 		});
 		List<TipoEmpresa> tiposEmpresas = tipoEmpresaService.getTiposEmpresas();
@@ -148,25 +163,38 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 		paisComboBox.setWidthFull();
 	}
 
-	public void configureFieldActions() {
-
+	public void configureCnpjActions() {
 		cgcField.addValueChangeListener(event -> {
 			String cnpj = cgcField.getValue();
-			System.out.println("O CNPJ eh: " + cnpj);
+			String cnpjSemMascara = cnpj.replaceAll("[^0-9]", "");
+			System.out.println("O CNPJ sem mascara eh: " + cnpjSemMascara);
 
 			try {
-				Receitaws cnpjData = ReceitawsService.findCnpj(cnpj);
-				System.out.println("CNPJ: " + cnpjData);
-				if (cnpjData != null) {
-					enderecoField.setValue(cnpjData.getLogradouro()); // Preenche o logradouro
-				} else {
-					enderecoField.setValue(null);
+				ReceitaWs receitaWsModel = ReceitaWsService.findCnpj(cnpjSemMascara);
+				System.out.println("CNPJ: " + receitaWsModel.toString());
+				if (receitaWsModel != null) {
+					receitaWsView = new ReceitaWsView();
+					receitaWsView.popular(receitaWsModel);
+					form.addFormRow(receitaWsView);
+
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				enderecoField.setValue("Erro ao buscar CNPJ");
 			}
 		});
+	}
+
+	public void configureCepActions() {
+		if (model == null) {
+			return;
+		}
+		if (model.getCep() == null) {
+			return;
+		}
+		if (model.getCep().equals("")) {
+			return;
+		}
 
 		cepField.addValueChangeListener(event -> {
 			String cep = cepField.getValue();
@@ -182,13 +210,7 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-				enderecoField.setValue("Erro ao buscar CNPJ");
-			}
-		});
-
-		tipoComboBox.addValueChangeListener(event -> {
-			if (event.getValue() != null) {
-				Notification.show("Tipo selecionado: " + event.getValue());
+				enderecoField.setValue("Erro ao buscar CEP");
 			}
 		});
 
@@ -200,6 +222,8 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 					.bind(Empresa::getCodigoGrupoEconomico, Empresa::setCodigoGrupoEconomico);
 			binder.forField(codigoField).asRequired("Entre com um código").withNullRepresentation("")
 					.withConverter(new UpperCaseConverter()).withConverter(new RemoveSpacesConverter())
+					.withValidator(codigo -> codigo.matches("^[0-9A-Za-z]*[A-Za-z]$"),
+							"O código pode começar com número, mas deve terminar com letra (sem acentos ou símbolos)")
 					.withValidator(new AbstractValidator.CodigoValidator<>(service))
 					.bind(Empresa::getCodigo, Empresa::setCodigo);
 		} else {
@@ -213,16 +237,30 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 		}
 		binder.forField(tipoComboBox).asRequired("Selecione um Tipo").bind(Empresa::getTipo, Empresa::setTipo);
 
-		binder.forField(nomeField).asRequired("Informe a Razão Social").bind(Empresa::getNome, Empresa::setNome);
 		binder.forField(gerenteContaComboBox).asRequired("Informe o Gerente de Conta").bind(Empresa::getGerenteConta,
 				Empresa::setGerenteConta);
 		paisComboBox.setValue("Brasil");
 		binder.forField(paisComboBox).asRequired("Selecione um País").bind(Empresa::getPais, Empresa::setPais);
-		binder.forField(cgcField).withValidator(new CnpjValidator()).bind(Empresa::getCgc, Empresa::setCgc);
+
+		binder.forField(cgcField).withValidator(new CnpjValidator(paisComboBox))// fora do brasil nao valida
+				.withValidator(new CnpjUnicoValidator((EmpresaService) service))//
+				.bind(Empresa::getCgc, Empresa::setCgc);
+		cgcField.setPlaceholder("99.999.999/0001-99");
+		// Ao sair do campo, aplica a máscara (se tiver 14 dígitos numéricos)
+		cgcField.getElement().addEventListener("blur", e -> {
+			String raw = cgcField.getValue().replaceAll("[^\\d]", "");
+			if (raw.length() == 14) {
+				cgcField.setValue(formatarCNPJ(raw));
+			}
+		});
+		configureCnpjActions(); // tem que validar antes
+
+		binder.forField(nomeField).asRequired("Informe a Razão Social").bind(Empresa::getNome, Empresa::setNome);
 		binder.forField(telefoneField).bind(Empresa::getTelefones, Empresa::setTelefones);
 		binder.forField(cepField).withValidator(new CepValidator()).bind(Empresa::getCep, Empresa::setCep);
 		binder.forField(emailField).withValidator(new br.com.tdec.intra.utils.validators.EmailValidator())
 				.bind(Empresa::getEmailNfeServicos, Empresa::setEmailNfeServicos);
+		configureCepActions();
 		binder.forField(enderecoField).bind(Empresa::getEndereco, Empresa::setEndereco);
 		binder.forField(numeroField).bind(Empresa::getNumero, Empresa::setNumero);
 		binder.forField(bairroField).bind(Empresa::getBairro, Empresa::setBairro);
@@ -233,21 +271,16 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 		binder.forField(agenciaField).bind(Empresa::getAgencia, Empresa::setAgencia);
 		binder.forField(contaField).bind(Empresa::getConta, Empresa::setConta);
 
-		binder.setBean(model);
+		form.addFormRow(codigoGrupoEconomicoComboBox, codigoField);
+		form.addFormRow(tipoComboBox, gerenteContaComboBox);
+		form.addFormRow(paisComboBox, cgcField);
+		form.addFormRow(nomeField, telefoneField);
 
-		binderFields.clear();
-		binderFields.add(codigoGrupoEconomicoComboBox);
-		binderFields.add(codigoField);
-		binderFields.add(tipoComboBox);
-		binderFields.add(nomeField);
-		binderFields.add(gerenteContaComboBox);
-		binderFields.add(telefoneField);
-		binderFields.add(paisComboBox);
-		binderFields.add(cepField);
+		form.addFormRow(cepField);
 		// binderFields.add(cgcField);
-		addComponentToBinderFields(cgcField, 2);
+
 		if (enderecoForm != null) {
-			binderFields.add(enderecoForm);
+			form.addFormRow(enderecoForm);
 		}
 
 		// binderFields.add(enderecoField);
@@ -255,12 +288,92 @@ public class EmpresaView extends AbstractViewDoc<Empresa> {
 		// binderFields.add(bairroField);
 		// binderFields.add(cidadeField);
 		// binderFields.add(ufComboBox);
-		binderFields.add(emailField);
-		binderFields.add(statusCnpjField);
-		binderFields.add(bancoField);
-		binderFields.add(agenciaField);
-		binderFields.add(contaField);
+		form.addFormRow(emailField);
+		form.addFormRow(statusCnpjField);
+		form.addFormRow(bancoField);
+		form.addFormRow(agenciaField);
+		form.addFormRow(contaField);
 
+	}
+
+	@Override
+	public void beforeEnter(BeforeEnterEvent event) {
+		Map<String, List<String>> params = event.getLocation().getQueryParameters().getParameters();
+		String unidGrupoEconomico = params.getOrDefault("unidGrupoEconomico", List.of("")).get(0);
+		String codigoGrupoEconomico = params.getOrDefault("codigoGrupoEconomico", List.of("")).get(0);
+
+		if (!unidGrupoEconomico.isBlank() && !codigoGrupoEconomico.isBlank()) {
+			carregarGrupoEconomico(unidGrupoEconomico, codigoGrupoEconomico);
+		}
+	}
+
+	private void carregarGrupoEconomico(String unidGrupoEconomico, String codigoGrupoEconomico) {
+		/*
+		 * só preciso setar o valor do codigoGrupoComboBox, pois o setValue faz o
+		 * eventChangeListener rodar com a mesma lógica de quando o usuário sai do
+		 * campo.
+		 * 
+		 */
+		codigoGrupoEconomicoComboBox.setItems(codigoGrupoEconomico);
+		codigoGrupoEconomicoComboBox.setValue(codigoGrupoEconomico);
+	}
+
+	private String formatarCNPJ(String cnpj) {
+		return cnpj.replaceFirst("(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})", "$1.$2.$3/$4-$5");
+	}
+
+	private class CnpjUnicoValidator implements Validator<String> {
+
+		private static final long serialVersionUID = 1L;
+		private final EmpresaService service;
+
+		public CnpjUnicoValidator(EmpresaService service) {
+			this.service = service;
+		}
+
+		@Override
+		public ValidationResult apply(String value, ValueContext context) {
+			if (value == null || value.trim().isEmpty()) {
+				return ValidationResult.ok();
+			}
+
+			Response<Empresa> response = service.findByCnpj(value);
+			Empresa encontrada = response.getModel();
+
+			if (!response.isSuccess() || encontrada == null) {
+				return ValidationResult.ok();
+			}
+
+			// Verifica se o CNPJ pertence a outra empresa
+			if (!Objects.equals(encontrada.getUnid(), model.getUnid())) {
+				return ValidationResult.error("Este CNPJ já está cadastrado para a empresa " + encontrada.getCodigo());
+			}
+
+			return ValidationResult.ok();
+		}
+	}
+
+	public void preencheCamposVindosDoGrupoEconomico() {
+		// tipoComboBox.setItems(grupoEconomico.getTipo());
+		tipoComboBox.setValue(grupoEconomico.getTipo());
+		// gerenteContaComboBox.setItems(grupoEconomico.getGerenteConta());
+		gerenteContaComboBox.setValue(grupoEconomico.getGerenteConta());
+		// paisComboBox.setItems("Brasil");
+		paisComboBox.setValue("Brasil");
+
+		// Preencher início do código da empresa
+		String codigoInicial = grupoEconomico.getCodigo();
+		codigoField.setValue(codigoInicial);
+
+		gerenteContaComboBox.setValue(grupoEconomico.getGerenteConta());
+
+		// Marcar relação no modelo
+		((Empresa) model).setCodigoGrupoEconomico(grupoEconomico.getCodigo());
+		model.setCodigoGrupoEconomico(grupoEconomico.getCodigo());
+		model.setUnidOrigem(grupoEconomico.getUnid());
+		model.setIdOrigem(grupoEconomico.getId());
+
+		codigoField.setPlaceholder("Ex: " + grupoEconomico.getCodigo() + "SP");
 	}
 
 }
