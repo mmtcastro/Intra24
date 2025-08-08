@@ -8,19 +8,19 @@ import com.vaadin.flow.data.binder.ValueContext;
 import com.vaadin.flow.data.converter.Converter;
 
 public class RemoveSimbolosEAcentos implements Converter<String, String> {
-    @Serial
-    private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	@Override
 	public Result<String> convertToModel(String value, ValueContext context) {
 		// Remove acentos, números e símbolos ao salvar no modelo
-		return Result.ok(value != null ? removeAccentsAndSymbols(value) : null);
+		return Result.ok(value != null ? removeAccentsAndSymbols(value) : "");
 	}
 
 	@Override
 	public String convertToPresentation(String value, ValueContext context) {
 		// Remove acentos, números e símbolos ao ler do modelo
-		return value != null ? removeAccentsAndSymbols(value) : null;
+		return value != null ? removeAccentsAndSymbols(value) : "";
 	}
 
 	private String removeAccentsAndSymbols(String input) {

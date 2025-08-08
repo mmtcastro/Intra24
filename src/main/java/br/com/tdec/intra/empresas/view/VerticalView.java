@@ -5,6 +5,7 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import com.vaadin.flow.component.button.Button;
@@ -19,16 +20,22 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.binder.ValidationResult;
+import com.vaadin.flow.data.binder.Validator;
 import com.vaadin.flow.data.converter.StringToDoubleConverter;
+import com.vaadin.flow.data.validator.StringLengthValidator;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
+import br.com.tdec.intra.empresas.componentes.MultivalueGrid;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.empresas.model.Vertical.Unidade;
+import br.com.tdec.intra.utils.converters.ChainedConverter;
 import br.com.tdec.intra.utils.converters.ProperCaseConverter;
 import br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos;
+import br.com.tdec.intra.utils.converters.UpperCaseConverter;
 import br.com.tdec.intra.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -51,6 +58,8 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 	private VerticalLayout verticalLayoutGrid = new VerticalLayout();
 	private Grid<Unidade> gridUnidades;
 	private Button buttonAdicionarUnidade;
+
+	private MultivalueGrid<Vertical.Unidade> unidadeGrid;
 
 	public VerticalView() {
 		super();
@@ -129,6 +138,57 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		// Atualize o grid aqui para refletir o estado correto
 		atualizarGrid();
 
+		TextField isReadOnlyField = new TextField("Read Only");
+		isReadOnlyField.setValue(String.valueOf(this.isReadOnly()));
+		form.addFormRow(isReadOnlyField);
+
+		// Inicialização do grid multivalue
+		ArrayList<Unidade> unidades = (ArrayList<Unidade>) model.getUnidades();
+		unidadeGrid = new MultivalueGrid<>(Vertical.Unidade.class, unidades).withColumns(config -> {
+			config.addComboBoxColumn("Responsável", Vertical.Unidade::getResponsavel, Vertical.Unidade::setResponsavel,
+					List.of("Marcelo", "Júnior", "Fabossi", "Dante", "Fernando")); // valores do ComboBox);
+
+			config.addTextFieldColumn("Status", Vertical.Unidade::getStatus, Vertical.Unidade::setStatus);
+
+			config.addTextFieldColumn("Estado", Vertical.Unidade::getEstado, Vertical.Unidade::setEstado,
+					new ChainedConverter(//
+							new br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos(), //
+							new UpperCaseConverter()), //
+
+					new StringLengthValidator("2 caracteres", 2, 2) // <-- validator
+			);
+
+			config.addDateFieldColumn("Criação", //
+					Vertical.Unidade::getCriacao, //
+					Vertical.Unidade::setCriacao, //
+					(value, context) -> {
+						if (value == null || value.equals("")) {
+							return ValidationResult.error("Data é obrigatória");
+						}
+						if (value.isBefore(LocalDate.now())) {
+							return ValidationResult.error("A data não pode ser anterior a hoje");
+						}
+						return ValidationResult.ok();
+					});
+
+			config.addDoubleFieldColumn("Valor", Vertical.Unidade::getValor, Vertical.Unidade::setValor);
+		}).bind(model.getUnidades(), List.of("responsavel", "status", "estado", "criacao", "valor"),
+				model.getUnidadeResponsavel(), model.getUnidadeStatus(), model.getUnidadeEstado(),
+				model.getUnidadeCriacao(), model.getUnidadeValor()).setReadOnly(isReadOnly)//
+				.setReadOnly(isReadOnly) // <<==== AQUI VOCÊ INFORMA O ESTADO
+				.enableAddButton("Adicionar", () -> {
+					Vertical.Unidade nova = new Vertical.Unidade();
+					nova.setStatus("Ativo");
+					nova.setResponsavel("");
+					nova.setCriacao(LocalDate.now());
+					nova.setValor(0.0);
+					return nova;
+				})//
+				.addActionColumn();
+
+		// Adicione ao formulário
+		form.addFormRow(unidadeGrid);
+
 	}
 
 	private void initGrid() {
@@ -204,7 +264,12 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 			}
 
 			return "Valor inválido"; // Caso caia em um cenário inesperado
-		}).setHeader("Valor").setSortable(true).setAutoWidth(true).setResizable(true).setWidth("150px").setFlexGrow(1);
+		}).setHeader("Valor")//
+				.setSortable(true)//
+				.setAutoWidth(true)//
+				.setResizable(true)//
+				.setWidth("150px")//
+				.setFlexGrow(1);
 
 		// Campo de edição para "Valor"
 		TextField valorField = new TextField();
@@ -213,6 +278,7 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		// Configuração de validação e conversão para o campo "Valor"
 		gridBinder.forField(valorField).asRequired("Valor não pode ser vazio")
 				.withConverter(new StringToDoubleConverter("Valor inválido"))
+				.withValidator(Validator.from(valor -> valor != null && valor > 0, "Valor deve ser maior que zero"))
 				.bind(Unidade::getValor, Unidade::setValor);
 
 		valorColumn.setEditorComponent(valorField);
@@ -274,6 +340,8 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 
 	private void adicionarUnidade() {
 		Unidade novaUnidade = new Unidade();
+		novaUnidade.setResponsavel("");
+		novaUnidade.setStatus("Ativo");
 		novaUnidade.setEstado("");
 		novaUnidade.setCriacao(LocalDate.now());
 		novaUnidade.setValor(0.0);
@@ -317,6 +385,29 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 
 		// Se o estado aparecer mais de uma vez, é duplicado
 		return count > 0;
+	}
+
+	@Override
+	public void updateReadOnlyState() {
+		super.updateReadOnlyState(); // já aplica nos campos padrão
+		unidadeGrid.setReadOnly(isReadOnly); // aplica a lógica de readOnly no grid customizado
+	}
+
+	public void save() {
+		if (unidadeGrid != null) {
+			unidadeGrid.syncToMultivalueFields();
+			if (unidadeGrid.getEditor().isOpen()) {
+				unidadeGrid.getEditor().save();
+			}
+
+			System.out.println("Unidades antes de salvar: " + model.getUnidades());
+			System.out.println("Responsáveis multivalor: " + model.getUnidadeResponsavel());
+			System.out.println("Status multivalor: " + model.getUnidadeStatus());
+			System.out.println("Estados multivalor: " + model.getUnidadeEstado());
+			System.out.println("Criações multivalor: " + model.getUnidadeCriacao());
+			System.out.println("Valores multivalor: " + model.getUnidadeValor());
+		}
+		super.save();
 	}
 
 }

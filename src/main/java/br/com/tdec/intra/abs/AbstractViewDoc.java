@@ -31,6 +31,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
@@ -877,6 +878,7 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 		setReadOnlyRecursive(layout, false); // Aplica em tudo
 		initAnexos();
 		showButtons();
+		updateReadOnlyState(); // ← esta linha é essencial
 
 	}
 
@@ -884,6 +886,19 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 		if (component instanceof HasValue<?, ?> hasValue) {
 			hasValue.setReadOnly(readOnly);
 		}
+
+		// Trata Grids com editores
+		if (component instanceof Grid<?> grid) {
+			Binder<?> binder = grid.getEditor().getBinder();
+			if (binder != null) {
+				binder.getFields().forEach(field -> {
+					if (field instanceof HasValue<?, ?> campo) {
+						campo.setReadOnly(readOnly);
+					}
+				});
+			}
+		}
+
 		component.getChildren().forEach(child -> setReadOnlyRecursive(child, readOnly));
 	}
 

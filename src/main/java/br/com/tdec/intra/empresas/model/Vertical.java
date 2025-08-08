@@ -12,19 +12,19 @@ import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.abs.AbstractModelDocMultivalue;
 import br.com.tdec.intra.abs.AbstractModelListaMultivalue;
 import br.com.tdec.intra.utils.jackson.BodyDeserializer;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@Data
-@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@Getter
+@Setter
 @ToString(callSuper = true)
 public class Vertical extends AbstractModelDoc {
-	private List<String> unidadeEstado;
-	private List<LocalDate> unidadeCriacao;
-	private List<Double> unidadeValor;
+	private List<String> unidadeResponsavel = new ArrayList<>();
+	private List<String> unidadeEstado = new ArrayList<>();
+	private List<LocalDate> unidadeCriacao = new ArrayList<>();
+	private List<Double> unidadeValor = new ArrayList<>();
+	private List<String> unidadeStatus = new ArrayList<>();
 	@JsonIgnore
 	private List<Unidade> unidades;
 	@JsonAlias({ "body", "Body" })
@@ -61,11 +61,15 @@ public class Vertical extends AbstractModelDoc {
 	@Setter
 	public static class Unidade extends AbstractModelDocMultivalue {
 		@JsonIgnore
+		private String responsavel;
+		@JsonIgnore
 		private String estado;
 		@JsonIgnore
 		private LocalDate criacao;
 		@JsonIgnore
 		private Double valor;
+		@JsonIgnore
+		private String status;
 	}
 
 	@Getter
