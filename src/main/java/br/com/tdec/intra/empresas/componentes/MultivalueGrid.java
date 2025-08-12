@@ -7,9 +7,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -19,7 +21,9 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.grid.editor.Editor;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -32,6 +36,7 @@ import com.vaadin.flow.data.converter.StringToDoubleConverter;
 import com.vaadin.flow.function.ValueProvider;
 
 import br.com.tdec.intra.abs.AbstractModelDocMultivalue;
+import br.com.tdec.intra.abs.AbstractModelListaMultivalue;
 
 public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Composite<VerticalLayout> {
 
@@ -43,6 +48,7 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 	private final VerticalLayout layout;
 
 	// Fonte dos dados: pegamos SEMPRE daqui (referência viva do modelo)
+	private final AbstractModelListaMultivalue<T> source;
 	private final List<T> data;
 	private boolean readOnly = true; // padrão é somente leitura
 	private HeaderRow headerRow;
@@ -56,57 +62,86 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 	private Button deleteButton;
 	private Button editButton;
 
-	public MultivalueGrid(Class<T> beanType, List<T> data) {
-		this.data = data;
-		data = new ArrayList<>(); // inicializa a lista de dados
-		this.defaultMultiValueSupplier = () -> { // define qual multivalue será usado por padrão
+	private Runnable pendingAddButtonAction;
+	private Grid.Column<T> actionColumn;
+
+	public MultivalueGrid(Class<T> beanType, AbstractModelListaMultivalue<T> source) {
+		this.source = Objects.requireNonNull(source, "source não pode ser nulo");
+
+		// garante uma lista viva (não nula)
+		List<T> live = source.getLista();
+		if (live == null) {
+			live = new ArrayList<>();
+			source.setLista(live);
+		}
+		this.data = live;
+
+		// fábrica default do item
+		this.defaultMultiValueSupplier = () -> {
 			try {
 				return beanType.getDeclaredConstructor().newInstance();
 			} catch (Exception e) {
 				throw new RuntimeException("Erro ao criar nova instância de " + beanType.getSimpleName(), e);
 			}
 		};
+
+		// grid/binder/editor
 		this.grid = new Grid<>(beanType, false);
 		this.binder = new Binder<>(beanType);
 		this.editor = grid.getEditor();
 		this.editor.setBinder(binder);
 		this.editor.setBuffered(true);
+		grid.setSelectionMode(Grid.SelectionMode.NONE);
 
+		// layout
 		this.layout = getContent();
 		this.layout.setPadding(false);
 		this.layout.setMargin(false);
 		this.layout.setWidthFull();
 
-		grid.setItems(data); // usa a lista REAL do modelo (referência viva)
-
+		// itens e aparência
+		grid.setItems(data); // referência viva ao modelo
 		grid.setAllRowsVisible(true);
 		grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
+		// header antes das colunas de ações (vamos poder colocar o botão Adicionar
+		// aqui)
 		headerRow = grid.prependHeaderRow();
+
+		// listeners do editor – simples e sem duplicação
+		this.editor.addOpenListener(e -> {
+
+			System.out.println("Editor aberto para item: " + e.getItem());
+
+		});
+
+		this.editor.addSaveListener(e -> {
+			System.out.println("Editor salvou item: " + e.getItem());
+			syncToMultivalueFields();
+		});
+
+		this.editor.addCloseListener(e -> {
+			// Refresh simples após fechar o editor
+			grid.getDataProvider().refreshAll();
+		});
+
+		// evite entrar em edição por duplo clique — apenas pelo botão Editar
+		grid.addItemDoubleClickListener(e -> editor.cancel());
 
 		layout.add(grid);
 
-		this.editor.addSaveListener(event -> {
-			syncToMultivalueFields(); // atualiza os multivalue fields ao salvar
-		});
 	}
 
+	// MÉTODO PARA RECRIAR O HEADER quando readOnly mudar
 	public MultivalueGrid<T> setReadOnly(boolean readOnly) {
 		this.readOnly = readOnly;
 
-		if (addButton != null) {
-			addButton.setVisible(!readOnly); // aqui o botão aparece ou desaparece corretamente
-
-		}
-		if (saveButton != null && cancelButton != null && deleteButton != null && editButton != null) {
-			saveButton.setVisible(!readOnly);
-			cancelButton.setVisible(!readOnly);
-			deleteButton.setVisible(!readOnly);
-			editButton.setVisible(!readOnly);
+		// Se a coluna de ações já existe, recria o header
+		if (actionColumn != null) {
+			createCustomActionHeader();
 		}
 
 		refresh();
-
 		return this;
 	}
 
@@ -116,15 +151,18 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 
 	public MultivalueGrid<T> withColumns(ColumnConfigurator<T> configurator) {
 		configurator.configure(new ColumnBuilder<>(grid, binder, readOnly));
+
+		long editaveis = grid.getColumns()//
+				.stream()//
+				.filter(c -> c.getEditorComponent() != null).count();
+
+		System.out.println("[MVGrid] colunas com editor (após withColumns): " + editaveis);
+
 		return this;
 	}
 
-	public MultivalueGrid<T> bind(List<T> unidades, List<String> propertyNames, List<?>... multivalueFields) {
-		this.data.clear();
-		this.data.addAll(unidades);
+	public MultivalueGrid<T> bind(List<T> unidades, List<String> propertyNames) {
 		this.propertyNames = propertyNames;
-		this.multivalueTargets = multivalueFields;
-		this.grid.setItems(data);
 		return this;
 	}
 
@@ -169,12 +207,10 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 	public static class ColumnBuilder<T> {
 		private final Grid<T> grid;
 		private final Binder<T> binder;
-		private final boolean readOnly;
 
 		public ColumnBuilder(Grid<T> grid, Binder<T> binder, boolean readOnly) {
 			this.grid = grid;
 			this.binder = binder;
-			this.readOnly = readOnly;
 		}
 
 		public void addTextFieldColumn(//
@@ -350,52 +386,131 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 	}
 
 	public MultivalueGrid<T> addActionColumn() {
+		actionColumn = grid.addComponentColumn((T item) -> {
+			boolean docReadOnly = this.readOnly;
+			boolean rowIsBeingEdited = editor.isOpen() && Objects.equals(editor.getItem(), item);
 
-		grid.addComponentColumn((T item) -> {
-			editButton = new Button(VaadinIcon.EDIT.create(), e -> {
-				if (editor.isOpen()) {
-					editor.cancel();
-				}
-				editor.editItem(item);
+			// Layout que conterá os botões da linha
+			HorizontalLayout actions = new HorizontalLayout();
+			actions.setSpacing(true);
+			actions.setPadding(false);
+			actions.setAlignItems(Alignment.CENTER);
 
+			if (docReadOnly) {
+				// Documento em leitura -> nenhuma ação por linha
+				actions.setVisible(false);
+				return actions;
+			}
+
+			if (!rowIsBeingEdited) {
+				// MODO NORMAL: apenas botão Editar
+				Button editBtn = new Button(VaadinIcon.EDIT.create());
+				editBtn.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
+				editBtn.getElement().setAttribute("title", "Editar");
+
+				// LISTENER SIMPLIFICADO - sem beforeClientResponse
+				editBtn.addClickListener(e -> {
+					System.out.println("Clicou em editar item: " + item); // debug
+
+					if (editor.isOpen()) {
+						editor.cancel(); // fecha a atual
+					}
+
+					// Edita o item diretamente
+					editor.editItem(item);
+				});
+
+				actions.add(editBtn);
+				return actions;
+			}
+
+			// MODO EDIÇÃO: Salvar / Cancelar / Apagar
+			Button saveBtn = new Button(VaadinIcon.CHECK.create());
+			saveBtn.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_SUCCESS);
+			saveBtn.getElement().setAttribute("title", "Salvar");
+			saveBtn.addClickListener(e -> {
+				System.out.println("Clicou em salvar item: " + item); // debug
+				editor.save();
 			});
-			editButton.getElement().setAttribute("title", "Editar");
-			editButton.setVisible(!readOnly);
 
-			saveButton = new Button(VaadinIcon.CHECK.create(), e -> editor.save());
-			saveButton.getElement().setAttribute("title", "Salvar");
-			saveButton.setVisible(!readOnly);
+			Button cancelBtn = new Button(VaadinIcon.CLOSE.create());
+			cancelBtn.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
+			cancelBtn.getElement().setAttribute("title", "Cancelar");
+			cancelBtn.addClickListener(e -> {
+				System.out.println("Clicou em cancelar item: " + item); // debug
+				editor.cancel();
+			});
 
-			cancelButton = new Button(VaadinIcon.CLOSE.create(), e -> editor.cancel());
-			cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR);
-			cancelButton.getElement().setAttribute("title", "Cancelar");
-			cancelButton.setVisible(!readOnly);
+			Button deleteBtn = new Button(VaadinIcon.TRASH.create());
+			deleteBtn.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+			deleteBtn.getElement().setAttribute("title", "Apagar");
+			deleteBtn.addClickListener(e -> {
+				System.out.println("Clicou em deletar item: " + item); // debug
+				deleteItem(item);
+			});
 
-			deleteButton = new Button(VaadinIcon.TRASH.create(), e -> deleteItem(item));
-			deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR);
-			deleteButton.getElement().setAttribute("title", "Apagar");
-			deleteButton.setVisible(!readOnly);
+			actions.add(saveBtn, cancelBtn, deleteBtn);
+			return actions;
 
-			HorizontalLayout layout = new HorizontalLayout(editButton, saveButton, cancelButton, deleteButton);
-			layout.setSpacing(true);
-			layout.setVisible(!readOnly);
-			return layout;
-		}).setHeader("Ações").setWidth("240px").setFlexGrow(0);
+		});// .setHeader("Ações").setWidth("140px").setFlexGrow(0);
+
+		// CRIA O HEADER CUSTOMIZADO para a coluna Ações
+		createCustomActionHeader();
+
+		// Define propriedades da coluna
+		actionColumn.setWidth("140px").setFlexGrow(0);
 
 		return this;
 	}
 
-	public void addAdicionarButton(String label, Runnable onClick) {
-
-		addButton = new Button(label);
-		addButton.addClickListener(e -> onClick.run());
-
-		// Usa a última coluna da grid para adicionar o botão na linha de header
-		List<Grid.Column<T>> columns = grid.getColumns();
-		if (!columns.isEmpty()) {
-			Grid.Column<T> lastColumn = columns.get(columns.size() - 1);
-			headerRow.getCell(lastColumn).setComponent(addButton);
+	private void createCustomActionHeader() {
+		if (actionColumn == null || headerRow == null) {
+			System.out.println(
+					"[DEBUG] Não pode criar header: actionColumn=" + actionColumn + ", headerRow=" + headerRow);
+			return;
 		}
+
+		// Botão + separado
+		addButton = new Button(VaadinIcon.PLUS.create());
+		addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_SUCCESS);
+		addButton.getElement().setAttribute("title", "Adicionar novo item");
+
+		// Se tem ação pendente, adiciona
+		if (pendingAddButtonAction != null) {
+			addButton.addClickListener(e -> pendingAddButtonAction.run());
+		}
+
+		// Layout: [+] Ações
+		HorizontalLayout headerLayout = new HorizontalLayout();
+		headerLayout.setSpacing(true);
+		headerLayout.setPadding(false);
+		headerLayout.setAlignItems(Alignment.CENTER);
+
+		Span acaoText = new Span("Ações");
+		acaoText.getStyle().set("font-weight", "bold");
+
+		headerLayout.add(addButton, acaoText);
+
+		// Visibilidade baseada no readOnly
+		headerLayout.setVisible(!readOnly);
+
+		// Define no header da coluna
+		headerRow.getCell(actionColumn).setComponent(headerLayout);
+
+		System.out.println("[DEBUG] Header customizado criado. Visível: " + !readOnly);
+	}
+
+	public void addAdicionarButton(String label, Runnable onClick) {
+		// Se o botão ainda não foi criado, não faz nada
+		// (ele será criado quando addActionColumn() for chamado)
+		if (addButton == null) {
+			// Armazena o onClick para usar depois
+			this.pendingAddButtonAction = onClick;
+			return;
+		}
+
+		// Se já existe, apenas adiciona o listener
+		addButton.addClickListener(e -> onClick.run());
 	}
 
 	public void addItem(T item) {
@@ -405,30 +520,71 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 	}
 
 	public boolean deleteItem(T item) {
+		// Se essa linha está em edição, cancela primeiro (agora seguro porque não temos
+		// listener de cancel que refresca)
+		if (editor.isOpen() && Objects.equals(editor.getItem(), item)) {
+			editor.cancel();
+		}
 		boolean removed = data.remove(item);
-		refresh();
+
+		// SUBSTITUA refreshAllLater() por refresh() simples:
+		refresh(); // ao invés de refreshAllLater()
+
 		return removed;
 	}
 
 	public MultivalueGrid<T> enableAddButton(String label, Supplier<T> itemSupplier) {
+		this.defaultMultiValueSupplier = itemSupplier;
 
-		this.defaultMultiValueSupplier = itemSupplier; // se quiser reaproveitar depois
-		addAdicionarButton(label, () -> {
+		Runnable addAction = () -> {
 			T newItem = itemSupplier.get();
-			addItem(newItem); // já adiciona na lista + chama editor.editItem(newItem)
-		});
+			addItem(newItem);
+		};
+
+		// Se o botão já foi criado, adiciona o listener diretamente
+		if (addButton != null) {
+			addButton.addClickListener(e -> addAction.run());
+		} else {
+			// Senão, armazena para usar depois
+			this.pendingAddButtonAction = addAction;
+		}
+
 		return this;
 	}
 
-	public MultivalueGrid<T> enableAddButton(String label) {
-		Supplier<T> defaultMultiValueSupplier = () -> {
-			try {
-				return grid.getBeanType().getDeclaredConstructor().newInstance();
-			} catch (Exception e) {
-				throw new RuntimeException("Não foi possível instanciar " + grid.getBeanType().getSimpleName(), e);
+	// NOVO MÉTODO: controla visibilidade do header da coluna Ações
+	private void updateActionColumnHeaderVisibility() {
+		if (headerRow == null)
+			return;
+
+		// Procura pela coluna de ações
+		List<Grid.Column<T>> columns = grid.getColumns();
+		for (Grid.Column<T> column : columns) {
+			HeaderRow.HeaderCell cell = headerRow.getCell(column);
+
+			// Verifica se a célula tem um componente
+			Component component = cell.getComponent();
+			if (component != null) {
+				// Se é o nosso HorizontalLayout do header de ações
+				if (component instanceof HorizontalLayout) {
+					HorizontalLayout headerLayout = (HorizontalLayout) component;
+
+					// Verifica se tem o botão "+" dentro (para confirmar que é o header correto)
+					boolean isActionHeader = headerLayout.getChildren()
+							.anyMatch(child -> child instanceof Button && ((Button) child).getIcon() != null);
+
+					if (isActionHeader) {
+						headerLayout.setVisible(!readOnly);
+						break; // encontrou, pode parar
+					}
+				}
 			}
-		};
-		return enableAddButton(label, defaultMultiValueSupplier);
+		}
+	}
+
+	public MultivalueGrid<T> setItems(List<T> items) {
+		grid.setItems(items);
+		return this;
 	}
 
 	public Supplier<T> getDefaultMultiValueSupplier() {
@@ -525,6 +681,10 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 
 	public void setEditButton(Button editButton) {
 		this.editButton = editButton;
+	}
+
+	public AbstractModelListaMultivalue<T> getSource() {
+		return source;
 	}
 
 }

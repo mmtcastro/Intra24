@@ -142,7 +142,7 @@ public abstract class AbstractModelDoc extends AbstractModel {
 				this.autor = UtilsSession.getCurrentUserName();
 				this.criacao = ZonedDateTime.now();
 			} else {
-				preencherCamposMultivalue();
+				// preencherCamposMultivalue();
 			}
 			newRevision();
 		} catch (Exception e) {
@@ -331,57 +331,58 @@ public abstract class AbstractModelDoc extends AbstractModel {
 		}
 	}
 
-	private void preencherCamposMultivalue() {
-		print("Preenchendo campos multivalue para " + this.getClass().getSimpleName());
-		try {
-			// Iterar sobre todas as inner classes
-			for (Class<?> innerClass : this.getClass().getDeclaredClasses()) {
-				if (AbstractModelDocMultivalue.class.isAssignableFrom(innerClass)) {
-					String prefix = innerClass.getSimpleName().toLowerCase();
-					Field[] innerFields = innerClass.getDeclaredFields();
-
-					// Obter listas de valores da classe concreta
-					List<Object> listaDeObjetos = new ArrayList<>();
-					int tamanho = obterTamanhoListas(prefix, innerFields);
-
-					// Criar instâncias da inner class e preencher com valores
-					for (int i = 0; i < tamanho; i++) {
-						Object innerInstance = innerClass.getDeclaredConstructor().newInstance();
-
-						for (Field innerField : innerFields) {
-							innerField.setAccessible(true);
-							String nomeCampo = prefix + Utils.capitalize(innerField.getName());
-
-							Field listaField = getFieldByName(this.getClass(), nomeCampo);
-							if (listaField != null && List.class.isAssignableFrom(listaField.getType())) {
-								listaField.setAccessible(true);
-								List<?> listaValores = (List<?>) listaField.get(this);
-
-								if (listaValores != null && i < listaValores.size()) {
-									Object valor = listaValores.get(i);
-									innerField.set(innerInstance, valor);
-								}
-							}
-						}
-						listaDeObjetos.add(innerInstance);
-					}
-
-					// Atribuir a lista preenchida ao campo correspondente na classe concreta
-					String listaFieldName = Utils.addPlurais(prefix);
-					Field listaField = getFieldByName(this.getClass(), listaFieldName);
-					if (listaField != null) {
-						listaField.setAccessible(true);
-						listaField.set(this, listaDeObjetos);
-					} else {
-						print("nao achei o campo da lista: " + listaFieldName);
-					}
-				}
-			}
-		} catch (Exception e) {
-			System.err.println("Erro ao preencher campos multivalue: " + e.getMessage());
-			e.printStackTrace();
-		}
-	}
+//	private void preencherCamposMultivalue() {
+//		print("Preenchendo campos multivalue para " + this.getClass().getSimpleName());
+//		try {
+//			// Iterar sobre todas as inner classes
+//			for (Class<?> innerClass : this.getClass().getDeclaredClasses()) {
+//				if (AbstractModelDocMultivalue.class.isAssignableFrom(innerClass)) {
+//					String prefix = innerClass.getSimpleName().toLowerCase();
+//					Field[] innerFields = innerClass.getDeclaredFields();
+//
+//					// Obter listas de valores da classe concreta
+//					List<Object> listaDeObjetos = new ArrayList<>();
+//					int tamanho = obterTamanhoListas(prefix, innerFields);
+//
+//					// Criar instâncias da inner class e preencher com valores
+//					for (int i = 0; i < tamanho; i++) {
+//						Object innerInstance = innerClass.getDeclaredConstructor().newInstance();
+//
+//						for (Field innerField : innerFields) {
+//							innerField.setAccessible(true);
+//							String nomeCampo = prefix + Utils.capitalize(innerField.getName());
+//
+//							Field listaField = getFieldByName(this.getClass(), nomeCampo);
+//							if (listaField != null && List.class.isAssignableFrom(listaField.getType())) {
+//								listaField.setAccessible(true);
+//								List<?> listaValores = (List<?>) listaField.get(this);
+//
+//								if (listaValores != null && i < listaValores.size()) {
+//									Object valor = listaValores.get(i);
+//									innerField.set(innerInstance, valor);
+//								}
+//							}
+//						}
+//						listaDeObjetos.add(innerInstance);
+//					}
+//
+//					// Atribuir a lista preenchida ao campo correspondente na classe concreta
+//					String listaFieldName = Utils.addPlurais(prefix);
+//					Field listaField = getFieldByName(this.getClass(), listaFieldName);
+//					if (listaField != null) {
+//						listaField.setAccessible(true);
+//						// listaField.set(this, listaDeObjetos);
+//						assignListToField(this, listaField, listaDeObjetos, /* pluralHint */ listaFieldName);
+//					} else {
+//						print("nao achei o campo da lista: " + listaFieldName);
+//					}
+//				}
+//			}
+//		} catch (Exception e) {
+//			System.err.println("Erro ao preencher campos multivalue: " + e.getMessage());
+//			e.printStackTrace();
+//		}
+//	}
 
 	private int obterTamanhoListas(String prefix, Field[] innerFields) {
 		int tamanho = 0;

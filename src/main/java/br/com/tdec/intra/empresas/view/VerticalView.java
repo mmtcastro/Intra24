@@ -1,28 +1,14 @@
 package br.com.tdec.intra.empresas.view;
 
 import java.io.Serial;
-import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.grid.editor.Editor;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationResult;
-import com.vaadin.flow.data.binder.Validator;
-import com.vaadin.flow.data.converter.StringToDoubleConverter;
 import com.vaadin.flow.data.validator.StringLengthValidator;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -31,7 +17,6 @@ import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
 import br.com.tdec.intra.empresas.componentes.MultivalueGrid;
 import br.com.tdec.intra.empresas.model.Vertical;
-import br.com.tdec.intra.empresas.model.Vertical.Unidade;
 import br.com.tdec.intra.utils.converters.ChainedConverter;
 import br.com.tdec.intra.utils.converters.ProperCaseConverter;
 import br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos;
@@ -53,10 +38,8 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 	private DatePicker dataField = new DatePicker("Data");
 	private TextField codigoField = new TextField("Código");
 	private TextField descricaoField = new TextField("Descrição");
-	// private RichTextEditor bodyField = new RichTextEditor();
 	private VerticalLayout bodyFieldLayout;
-	private VerticalLayout verticalLayoutGrid = new VerticalLayout();
-	private Grid<Unidade> gridUnidades;
+	// private VerticalLayout verticalLayoutGrid = new VerticalLayout();
 	private Button buttonAdicionarUnidade;
 
 	private MultivalueGrid<Vertical.Unidade> unidadeGrid;
@@ -66,16 +49,6 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		addClassNames("abstract-view-doc");
 
 	}
-
-//	@Override
-//	public void updateReadOnlyState() {
-//		// Chama o método da classe abstrata para aplicar o estado de readOnly a todos
-//		// os componentes
-//		super.updateReadOnlyState();
-//
-//		// Atualize o grid ao mudar o estado de readOnly
-//		atualizarGrid();
-//	}
 
 	public void initBinder() {
 
@@ -102,25 +75,6 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(Vertical::getDescricao,
 				Vertical::setDescricao);
 
-//		binder.forField(bodyField).withNullRepresentation("") // Representação nula para o campo de entrada
-//				.withConverter(new RichTextToMimeConverter()) // Aplicando o converter
-//				.bind(Vertical::getBody, Vertical::setBody);
-
-//		// Layout para o campo de texto rico
-//		bodyFieldLayout = new VerticalLayout();
-//		bodyFieldLayout.setWidthFull();
-//		bodyFieldLayout.setPadding(false);
-//
-//		// Rótulo para o campo de observações
-//		Span bodyFieldLabel = new Span("Body:");
-//		bodyFieldLabel.getStyle().set("font-weight", "bold");
-//		bodyFieldLabel.getStyle().set("margin-top", "10px"); // Aumenta o espaçamento em relação ao campo acima
-//		bodyFieldLabel.getStyle().set("margin-bottom", "0px"); // Reduz a distância entre o rótulo e o campo
-
-		// Adicionar o rótulo e o campo ao layout
-
-		// setColspan(bodyFieldLayout, 2);
-
 		binder.setBean(model);
 
 		// Adicionar o campo ao binderFields para controle de readOnly
@@ -131,19 +85,11 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		// controle de readOnly
 		// form.addFormRow(bodyFieldLayout);
 
-		// Grid Unidades
-		initGrid();
-		form.addFormRow(verticalLayoutGrid);
-
-		// Atualize o grid aqui para refletir o estado correto
-		atualizarGrid();
-
-		TextField isReadOnlyField = new TextField("Read Only");
-		isReadOnlyField.setValue(String.valueOf(this.isReadOnly()));
-		form.addFormRow(isReadOnlyField);
-
 		// Inicialização do grid multivalue
-		ArrayList<Unidade> unidades = (ArrayList<Unidade>) model.getUnidades();
+		var unidades = model.getUnidades();
+
+		System.out.println("Unidades no VerticalView: " + unidades);
+
 		unidadeGrid = new MultivalueGrid<>(Vertical.Unidade.class, unidades).withColumns(config -> {
 			config.addComboBoxColumn("Responsável", Vertical.Unidade::getResponsavel, Vertical.Unidade::setResponsavel,
 					List.of("Marcelo", "Júnior", "Fabossi", "Dante", "Fernando")); // valores do ComboBox);
@@ -172,9 +118,8 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 					});
 
 			config.addDoubleFieldColumn("Valor", Vertical.Unidade::getValor, Vertical.Unidade::setValor);
-		}).bind(model.getUnidades(), List.of("responsavel", "status", "estado", "criacao", "valor"),
-				model.getUnidadeResponsavel(), model.getUnidadeStatus(), model.getUnidadeEstado(),
-				model.getUnidadeCriacao(), model.getUnidadeValor()).setReadOnly(isReadOnly)//
+		}).bind(model.getUnidades().getLista(), List.of("responsavel", "status", "estado", "criacao", "valor"))
+				.setReadOnly(isReadOnly)//
 				.setReadOnly(isReadOnly) // <<==== AQUI VOCÊ INFORMA O ESTADO
 				.enableAddButton("Adicionar", () -> {
 					Vertical.Unidade nova = new Vertical.Unidade();
@@ -184,193 +129,15 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 					nova.setValor(0.0);
 					return nova;
 				})//
-				.addActionColumn();
+				.addActionColumn()//
+				.setReadOnly(false);
+
+		unidadeGrid.setItems(unidades.getLista());
+		unidadeGrid.refresh();
 
 		// Adicione ao formulário
 		form.addFormRow(unidadeGrid);
 
-	}
-
-	private void initGrid() {
-		if (verticalLayoutGrid != null) {
-			verticalLayoutGrid.removeAll();
-		} else {
-			verticalLayoutGrid = new VerticalLayout();
-		}
-
-		gridUnidades = new Grid<>(Unidade.class, false);
-		gridUnidades.setAllRowsVisible(true);
-		gridUnidades.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-
-		Editor<Unidade> editor = gridUnidades.getEditor();
-		editor.setBuffered(true);
-
-		// Criação de um Binder específico para o editor do Grid
-		Binder<Unidade> gridBinder = new Binder<>(Unidade.class);
-		editor.setBinder(gridBinder);
-
-		// Coluna para o campo "Estado"
-		Grid.Column<Unidade> estadoColumn = gridUnidades.addColumn(Unidade::getEstado).setHeader("Estado")
-				.setSortable(true).setAutoWidth(true);
-
-		TextField estadoField = new TextField();
-		gridBinder.forField(estadoField).asRequired("Estado não pode ser vazio")//
-				.withConverter(String::toUpperCase, String::toUpperCase)
-				.withValidator(estado -> !isEstadoDuplicado(estado), "Estado já existe na lista")//
-				.bind(Unidade::getEstado, Unidade::setEstado);
-		estadoColumn.setEditorComponent(estadoField);
-
-		// Coluna para o campo "Criação"
-		Grid.Column<Unidade> criacaoColumn = gridUnidades.addColumn(unidade -> {
-			LocalDate criacao = unidade.getCriacao();
-			return criacao != null ? criacao.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
-		}).setHeader("Criação").setSortable(true).setAutoWidth(true);
-
-		DatePicker criacaoField = new DatePicker();
-		gridBinder.forField(criacaoField).asRequired("Data de criação é obrigatória").bind(Unidade::getCriacao,
-				Unidade::setCriacao);
-		criacaoColumn.setEditorComponent(criacaoField);
-
-		// Coluna para o campo "Valor"
-		Grid.Column<Unidade> valorColumn = gridUnidades.addColumn(unidade -> {
-			NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"));
-			Object valorObj = unidade.getValor(); // Pode ser qualquer tipo
-
-			try {
-				// Se for null, retorna um valor padrão
-				if (valorObj == null) {
-					return "R$ 0,00";
-				}
-
-				// Se já for um Double, apenas formata
-				if (valorObj instanceof Double) {
-					return currencyFormat.format(valorObj);
-				}
-
-				// Se for Integer, converte para Double antes de formatar
-				if (valorObj instanceof Integer integer) {
-					return currencyFormat.format(integer.doubleValue());
-				}
-
-				// Se for String, tenta converter para Double
-				if (valorObj instanceof String string) {
-					String valorStr = string.replace(",", ".").trim(); // Troca vírgula por ponto se
-																		// necessário
-					Double valorDouble = Double.valueOf(valorStr);
-					return currencyFormat.format(valorDouble);
-				}
-			} catch (NumberFormatException e) {
-				return "Valor inválido"; // Se der erro na conversão
-			}
-
-			return "Valor inválido"; // Caso caia em um cenário inesperado
-		}).setHeader("Valor")//
-				.setSortable(true)//
-				.setAutoWidth(true)//
-				.setResizable(true)//
-				.setWidth("150px")//
-				.setFlexGrow(1);
-
-		// Campo de edição para "Valor"
-		TextField valorField = new TextField();
-		valorField.setWidthFull();
-
-		// Configuração de validação e conversão para o campo "Valor"
-		gridBinder.forField(valorField).asRequired("Valor não pode ser vazio")
-				.withConverter(new StringToDoubleConverter("Valor inválido"))
-				.withValidator(Validator.from(valor -> valor != null && valor > 0, "Valor deve ser maior que zero"))
-				.bind(Unidade::getValor, Unidade::setValor);
-
-		valorColumn.setEditorComponent(valorField);
-
-		// Botões de ação para edição
-		Button saveButton = new Button("Salvar", e -> editor.save());
-		Button cancelButton = new Button(VaadinIcon.CLOSE.create(), e -> editor.cancel());
-		cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR);
-		HorizontalLayout actions = new HorizontalLayout(saveButton, cancelButton);
-		actions.setPadding(false);
-		// Coluna de edição
-		if (!isReadOnly) {
-			Grid.Column<Unidade> editColumn = gridUnidades.addComponentColumn(unidade -> {
-				Button editButton = new Button(VaadinIcon.EDIT.create()); // criar uma nova instancia para cada item do
-																			// grid
-				editButton.addClickListener(e -> {
-					if (editor.isOpen()) {
-						editor.cancel();
-					}
-					gridUnidades.getEditor().editItem(unidade);
-					estadoField.focus();
-				});
-				return editButton;
-			}).setWidth("150px")//
-					.setFlexGrow(0)//
-					.setHeader(new Button("Adicionar", e -> adicionarUnidade()));
-
-			// Define o componente de edição
-			editColumn.setEditorComponent(actions);
-		}
-
-		// Coluna de apagar
-		if (!isReadOnly) {
-			Grid.Column<Unidade> deleteColumn = gridUnidades.addComponentColumn(unidade -> {
-				Button deleteButton = new Button(VaadinIcon.TRASH.create());
-				deleteButton.addClickListener(e -> apagarUnidade(unidade));
-				deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-				return deleteButton;
-			}).setWidth("100px").setFlexGrow(0);
-
-			// Carregar os dados no Grid
-			atualizarGrid();
-		}
-
-//		// Carregar os dados no Grid
-//		if (model.getUnidades() != null && !model.getUnidades().isEmpty()) {
-//			gridUnidades.setItems(model.getUnidades());
-//		} else {
-//			Notification.show("Nenhuma unidade encontrada.");
-//		}
-
-		HeaderRow extraHeader = gridUnidades.prependHeaderRow();
-		extraHeader.getCell(estadoColumn).setText("Unidades");
-
-		verticalLayoutGrid.add(gridUnidades);
-
-		// add(verticalLayoutGrid);
-	}
-
-	private void adicionarUnidade() {
-		Unidade novaUnidade = new Unidade();
-		novaUnidade.setResponsavel("");
-		novaUnidade.setStatus("Ativo");
-		novaUnidade.setEstado("");
-		novaUnidade.setCriacao(LocalDate.now());
-		novaUnidade.setValor(0.0);
-
-		if (model.getUnidades() == null) {
-			model.setUnidades(new ArrayList<>());
-		}
-
-		// Adiciona a nova unidade à lista e atualiza o Grid
-		model.getUnidades().add(novaUnidade);
-		atualizarGrid();
-
-		// Coloca o novo item em modo de edição
-		gridUnidades.getEditor().editItem(novaUnidade);
-	}
-
-	private void apagarUnidade(Unidade unidade) {
-		if (model.getUnidades() != null) {
-			model.getUnidades().remove(unidade);
-			atualizarGrid();
-		}
-	}
-
-	private void atualizarGrid() {
-		if (model.getUnidades() != null && !model.getUnidades().isEmpty()) {
-			gridUnidades.setItems(model.getUnidades());
-		} else {
-			// Notification.show("Nenhuma unidade encontrada.");
-		}
 	}
 
 	private boolean isEstadoDuplicado(String estado) {
@@ -380,8 +147,8 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		}
 
 		// Contar quantas vezes o estado aparece na lista
-		long count = model.getUnidades().stream().filter(unidade -> estado.equalsIgnoreCase(unidade.getEstado()))
-				.count();
+		long count = model.getUnidades().getLista().stream()
+				.filter(unidade -> estado.equalsIgnoreCase(unidade.getEstado())).count();
 
 		// Se o estado aparecer mais de uma vez, é duplicado
 		return count > 0;
@@ -399,13 +166,6 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 			if (unidadeGrid.getEditor().isOpen()) {
 				unidadeGrid.getEditor().save();
 			}
-
-			System.out.println("Unidades antes de salvar: " + model.getUnidades());
-			System.out.println("Responsáveis multivalor: " + model.getUnidadeResponsavel());
-			System.out.println("Status multivalor: " + model.getUnidadeStatus());
-			System.out.println("Estados multivalor: " + model.getUnidadeEstado());
-			System.out.println("Criações multivalor: " + model.getUnidadeCriacao());
-			System.out.println("Valores multivalor: " + model.getUnidadeValor());
 		}
 		super.save();
 	}

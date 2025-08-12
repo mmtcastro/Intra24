@@ -1,8 +1,6 @@
 package br.com.tdec.intra.empresas.model;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -20,13 +18,13 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 public class Vertical extends AbstractModelDoc {
-	private List<String> unidadeResponsavel = new ArrayList<>();
-	private List<String> unidadeEstado = new ArrayList<>();
-	private List<LocalDate> unidadeCriacao = new ArrayList<>();
-	private List<Double> unidadeValor = new ArrayList<>();
-	private List<String> unidadeStatus = new ArrayList<>();
+	// private List<String> unidadeResponsavel = new ArrayList<>();
+	// private List<String> unidadeEstado = new ArrayList<>();
+	// private List<LocalDate> unidadeCriacao = new ArrayList<>();
+	// private List<Double> unidadeValor = new ArrayList<>();
+	// private List<String> unidadeStatus = new ArrayList<>();
 	@JsonIgnore
-	private List<Unidade> unidades;
+	private Unidades unidades;
 	@JsonAlias({ "body", "Body" })
 	@JsonDeserialize(using = BodyDeserializer.class)
 	protected RichText body;
@@ -37,7 +35,7 @@ public class Vertical extends AbstractModelDoc {
 	public Vertical() {
 		super();
 		if (getUnidades() == null) {
-			setUnidades(new ArrayList<>());
+			setUnidades(new Unidades());
 		}
 	}
 
@@ -76,6 +74,17 @@ public class Vertical extends AbstractModelDoc {
 	@Setter
 	public static class Unidades extends AbstractModelListaMultivalue<Unidade> {
 
+	}
+
+	public Unidades getUnidades() {
+		if (unidades == null) {
+			unidades = new Unidades();
+		}
+		return unidades;
+	}
+
+	public void setUnidades(Unidades u) {
+		this.unidades = (u != null ? u : new Unidades());
 	}
 
 }

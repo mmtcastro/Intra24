@@ -174,14 +174,6 @@ public abstract class AbstractModel extends Abstract {
 		}
 	}
 
-	protected Field getFieldByName(Class<?> clazz, String fieldName) {
-		try {
-			return clazz.getDeclaredField(fieldName);
-		} catch (NoSuchFieldException e) {
-			return null;
-		}
-	}
-
 	protected void setFieldValue(Class<?> clazz, String fieldName, Object value) {
 		try {
 			Field field = getFieldByName(clazz, fieldName);

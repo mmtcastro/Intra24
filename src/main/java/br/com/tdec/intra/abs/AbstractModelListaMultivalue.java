@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,258 +16,25 @@ import lombok.Setter;
 
 @Getter
 @Setter
+/**
+ * Lista genérica para modelos multivalue.
+ * 
+ * @param <E> tipo do item, que deve ser um AbstractModelDocMultivalue e
+ *            Comparable (para sort()).
+ */
 public class AbstractModelListaMultivalue<E extends AbstractModelDocMultivalue> extends AbstractModel
-		implements Iterable<AbstractModelDocMultivalue> {
-	protected List<AbstractModelDocMultivalue> lista;
+		implements Iterable<E> {
+
+	protected List<E> lista = new ArrayList<>();
 
 	public AbstractModelListaMultivalue() {
-
-		createLista();
+		// nada além de iniciar a lista
 	}
 
-	@SuppressWarnings("unchecked")
-	public void createLista() {
-		try {
-			Class<?> cl = Class.forName("java.util.ArrayList");
-			lista = (ArrayList<AbstractModelDocMultivalue>) cl.newInstance();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		}
-	}
+	// ============ Básicos ============
 
-	/**
-	 * adiciona o item no final da lista (para o caso do sort nao funcionar
-	 * 
-	 */
-	public void addBottom(AbstractModelDocMultivalue model) {
-		if (model == null) {
-			print("Warning - AbstracModelLista - add - (model==null) tentando adicionar um modelo que eh null");
-			return;
-		}
-		if (model.getIdMulti() == null) {
-			print("Warning - AbstracModelLista - add - (model.getId()==null) - Tenho que verificar por que quando uso o deleteModel tenho null aqui: "
-					+ model.getClass());
-			return;
-		}
-		try {
-			lista.add(model);
-			this.sort();
-		} catch (Exception e) {
-			print("Erro - AbstractModelLista - add - problema ao adicionar o AbstractModelDoc - " + model.getIdMulti());
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * adiciona o item no final da lista caso nao exista. Caso o ID já exista, ele
-	 * troca o conteúdo pelo novo conteudo do Model
-	 * 
-	 */
-	public void addTop(AbstractModelDocMultivalue model) {
-		if (model == null) {
-			print("Warning - AbstracModelListaMultivalue - add - (model==null) tentando adicionar um modelo que eh null");
-			return;
-		}
-		if (model.getIdMulti() == null) {
-			print("Warning - AbstracModelListaMultivalue - add - (model.getId()==null) - Tenho que verificar por que quando uso o deleteModel tenho null aqui: "
-					+ model.getClass());
-			return;
-		}
-		try {
-			lista.add(0, model);
-			this.sort();
-		} catch (Exception e) {
-			print("Erro - AbstractModelListaMultivalue - add - problema ao adicionar o AbstractModelDoc - "
-					+ model.getIdMulti());
-			e.printStackTrace();
-		}
-	}
-
-	public boolean contem(AbstractModelDocMultivalue model) {
-		boolean ret = false;
-		try {
-			if (model == null) {
-				return ret;
-			}
-			if (model.getIdMulti() == null) {
-				return ret;
-			}
-			for (AbstractModelDocMultivalue doc : lista) {
-				if (doc.getIdMulti().equals(model.getIdMulti())) {
-					ret = true;
-					break;
-				}
-			}
-		} catch (Exception e) {
-			print("Erro - AbstractModelListaMultivalue - contem");
-			e.printStackTrace();
-		}
-		return ret;
-	}
-
-	/**
-	 * retorna um AbstractModelDocMultivalue de um determinado Id
-	 * 
-	 * @param id
-	 * @return
-	 */
-	public AbstractModelDocMultivalue get(String id) {
-		AbstractModelDocMultivalue ret = null;
-		try {
-			if (id == null) {
-				return ret;
-			}
-			for (AbstractModelDocMultivalue doc : lista) {
-				if (doc.getIdMulti().equals(id)) {
-					ret = doc;
-					break;
-				}
-			}
-		} catch (Exception e) {
-			print("Erro - AbstractModelListaMultivalue - contem");
-			e.printStackTrace();
-		}
-		return ret;
-	}
-
-	public void remove(AbstractModelDocMultivalue doc) {
-		int i = 0;
-		for (AbstractModelDocMultivalue it : lista) {
-			if (it.getIdMulti().equals(doc.getIdMulti())) {
-				lista.remove(i);
-				this.sort();
-				return;
-			}
-			i++;
-		}
-	}
-
-	public void removeByIdMulti(String idMulti) {
-		int i = 0;
-		for (AbstractModelDocMultivalue it : lista) {
-			if (it.getIdMulti().equals(idMulti)) {
-				lista.remove(i);
-				this.sort();
-				return;
-			}
-			i++;
-		}
-	}
-
-	public void addNewModel() {
-		try {
-			// Obtém o nome do pacote da classe atual
-			String classe = this.getClass().getCanonicalName();
-
-			// Obtém o nome completo da classe concreta usando a função
-			// getModelPackageFromPackage
-			String modelPackage = Utils.getModelPackageFromPackage(classe);
-
-			// Verifica se a classe existe antes de tentar instanciar
-			if (Utils.classeExiste(modelPackage)) {
-				// Carrega a classe dinamicamente
-				Class<?> modelClass = Class.forName(modelPackage);
-
-				// Cria uma nova instância e a converte para AbstractModelDocMultivalue
-				AbstractModelDocMultivalue model = (AbstractModelDocMultivalue) modelClass.getDeclaredConstructor()
-						.newInstance();
-
-				// Adiciona o modelo à lista
-				lista.add(model);
-			} else {
-				print("Erro - A classe concreta para o modelo não foi encontrada: " + modelPackage);
-			}
-		} catch (Exception e) {
-			print("Erro - AbstractModelLista - addNewModel");
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Converte um uma lista de maps os campos para facilitar a gravação no disco.
-	 * Criado originalmente para uso em innerClasses que não funcionam com o
-	 * SaveModel por que os MultiValueFields não são públicos na lista de classes.
-	 * 
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	public Map<String, List<?>> convertToMap() {
-		Map<String, List<?>> ret = new HashMap<String, List<?>>();
-		try {
-			Method method;
-			List<Field> campos;
-			ArrayList<Object> check;
-			for (AbstractModelDocMultivalue model : lista) {
-				campos = model.getAllModelFields();
-				for (Field campo : campos) {
-					campo.setAccessible(true);
-					method = model.getGetMethod(campo.getName());
-					if (method != null) {
-						check = (ArrayList<Object>) ret.get(campo.getName());
-						if (check == null) {
-							ret.put(campo.getName(), new ArrayList<Object>(Arrays.asList(method.invoke(model))));
-						} else {
-							check.add(method.invoke(model));
-						}
-					}
-				}
-			}
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return ret;
-	}
-
-	@Override
-	public Iterator<AbstractModelDocMultivalue> iterator() {
-		return new InnerIterator();
-	}
-
-	// Inner class
-	class InnerIterator implements Iterator<AbstractModelDocMultivalue> {
-		int currentIndex = 0;
-
-		// @Override
-		@Override
-		public boolean hasNext() {
-			if (currentIndex >= lista.size()) {
-				return false;
-			} else {
-				return true;
-			}
-		}
-
-		// @Override
-		@Override
-		public AbstractModelDocMultivalue next() {
-			return lista.get(currentIndex++);
-		}
-
-		// @Override
-		@Override
-		public void remove() {
-			lista.remove(--currentIndex);
-		}
-	}
-
-	public void addListaToBottom(AbstractModelListaMultivalue<?> outraLista) {
-		lista.addAll(outraLista.getLista());
-		// for (AbstractModelDocMultivalue doc : outraLista.getLista()) {
-		// if (outraLista.getClass().equals(this.getClass())) {
-		// this.addBottom(doc);
-		// }
-		// }
+	public List<E> getLista() {
+		return lista;
 	}
 
 	public int size() {
@@ -279,19 +45,213 @@ public class AbstractModelListaMultivalue<E extends AbstractModelDocMultivalue> 
 		return lista.size();
 	}
 
+	public boolean isEmpty() {
+		return lista.isEmpty();
+	}
+
+	@Override
+	public Iterator<E> iterator() {
+		return lista.iterator();
+	}
+
+	// ============ Operações de adição/remoção/busca ============
+
+	/**
+	 * Adiciona no final e ordena (se E for Comparable).
+	 */
+	public void addBottom(E model) {
+		if (model == null) {
+			print("Warning - AbstractModelListaMultivalue - addBottom - model == null");
+			return;
+		}
+		if (model.getIdMulti() == null) {
+			print("Warning - AbstractModelListaMultivalue - addBottom - model.getIdMulti() == null: "
+					+ model.getClass());
+			return;
+		}
+		try {
+			lista.add(model);
+			this.sort();
+		} catch (Exception e) {
+			print("Erro - AbstractModelListaMultivalue - addBottom - problema ao adicionar: " + model.getIdMulti());
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Adiciona no topo (índice 0) e ordena (se E for Comparable). Se já existir
+	 * item com mesmo ID, substitui conteúdo (opcional implementar).
+	 */
+	public void addTop(E model) {
+		if (model == null) {
+			print("Warning - AbstractModelListaMultivalue - addTop - model == null");
+			return;
+		}
+		if (model.getIdMulti() == null) {
+			print("Warning - AbstractModelListaMultivalue - addTop - model.getIdMulti() == null: " + model.getClass());
+			return;
+		}
+		try {
+			lista.add(0, model);
+			this.sort();
+		} catch (Exception e) {
+			print("Erro - AbstractModelListaMultivalue - addTop - problema ao adicionar: " + model.getIdMulti());
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Verifica se contém pelo idMulti.
+	 */
+	public boolean contem(E model) {
+		if (model == null || model.getIdMulti() == null)
+			return false;
+		try {
+			for (E doc : lista) {
+				if (model.getIdMulti().equals(doc.getIdMulti())) {
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			print("Erro - AbstractModelListaMultivalue - contem");
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * Retorna o item pelo idMulti ou null se não achar.
+	 */
+	public E get(String id) {
+		if (id == null)
+			return null;
+		try {
+			for (E doc : lista) {
+				if (id.equals(doc.getIdMulti())) {
+					return doc;
+				}
+			}
+		} catch (Exception e) {
+			print("Erro - AbstractModelListaMultivalue - get");
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * Remove pelo objeto (compara por idMulti).
+	 */
+	public void remove(E doc) {
+		if (doc == null || doc.getIdMulti() == null)
+			return;
+		for (int i = 0; i < lista.size(); i++) {
+			E it = lista.get(i);
+			if (doc.getIdMulti().equals(it.getIdMulti())) {
+				lista.remove(i);
+				this.sort();
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Remove pelo idMulti.
+	 */
+	public void removeByIdMulti(String idMulti) {
+		if (idMulti == null)
+			return;
+		for (int i = 0; i < lista.size(); i++) {
+			E it = lista.get(i);
+			if (idMulti.equals(it.getIdMulti())) {
+				lista.remove(i);
+				this.sort();
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Adiciona todos os itens de outra lista ao final desta.
+	 */
+	public void addListaToBottom(AbstractModelListaMultivalue<? extends E> outraLista) {
+		if (outraLista == null || outraLista.getLista() == null)
+			return;
+		lista.addAll(outraLista.getLista());
+		this.sort();
+	}
+
+	/**
+	 * Ordena a lista com base no Comparable de E.
+	 */
 	public void sort() {
 		Collections.sort(lista);
 	}
 
-//	public void sort(String campo, int ordem) {
-//		GenericComparator comparator = new GenericComparator(campo, ordem);
-//		Collections.sort(this.getLista(), comparator);
-//	}
+	// ============ Fábrica / Instanciação ============
 
-//	@Override
-//	public int compareTo(AbstractModelDocMultivalue o) {
-//		// TODO Auto-generated method stub
-//		return 0;
-//	}
+	/**
+	 * Cria e adiciona uma nova instância de E com base na convenção do seu Utils.
+	 * Mantive sua lógica, mas tipada. Requer: -
+	 * Utils.getModelPackageFromPackage(String canonicalName) ->
+	 * "pacote.ClasseConcreta" - Construtor sem args na classe concreta
+	 */
+	@SuppressWarnings("unchecked")
+	public void addNewModel() {
+		try {
+			String classe = this.getClass().getCanonicalName();
+			String modelFqcn = Utils.getModelPackageFromPackage(classe);
 
+			if (Utils.classeExiste(modelFqcn)) {
+				Class<?> modelClass = Class.forName(modelFqcn);
+				Object instance = modelClass.getDeclaredConstructor().newInstance();
+
+				if (!(instance instanceof AbstractModelDocMultivalue)) {
+					print("Erro - addNewModel - classe não é AbstractModelDocMultivalue: " + modelFqcn);
+					return;
+				}
+				// Tenta fazer cast para E (unchecked, mas ok por convenção do projeto)
+				E model = (E) instance;
+				lista.add(model);
+				this.sort();
+			} else {
+				print("Erro - addNewModel - classe do modelo não encontrada: " + modelFqcn);
+			}
+		} catch (Exception e) {
+			print("Erro - AbstractModelListaMultivalue - addNewModel");
+			e.printStackTrace();
+		}
+	}
+
+	// ============ Conversão utilitária para Map (para persistência) ============
+
+	/**
+	 * Converte a lista em Map<String, List<?>> com os valores dos campos, agregando
+	 * por nome do campo. Depende de: - E.getAllModelFields() -
+	 * E.getGetMethod(String fieldName)
+	 */
+	@SuppressWarnings("unchecked")
+	public Map<String, List<?>> convertToMap() {
+		Map<String, List<?>> ret = new HashMap<>();
+		try {
+			for (E model : lista) {
+				List<Field> campos = model.getAllModelFields();
+				for (Field campo : campos) {
+					campo.setAccessible(true);
+					Method getter = model.getGetMethod(campo.getName());
+					if (getter != null) {
+						List<Object> bucket = (List<Object>) ret.get(campo.getName());
+						if (bucket == null) {
+							bucket = new ArrayList<>();
+							ret.put(campo.getName(), bucket);
+						}
+						bucket.add(getter.invoke(model));
+					}
+				}
+			}
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			print("Erro - AbstractModelListaMultivalue - convertToMap");
+			e.printStackTrace();
+		}
+		return ret;
+	}
 }
