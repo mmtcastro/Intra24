@@ -65,6 +65,8 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 	private Runnable pendingAddButtonAction;
 	private Grid.Column<T> actionColumn;
 
+	private Span labelComponent; // titulo do multivalue (ex: "Unidades")
+
 	public MultivalueGrid(Class<T> beanType, AbstractModelListaMultivalue<T> source) {
 		this.source = Objects.requireNonNull(source, "source não pode ser nulo");
 
@@ -87,6 +89,7 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 
 		// grid/binder/editor
 		this.grid = new Grid<>(beanType, false);
+
 		this.binder = new Binder<>(beanType);
 		this.editor = grid.getEditor();
 		this.editor.setBinder(binder);
@@ -98,6 +101,15 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 		this.layout.setPadding(false);
 		this.layout.setMargin(false);
 		this.layout.setWidthFull();
+
+		// cria o label (inicialmente invisível)
+		this.labelComponent = new Span();
+		this.labelComponent.getStyle().set("margin-top", "var(--lumo-space-m)");
+		this.labelComponent.getStyle().set("margin-bottom", "0.1rem"); // mesmo gap dos campos
+		this.labelComponent.getStyle().set("font-size", "var(--lumo-font-size-s)");
+		this.labelComponent.getStyle().set("font-weight", "500");
+		this.labelComponent.getStyle().set("color", "var(--lumo-secondary-text-color)");
+		this.labelComponent.setVisible(false);
 
 		// itens e aparência
 		grid.setItems(data); // referência viva ao modelo
@@ -128,7 +140,7 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 		// evite entrar em edição por duplo clique — apenas pelo botão Editar
 		grid.addItemDoubleClickListener(e -> editor.cancel());
 
-		layout.add(grid);
+		layout.add(labelComponent, grid);
 
 	}
 
@@ -589,6 +601,16 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 		}
 	}
 
+	public void setLabel(String label) {
+		if (label != null && !label.isBlank()) {
+			this.labelComponent.setText(label);
+			this.labelComponent.setVisible(true);
+		} else {
+			this.labelComponent.setText("");
+			this.labelComponent.setVisible(false);
+		}
+	}
+
 	public MultivalueGrid<T> setItems(List<T> items) {
 		grid.setItems(items);
 		return this;
@@ -692,6 +714,30 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 
 	public AbstractModelListaMultivalue<T> getSource() {
 		return source;
+	}
+
+	public Runnable getPendingAddButtonAction() {
+		return pendingAddButtonAction;
+	}
+
+	public void setPendingAddButtonAction(Runnable pendingAddButtonAction) {
+		this.pendingAddButtonAction = pendingAddButtonAction;
+	}
+
+	public Grid.Column<T> getActionColumn() {
+		return actionColumn;
+	}
+
+	public void setActionColumn(Grid.Column<T> actionColumn) {
+		this.actionColumn = actionColumn;
+	}
+
+	public Span getLabelComponent() {
+		return labelComponent;
+	}
+
+	public void setLabelComponent(Span labelComponent) {
+		this.labelComponent = labelComponent;
 	}
 
 }

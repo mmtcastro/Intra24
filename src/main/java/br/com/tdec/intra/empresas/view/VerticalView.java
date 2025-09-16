@@ -90,35 +90,37 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 
 		System.out.println("Unidades no VerticalView: " + unidades);
 
-		unidadeGrid = new MultivalueGrid<>(Vertical.Unidade.class, unidades).withColumns(config -> {
-			config.addComboBoxColumn("Responsável", Vertical.Unidade::getResponsavel, Vertical.Unidade::setResponsavel,
-					List.of("Marcelo", "Júnior", "Fabossi", "Dante", "Fernando")); // valores do ComboBox);
+		unidadeGrid = new MultivalueGrid<>(Vertical.Unidade.class, unidades)//
+				.withColumns(config -> {
+					config.addComboBoxColumn("Responsável", Vertical.Unidade::getResponsavel,
+							Vertical.Unidade::setResponsavel,
+							List.of("Marcelo", "Júnior", "Fabossi", "Dante", "Fernando")); // valores do ComboBox);
 
-			config.addTextFieldColumn("Status", Vertical.Unidade::getStatus, Vertical.Unidade::setStatus);
+					config.addTextFieldColumn("Status", Vertical.Unidade::getStatus, Vertical.Unidade::setStatus);
 
-			config.addTextFieldColumn("Estado", Vertical.Unidade::getEstado, Vertical.Unidade::setEstado,
-					new ChainedConverter(//
-							new br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos(), //
-							new UpperCaseConverter()), //
+					config.addTextFieldColumn("Estado", Vertical.Unidade::getEstado, Vertical.Unidade::setEstado,
+							new ChainedConverter(//
+									new br.com.tdec.intra.utils.converters.RemoveSimbolosEAcentos(), //
+									new UpperCaseConverter()), //
 
-					new StringLengthValidator("2 caracteres", 2, 2) // <-- validator
-			);
+							new StringLengthValidator("2 caracteres", 2, 2) // <-- validator
+					);
 
-			config.addDateFieldColumn("Criação", //
-					Vertical.Unidade::getCriacao, //
-					Vertical.Unidade::setCriacao, //
-					(value, context) -> {
-						if (value == null || value.equals("")) {
-							return ValidationResult.error("Data é obrigatória");
-						}
-						if (value.isBefore(LocalDate.now())) {
-							return ValidationResult.error("A data não pode ser anterior a hoje");
-						}
-						return ValidationResult.ok();
-					});
+					config.addDateFieldColumn("Criação", //
+							Vertical.Unidade::getCriacao, //
+							Vertical.Unidade::setCriacao, //
+							(value, context) -> {
+								if (value == null || value.equals("")) {
+									return ValidationResult.error("Data é obrigatória");
+								}
+								if (value.isBefore(LocalDate.now())) {
+									return ValidationResult.error("A data não pode ser anterior a hoje");
+								}
+								return ValidationResult.ok();
+							});
 
-			config.addDoubleFieldColumn("Valor", Vertical.Unidade::getValor, Vertical.Unidade::setValor);
-		}).bind(model.getUnidades().getLista(), List.of("responsavel", "status", "estado", "criacao", "valor"))
+					config.addDoubleFieldColumn("Valor", Vertical.Unidade::getValor, Vertical.Unidade::setValor);
+				}).bind(model.getUnidades().getLista(), List.of("responsavel", "status", "estado", "criacao", "valor"))
 				.setReadOnly(isReadOnly)//
 				.setReadOnly(isReadOnly) // <<==== AQUI VOCÊ INFORMA O ESTADO
 				.enableAddButton("Adicionar", () -> {
@@ -131,7 +133,7 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 				})//
 				.addActionColumn()//
 				.setReadOnly(false);
-
+		unidadeGrid.setLabel("Unidades");
 		unidadeGrid.setItems(unidades.getLista());
 		unidadeGrid.refresh();
 

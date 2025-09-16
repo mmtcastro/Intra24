@@ -3,7 +3,6 @@ package br.com.tdec.intra.abs;
 import java.io.Serial;
 import java.lang.reflect.ParameterizedType;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -17,12 +16,14 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 
 import br.com.tdec.intra.config.ApplicationContextProvider;
@@ -151,36 +152,64 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 		add(grid);
 	}
 
+//	public void initGrid() {
+//		// Coluna para Código
+//		Grid.Column<T> codigoColumn = grid.addColumn(model -> model.getCodigo())//
+//				.setHeader("Código")//
+//				.setSortable(true);
+//		codigoColumn.setComparator(Comparator.comparing(T::getCodigo)).setKey("codigo");
+//
+//		// Coluna para Descrição
+//		Grid.Column<T> descricaoColumn = grid.addColumn(model -> model.getDescricao()).setHeader("Descrição")
+//				.setSortable(true);
+//		descricaoColumn.setComparator(Comparator.comparing(T::getDescricao)).setKey("descricao");
+//
+//		// Coluna para Autor
+//		Grid.Column<T> autorColumn = grid.addColumn(model -> model.getAutor()).setHeader("Autor").setSortable(true);
+//		autorColumn.setComparator(Comparator.comparing(T::getAutor)).setKey("autor");
+//
+//		// Coluna para Criação, com formatação de data
+//		Grid.Column<T> criacaoColumn = grid.addColumn(model -> {
+//			if (model.getCriacao() != null) {
+//				return model.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+//			}
+//			return null;
+//		}).setHeader("Criação").setSortable(true);
+//		criacaoColumn.setComparator(
+//				Comparator.comparing(model -> model.getCriacao(), Comparator.nullsLast(Comparator.naturalOrder())))
+//				.setKey("criacao");
+//
+//		// Coluna para Unid
+//		Grid.Column<T> unidColumn = grid.addColumn(model -> model.getUnid()).setHeader("Unid").setSortable(true);
+//		unidColumn.setComparator(Comparator.comparing(T::getUnid)).setKey("unid");
+//	}
+
 	public void initGrid() {
-		// Coluna para Código
-		Grid.Column<T> codigoColumn = grid.addColumn(model -> model.getCodigo())//
-				.setHeader("Código")//
-				.setSortable(true);
-		codigoColumn.setComparator(Comparator.comparing(T::getCodigo)).setKey("codigo");
+		// Coluna Código com link para navegação
+		Grid.Column<T> codigoColumn = grid.addColumn(new ComponentRenderer<>(model -> {
+			Anchor link = new Anchor(model.getClass().getSimpleName().toLowerCase() + "/" + model.getUnid(),
+					model.getCodigo());
+			link.getElement().setAttribute("router-link", true); // Navegação sem recarregar
+			return link;
+		})).setHeader("Código").setSortable(true).setKey("codigo").setResizable(true);
 
-		// Coluna para Descrição
-		Grid.Column<T> descricaoColumn = grid.addColumn(model -> model.getDescricao()).setHeader("Descrição")
-				.setSortable(true);
-		descricaoColumn.setComparator(Comparator.comparing(T::getDescricao)).setKey("descricao");
+		// Coluna Descrição
+		Grid.Column<T> descricaoColumn = grid.addColumn(T::getDescricao).setHeader("Descrição").setSortable(true)
+				.setKey("descricao");
 
-		// Coluna para Autor
-		Grid.Column<T> autorColumn = grid.addColumn(model -> model.getAutor()).setHeader("Autor").setSortable(true);
-		autorColumn.setComparator(Comparator.comparing(T::getAutor)).setKey("autor");
+		// Coluna Autor
+		Grid.Column<T> autorColumn = grid.addColumn(T::getAutor).setHeader("Autor").setSortable(true).setKey("autor");
 
-		// Coluna para Criação, com formatação de data
+		// Coluna Criação formatada
 		Grid.Column<T> criacaoColumn = grid.addColumn(model -> {
 			if (model.getCriacao() != null) {
 				return model.getCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
 			}
 			return null;
-		}).setHeader("Criação").setSortable(true);
-		criacaoColumn.setComparator(
-				Comparator.comparing(model -> model.getCriacao(), Comparator.nullsLast(Comparator.naturalOrder())))
-				.setKey("criacao");
+		}).setHeader("Criação").setSortable(true).setKey("criacao");
 
-		// Coluna para Unid
-		Grid.Column<T> unidColumn = grid.addColumn(model -> model.getUnid()).setHeader("Unid").setSortable(true);
-		unidColumn.setComparator(Comparator.comparing(T::getUnid)).setKey("unid");
+		// Coluna Unid
+		Grid.Column<T> unidColumn = grid.addColumn(T::getUnid).setHeader("Unid").setSortable(true).setKey("unid");
 	}
 
 	private void openPage(T model) {
