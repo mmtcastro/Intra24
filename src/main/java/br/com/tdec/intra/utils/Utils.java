@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -454,15 +455,15 @@ public class Utils {
 
 	}
 
-	/**
-	 * a partir de uma classe view (VerticalView, VerticaisView, Vertical,
-	 * Verticais) retornar o scope (empresas)
-	 */
-
-	public static String getScopeFromClass(Class<?> viewClass) {
-		List<String> classeList = stringToArrayList(viewClass.getCanonicalName(), ".");
-		return classeList.get(4);
-	}
+//	/**
+//	 * a partir de uma classe view (VerticalView, VerticaisView, Vertical,
+//	 * Verticais) retornar o scope (empresas)
+//	 */
+//
+//	public static String getScopeFromClass(Class<?> viewClass) {
+//		List<String> classeList = stringToArrayList(viewClass.getCanonicalName(), ".");
+//		return classeList.get(4);
+//	}
 
 	/**
 	 * Utilizado no AbstractService para criar o modelo correto para colocar nos
@@ -741,6 +742,79 @@ public class Utils {
 		} catch (NumberFormatException e) {
 			return false;
 		}
+	}
+
+	/**
+	 * Deduz o "scope" a partir do pacote da classe. Ex.:
+	 * br.com.tdec.intra.compras.service -> "compras" Procura o token "intra" e
+	 * retorna o segmento seguinte. Se não achar, tenta o penúltimo segmento como
+	 * fallback.
+	 */
+	public static String getScopeFromClass(Class<?> clazz) {
+		Objects.requireNonNull(clazz, "clazz");
+		String packageName = clazz.getPackageName();
+		if (packageName == null || packageName.isBlank()) {
+			warn("WARN: Classe sem package: " + clazz.getName());
+			return "default";
+		}
+
+		String[] parts = packageName.split("\\.");
+		// 1) procurar "intra"
+		for (int i = 0; i < parts.length; i++) {
+			if ("intra".equalsIgnoreCase(parts[i]) && i + 1 < parts.length) {
+				return parts[i + 1];
+			}
+		}
+		// 2) fallback: tentar um segmento "semelhante a escopo"
+		if (parts.length >= 2) {
+			return parts[parts.length - 2];
+		}
+		// 3) último recurso
+		warn("WARN: Não foi possível inferir scope a partir do package: " + packageName);
+		return "default";
+	}
+
+	/**
+	 * Cria um ID legível associando base (scope) e form/view (simpleName). Formato:
+	 * scope + "/" + modelSimpleName. (mantém o case do nome da classe) Ex.:
+	 * newModelId("compras", "Compra") -> "compras/Compra"
+	 */
+	public static String newModelId(String scope, String modelSimpleName) {
+		if (scope == null || scope.isBlank()) {
+			scope = "default";
+		}
+		if (modelSimpleName == null || modelSimpleName.isBlank()) {
+			modelSimpleName = "Model";
+		}
+		return scope + "/" + modelSimpleName;
+	}
+
+	/**
+	 * Atalho conveniente quando você já tem a classe do modelo. Ex.:
+	 * newModelId(Compra.class) -> "compras/Compra"
+	 */
+	public static String newModelId(Class<?> modelClass) {
+		Objects.requireNonNull(modelClass, "modelClass");
+		return newModelId(getScopeFromClass(modelClass), modelClass.getSimpleName());
+	}
+
+	// --------- (opcionais) utilitários de normalização ---------
+	/**
+	 * Versão "slug" (sem acentos/espacos), caso queira IDs 100% seguros para
+	 * URLs/chaves. Ex.: toSlug("Impostos Federais") -> "impostos-federais"
+	 */
+	public static String toSlug(String s) {
+		if (s == null)
+			return "";
+		String n = Normalizer.normalize(s, Normalizer.Form.NFD).replaceAll("\\p{M}+", ""); // remove acentos
+		n = n.replaceAll("[^\\p{Alnum}_-]+", "-") // troca não-alfanum por "-"
+				.replaceAll("(^-+|-+$)", "") // tira hifens nas pontas
+				.toLowerCase(Locale.ROOT);
+		return n;
+	}
+
+	private static void warn(String msg) {
+		System.err.println(msg);
 	}
 
 }

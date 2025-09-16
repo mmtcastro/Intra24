@@ -12,4 +12,8 @@ import lombok.Setter;
 @Setter
 public class ContatoService extends AbstractService<Contato> {
 
+	public ContatoService() {
+		super();
+	}
+
 }

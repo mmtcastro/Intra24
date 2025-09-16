@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -35,116 +36,223 @@ import lombok.ToString;
 @Setter
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
-//@JsonInclude(Include.NON_NULL) // nao mostrar campos nulos na conversao Jackson
+@JsonInclude(JsonInclude.Include.NON_NULL) // nao mostrar campos nulos na conversao Jackson
 
 public abstract class AbstractModelDoc extends AbstractModel {
 
+	// Metadados do Domino
 	@JsonProperty("@meta")
 	@JsonAlias({ "@meta", "meta" })
 	protected Meta meta;
+
 	@JsonProperty("@unid")
 	@JsonAlias({ "@unid", "unid" })
 	protected String unid;
+
 	@JsonProperty("@noteid")
 	@JsonAlias({ "@noteid", "noteid" })
 	protected int noteid;
+
 	@JsonProperty("@index")
 	@JsonAlias({ "@index", "index" })
 	protected String index;
-	@NotNull
+
+	// Identificação lógica
+	@JsonProperty("Id")
 	@JsonAlias({ "Id", "id" })
 	@NotNull
 	protected String id;
+
+	@JsonProperty("uid")
 	@JsonAlias({ "Uid", "uid" })
 	protected String uid;
+
+	@JsonProperty("UnidOrigem")
 	@JsonAlias({ "UnidOrigem", "unidOrigem" })
 	protected String unidOrigem;
+
+	@JsonProperty("IdOrigem")
 	@JsonAlias({ "IdOrigem", "idOrigem" })
 	protected String idOrigem;
+
+	@JsonProperty("CodigoOrigem")
 	@JsonAlias({ "CodigoOrigem", "codigoOrigem" })
 	protected String codigoOrigem;
+
+	@JsonProperty("IdRaiz")
 	@JsonAlias({ "IdRaiz", "idRaiz" })
 	protected String idRaiz;
+
+	@JsonProperty("CodigoRaiz")
 	@JsonAlias({ "CodigoRaiz", "codigoRaiz" })
 	protected String codigoRaiz;
+
+	@JsonProperty("CampoOrigem")
 	@JsonAlias({ "CampoOrigem", "campoOrigem" })
 	protected String campoOrigem;
+
+	@JsonProperty("IdNegocio")
 	@JsonAlias({ "IdNegocio", "idNegocio" })
 	protected String idNegocio;
+
+	@JsonProperty("CodigoNegocio")
 	@JsonAlias({ "CodigoNegocio", "codigoNegocio" })
 	protected String codigoNegocio;
-	@JsonAlias({ "Form", "form" })
+
+	// 🚨 Campo obrigatório para criar documentos no Domino
 	@JsonProperty("Form")
-	protected String form;
+	@JsonAlias({ "Form", "form" })
 	@NotNull
+	protected String form;
+
+	// Atributos de negócio
+	@JsonProperty("Codigo")
 	@JsonAlias({ "Codigo", "codigo" })
+	@NotNull
 	protected String codigo;
+
+	@JsonProperty("Status")
 	@JsonAlias({ "Status", "status" })
 	protected String status;
+
+	@JsonProperty("Sit")
 	@JsonAlias({ "Sit", "sit" })
 	protected String sit;
+
+	@JsonProperty("Criacao")
 	@JsonAlias({ "Criacao", "criacao" })
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
 	@JsonDeserialize(using = ZonedDateTimeDeserializer.class)
 	protected ZonedDateTime criacao;
+
+	@JsonProperty("Data")
 	@JsonAlias({ "Data", "data" })
-//	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-//	@JsonDeserialize(using = ZonedDateTimeDeserializer.class)
 	protected LocalDate data;
+
+	@JsonProperty("Autor")
 	@JsonAlias({ "autor", "Autor" })
 	protected String autor;
+
+	@JsonProperty("Responsavel")
 	@JsonAlias({ "responsavel", "Responsavel" })
 	protected String responsavel;
+
+	@JsonProperty("Area")
 	@JsonAlias({ "Area", "area" })
 	protected String area;
+
+	@JsonProperty("Nome")
 	@JsonAlias({ "nome", "Nome" })
 	protected String nome;
+
+	@JsonProperty("Descricao")
 	@JsonAlias({ "descricao", "Descricao" })
 	protected String descricao;
+
+	@JsonProperty("DataMudancaStatus")
 	@JsonAlias({ "dataMudancaStatus", "DataMudancaStatus" })
 	protected ZonedDateTime dataMudancaStatus;
+
+	@JsonProperty("ResponsavelMudancaStatus")
 	@JsonAlias({ "responsavelMudancaStatus", "ResponsavelMudancaStatus" })
 	protected String responsavelMudancaStatus;
+
+	@JsonProperty("Tipo")
 	@JsonAlias({ "Tipo", "tipo" })
 	protected String tipo;
+
+	@JsonProperty("Valor")
 	@JsonAlias({ "valor", "Valor" })
 	protected Double valor;
-	protected Boolean podeDeletar; // proteção contra ser apagado por agente ou vista
-	protected String mensagemPorDeletar; // para explicar por que nao apagou o doc
+
+	// Controle interno
+	@JsonProperty("PodeDeletar")
+	protected Boolean podeDeletar;
+
+	@JsonProperty("MensagemPorDeletar")
+	protected String mensagemPorDeletar;
+
+	@JsonProperty("UserAgent")
 	protected String userAgent;
-	protected String lastModified; // pegar getLastModified to Domino
+
+	@JsonProperty("LastModified")
+	protected String lastModified;
+
+	@JsonProperty("Autores")
 	protected TreeSet<String> autores;
+
+	@JsonProperty("Leitores")
 	protected TreeSet<String> leitores;
-	protected Boolean isResponse; // para manter compatibilidade com Notes (contato eh response de Empresa)
-	protected String uri; // para guardar a identificacao de um determinado documento. Ex.
-							// intra.tdec.com.br/intra.nsf/empresas_contato.xsp?id=empresas_Contato_asdasd_asdsad_sdas
-	protected String revision; // para ver quantas vezes foi revisado e a ultima revisão
-//	@JsonAlias({ "body", "Body" })
-//	@JsonDeserialize(using = BodyDeserializer.class)
-//	protected RichText body;
-//	@JsonAlias({ "obs", "Obs" })
-//	@JsonDeserialize(using = BodyDeserializer.class)
-//	protected RichText obs;
+
+	@JsonProperty("IsResponse")
+	protected Boolean isResponse;
+
+	@JsonProperty("Uri")
+	protected String uri;
+
+	@JsonProperty("Revision")
+	protected String revision;
+
+	// RichText (descomentar quando necessário)
+	// @JsonProperty("Body")
+	// @JsonAlias({ "body", "Body" })
+	// @JsonDeserialize(using = BodyDeserializer.class)
+	// protected RichText body;
+	//
+	// @JsonProperty("Obs")
+	// @JsonAlias({ "obs", "Obs" })
+	// @JsonDeserialize(using = BodyDeserializer.class)
+	// protected RichText obs;
+
+	// Anexos
+	@JsonProperty("$FILES")
 	@JsonAlias({ "fileNames", "$FILES" })
-	protected List<String> fileNames;
+	protected List<String> fileNames = new ArrayList<>();
+
+	@JsonProperty("Uploads")
 	protected List<UploadedFile> uploads = new ArrayList<>();
-	private List<String> anexosParaExcluir = new ArrayList<>(); // para controle de exclusão de anexos no AbstractView
+
+	@JsonProperty("AnexosParaExcluir")
+	protected List<String> anexosParaExcluir = new ArrayList<>();
 
 	public AbstractModelDoc() {
-
+		super();
+		this.autores = new TreeSet<>();
+		this.leitores = new TreeSet<>();
+		this.fileNames = new ArrayList<>();
+		this.podeDeletar = true; // valor default
+		this.mensagemPorDeletar = "";
+		this.isResponse = false;
+		this.init();
 	}
 
 	public void init() {
 		try {
-			if (this.getMeta() == null) { // novo doc
-				this.form = this.getClass().getSimpleName();
-				this.id = generateNewModelId();
-				this.autor = UtilsSession.getCurrentUserName();
-				this.criacao = ZonedDateTime.now();
-			} else {
-				// preencherCamposMultivalue();
+			// Se já tem UNID, não mexe (doc existente)
+			if (this.getMeta() != null && this.getMeta().getUnid() != null) {
+				return;
 			}
-			newRevision();
+
+			// Form obrigatório
+			if (this.form == null || this.form.isBlank()) {
+				this.form = this.getClass().getSimpleName();
+			}
+
+			// ID lógico
+			if (this.id == null || this.id.isBlank()) {
+				this.id = generateNewModelId();
+			}
+
+			// Autor
+			if (this.autor == null || this.autor.isBlank()) {
+				this.autor = UtilsSession.getCurrentUserName();
+			}
+
+			// Data de criação
+			if (this.criacao == null) {
+				this.criacao = ZonedDateTime.now();
+			}
+
 		} catch (Exception e) {
 			System.err.println("Erro init() ao inicializar o AbstractModelDoc: " + e.getMessage());
 			e.printStackTrace();
@@ -331,59 +439,6 @@ public abstract class AbstractModelDoc extends AbstractModel {
 		}
 	}
 
-//	private void preencherCamposMultivalue() {
-//		print("Preenchendo campos multivalue para " + this.getClass().getSimpleName());
-//		try {
-//			// Iterar sobre todas as inner classes
-//			for (Class<?> innerClass : this.getClass().getDeclaredClasses()) {
-//				if (AbstractModelDocMultivalue.class.isAssignableFrom(innerClass)) {
-//					String prefix = innerClass.getSimpleName().toLowerCase();
-//					Field[] innerFields = innerClass.getDeclaredFields();
-//
-//					// Obter listas de valores da classe concreta
-//					List<Object> listaDeObjetos = new ArrayList<>();
-//					int tamanho = obterTamanhoListas(prefix, innerFields);
-//
-//					// Criar instâncias da inner class e preencher com valores
-//					for (int i = 0; i < tamanho; i++) {
-//						Object innerInstance = innerClass.getDeclaredConstructor().newInstance();
-//
-//						for (Field innerField : innerFields) {
-//							innerField.setAccessible(true);
-//							String nomeCampo = prefix + Utils.capitalize(innerField.getName());
-//
-//							Field listaField = getFieldByName(this.getClass(), nomeCampo);
-//							if (listaField != null && List.class.isAssignableFrom(listaField.getType())) {
-//								listaField.setAccessible(true);
-//								List<?> listaValores = (List<?>) listaField.get(this);
-//
-//								if (listaValores != null && i < listaValores.size()) {
-//									Object valor = listaValores.get(i);
-//									innerField.set(innerInstance, valor);
-//								}
-//							}
-//						}
-//						listaDeObjetos.add(innerInstance);
-//					}
-//
-//					// Atribuir a lista preenchida ao campo correspondente na classe concreta
-//					String listaFieldName = Utils.addPlurais(prefix);
-//					Field listaField = getFieldByName(this.getClass(), listaFieldName);
-//					if (listaField != null) {
-//						listaField.setAccessible(true);
-//						// listaField.set(this, listaDeObjetos);
-//						assignListToField(this, listaField, listaDeObjetos, /* pluralHint */ listaFieldName);
-//					} else {
-//						print("nao achei o campo da lista: " + listaFieldName);
-//					}
-//				}
-//			}
-//		} catch (Exception e) {
-//			System.err.println("Erro ao preencher campos multivalue: " + e.getMessage());
-//			e.printStackTrace();
-//		}
-//	}
-
 	private int obterTamanhoListas(String prefix, Field[] innerFields) {
 		int tamanho = 0;
 		for (Field innerField : innerFields) {
@@ -482,6 +537,25 @@ public abstract class AbstractModelDoc extends AbstractModel {
 			this.fileName = fileName;
 			this.fileData = fileData;
 		}
+	}
+
+	/**
+	 * Retorna o nome do banco de dados (database) do Domino associado a esta
+	 * classe. Derivado do nome do pacote, assumindo a convenção
+	 * 'br.com.tdec.intra.<database>.model'.
+	 * 
+	 * @return O nome do banco de dados.
+	 */
+	public String getDatabase() {
+		String packageName = this.getClass().getPackageName();
+		String[] parts = packageName.split("\\."); // <-- escape duplo
+
+		if (parts.length > 4 && "intra".equalsIgnoreCase(parts[3])) {
+			return parts[4];
+		}
+		System.err.println(
+				"WARN: Could not derive database from package name: " + packageName + ". Check naming convention.");
+		return null;
 	}
 
 }

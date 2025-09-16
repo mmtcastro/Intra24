@@ -582,6 +582,13 @@ public class MultivalueGrid<T extends AbstractModelDocMultivalue> extends Compos
 		}
 	}
 
+	public void syncAndSaveIfEditing() {
+		syncToMultivalueFields();
+		if (getEditor().isOpen()) {
+			getEditor().save();
+		}
+	}
+
 	public MultivalueGrid<T> setItems(List<T> items) {
 		grid.setItems(items);
 		return this;

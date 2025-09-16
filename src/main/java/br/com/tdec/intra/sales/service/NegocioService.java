@@ -19,6 +19,10 @@ import reactor.core.publisher.Mono;
 @Service
 public class NegocioService extends AbstractService<Negocio> {
 
+	public NegocioService() {
+		super();
+	}
+
 	public boolean grupoEconomicoFezNegocio(String codigoGrupoEconomico) {
 		// Verifica se o código é válido
 		if (codigoGrupoEconomico == null || codigoGrupoEconomico.trim().isEmpty()) {

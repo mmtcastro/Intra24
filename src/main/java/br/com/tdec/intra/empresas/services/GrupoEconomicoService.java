@@ -28,15 +28,19 @@ import reactor.core.publisher.Mono;
 @Setter
 public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 
+	public GrupoEconomicoService() {
+		super();
+	}
+
 	@Autowired
 	private NegocioService negocioService; // Repositório que verifica se existem negócios ligados ao grupo
 
 	@Autowired
 	private CompraService compraService; // Repositório que verifica se existem compras ligadas ao grupo
 
-	public GrupoEconomicoService() {
-		super();
-	}
+//	public GrupoEconomicoService() {
+//		super();
+//	}
 
 	@Override
 	public DeleteResponse delete(AbstractModelDoc grupoEconomico) {

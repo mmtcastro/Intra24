@@ -33,8 +33,8 @@ import lombok.Setter;
 @Setter
 public abstract class AbstractViewLista<T extends AbstractModelDoc> extends VerticalLayout {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	protected AbstractService<T> service;
 	protected TextField searchText;
@@ -194,21 +194,11 @@ public abstract class AbstractViewLista<T extends AbstractModelDoc> extends Vert
 	public void updateGrid(Grid<T> grid, String searchText, boolean fulltextsearch) {
 		log.info("🔄 Chamando updateGrid() - searchText='{}', fulltextsearch={}", searchText, fulltextsearch);
 
-		// 🔹 Inicializa o totalCount como 0 antes de buscar os registros
-		service.setTotalCount(0);
+		// 🔹 Busca inicial apenas para atualizar totalCount no service
+		service.findAllByCodigo(0, 50, List.of(), searchText, getModelClass(), fulltextsearch);
 
-		// 🔹 Busca inicial com um número maior de registros para garantir que o
-		// totalCount seja atualizado corretamente
-		List<T> tempResultados = service.findAllByCodigo(0, 50, List.of(), searchText, getModelClass(), fulltextsearch);
-
-		// ⚠️ Verifica se a busca retornou algo e atualiza totalCount
-		if (tempResultados != null && !tempResultados.isEmpty()) {
-			int realTotalCount = tempResultados.size();
-			service.setTotalCount(realTotalCount);
-			log.info("✅ TotalCount atualizado corretamente: {}", realTotalCount);
-		} else {
-			log.warn("⚠️ Nenhum resultado encontrado. TotalCount será 0.");
-		}
+		int realTotalCount = Optional.ofNullable(service.getTotalCount()).orElse(0);
+		log.info("✅ TotalCount vindo do service: {}", realTotalCount);
 
 		// 🔄 Configura o DataProvider com o totalCount correto
 		DataProvider<T, Void> dataProvider = DataProvider.fromCallbacks(query -> {

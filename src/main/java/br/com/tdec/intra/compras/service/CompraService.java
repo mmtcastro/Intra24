@@ -23,6 +23,10 @@ import reactor.core.publisher.Mono;
 @Setter
 public class CompraService extends AbstractService<Compra> {
 
+	public CompraService() {
+		super();
+	}
+
 	public boolean fornecedorFezNegocio(String codigoFornecedor) {
 		// Verifica se o código é válido
 		if (codigoFornecedor == null || codigoFornecedor.trim().isEmpty()) {

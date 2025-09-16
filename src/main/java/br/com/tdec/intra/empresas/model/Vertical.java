@@ -8,7 +8,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import br.com.tdec.intra.abs.AbstractModelDoc;
 import br.com.tdec.intra.abs.AbstractModelDocMultivalue;
+import br.com.tdec.intra.abs.AbstractModelLista;
 import br.com.tdec.intra.abs.AbstractModelListaMultivalue;
+import br.com.tdec.intra.compras.model.Compra;
 import br.com.tdec.intra.utils.jackson.BodyDeserializer;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,26 +20,28 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 public class Vertical extends AbstractModelDoc {
-	// private List<String> unidadeResponsavel = new ArrayList<>();
-	// private List<String> unidadeEstado = new ArrayList<>();
-	// private List<LocalDate> unidadeCriacao = new ArrayList<>();
-	// private List<Double> unidadeValor = new ArrayList<>();
-	// private List<String> unidadeStatus = new ArrayList<>();
 	@JsonIgnore
 	private Unidades unidades;
+
+	@JsonIgnore
+	private AbstractModelLista<Compra> compras;
+
 	@JsonAlias({ "body", "Body" })
 	@JsonDeserialize(using = BodyDeserializer.class)
 	protected RichText body;
+
 	@JsonAlias({ "obs", "Obs" })
 	@JsonDeserialize(using = BodyDeserializer.class)
 	protected RichText obs;
 
-	public Vertical() {
-		super();
-		if (getUnidades() == null) {
-			setUnidades(new Unidades());
-		}
-	}
+//	public Vertical() {
+//		super();
+//		if (getUnidades() == null) {
+//			setUnidades(new Unidades());
+//		}
+//		compras = new Compras();
+//		compras compra = createModel(Compra.class);
+//	}
 
 	public int compareTo(AbstractModelDoc outro) {
 		if (getCodigo() != null) {
@@ -58,15 +62,15 @@ public class Vertical extends AbstractModelDoc {
 	@Getter
 	@Setter
 	public static class Unidade extends AbstractModelDocMultivalue {
-		@JsonIgnore
+		// @JsonIgnore
 		private String responsavel;
-		@JsonIgnore
+		// @JsonIgnore
 		private String estado;
-		@JsonIgnore
+		// @JsonIgnore
 		private LocalDate criacao;
-		@JsonIgnore
+		// @JsonIgnore
 		private Double valor;
-		@JsonIgnore
+		// @JsonIgnore
 		private String status;
 	}
 

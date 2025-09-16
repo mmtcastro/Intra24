@@ -160,14 +160,4 @@ public class VerticalView extends AbstractViewDoc<Vertical> {
 		unidadeGrid.setReadOnly(isReadOnly); // aplica a lógica de readOnly no grid customizado
 	}
 
-	public void save() {
-		if (unidadeGrid != null) {
-			unidadeGrid.syncToMultivalueFields();
-			if (unidadeGrid.getEditor().isOpen()) {
-				unidadeGrid.getEditor().save();
-			}
-		}
-		super.save();
-	}
-
 }

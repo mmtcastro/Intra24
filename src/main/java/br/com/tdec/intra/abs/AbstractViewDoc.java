@@ -63,6 +63,7 @@ import br.com.tdec.intra.abs.AbstractService.FileResponse;
 import br.com.tdec.intra.abs.AbstractService.SaveResponse;
 import br.com.tdec.intra.config.ApplicationContextProvider;
 import br.com.tdec.intra.config.MailService;
+import br.com.tdec.intra.empresas.componentes.MultivalueGrid;
 import br.com.tdec.intra.services.Response;
 import br.com.tdec.intra.utils.converters.RichTextToMimeConverter;
 import lombok.Getter;
@@ -484,55 +485,72 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 	}
 
 //	public void initUploadFiles() {
-//		model.getLogger().info("upload de arquivos - " + model.getUploads().size());
-//		UploadI18N i18n = new UploadI18N();
-//		i18n.setAddFiles(new UploadI18N.AddFiles().setOne("Adicionar arquivo") // Texto do botão para um arquivo
-//				.setMany("Adicionar arquivos")); // Texto do botão para vários arquivos
-//		i18n.setDropFiles(new UploadI18N.DropFiles().setOne("Arraste o arquivo aqui") // Texto para arrastar um arquivo
-//				.setMany("Arraste os arquivos aqui")); // Texto para arrastar vários arquivos
-//		upload.setI18n(i18n);
+//		model.getLogger().info("Upload de arquivos - iniciando");
 //
-//		upload.setMaxFiles(10);
-//		upload.setMaxFileSize(50 * 1024 * 1024); // 50 MB
+//		// Callback de sucesso: arquivo salvo temporariamente no disco
+//		BiConsumer<UploadMetadata, File> successHandler = (metadata, file) -> {
+//			String fileName = metadata.fileName();
+//			model.getLogger().info("Arquivo recebido: " + fileName + " (" + file.length() + " bytes)");
 //
-//		upload.setAcceptedFileTypes("application/pdf");
+//			try (InputStream inputStream = new FileInputStream(file)) {
+//				byte[] fileBytes = inputStream.readAllBytes();
 //
-//		// Listener para uploads com falha
-//		upload.addFailedListener(event -> {
-//			String errorMessage = "Falha ao enviar o arquivo. Verifique o tamanho ou o formato.";
+//				// Adiciona ao modelo
+//				model.adicionarAnexo(new UploadedFile(fileName, fileBytes));
 //
-//			Throwable reason = event.getReason();
-//			if (reason instanceof MaxUploadSizeExceededException) {
-//				errorMessage = "O arquivo excede o tamanho máximo permitido pelo servidor!";
+//			} catch (IOException e) {
+//				model.getLogger().warn("Erro ao processar o arquivo: " + e.getMessage(), e);
+//				Notification.show("Erro ao processar o arquivo: " + e.getMessage(), 3000, Notification.Position.MIDDLE);
+//			}
+//		};
+//
+//		// Usa tipo concreto diretamente
+//		TemporaryFileUploadHandler handler = TemporaryFileUploadHandler.toTempFile(successHandler::accept);
+//
+//		handler.onProgress((transferredBytes, totalBytes) -> {
+//			double percent = 100.0 * transferredBytes / totalBytes;
+//			System.out.printf("Progresso do upload: %.1f%%%n", percent);
+//		});
+//
+//		handler.onError((error, metadata) -> {
+//			String fileName = metadata.fileName();
+//			String errorMessage = "Falha ao enviar o arquivo " + fileName;
+//
+//			if (error instanceof MaxUploadSizeExceededException) {
+//				errorMessage = "O arquivo " + fileName + " excede o tamanho máximo permitido!";
 //			}
 //
+//			model.getLogger().warn(errorMessage, error);
 //			Notification.show(errorMessage, 5000, Notification.Position.MIDDLE);
 //		});
 //
-//		upload.addSucceededListener(event -> {
-//			// Obter o nome do arquivo e o conteúdo
-//			String fileName = event.getFileName();
-//			InputStream fileData = buffer.getInputStream();
-//			try {
-//				// Salvar o arquivo na lista temporária
-//				byte[] fileBytes = fileData.readAllBytes();
-//				// uploadedFiles.add(new UploadedFile(fileName, fileBytes));
-//				model.adicionarAnexo(new UploadedFile(fileName, fileBytes));
-//				// Persistir o anexo no backend Domino
-//				FileResponse response = service.uploadAnexo(model.getMeta().getUnid(), "anexos", fileName,
-//						new ByteArrayInputStream(fileBytes));
-//				if (response != null && response.isSuccess()) {
-//					Notification.show("Arquivo enviado com sucesso: " + fileName, 3000, Notification.Position.MIDDLE);
-//				} else {
-//					Notification.show("Erro ao salvar o arquivo no backend Domino.", 5000,
-//							Notification.Position.MIDDLE);
-//				}
-//			} catch (IOException e) {
-//				Notification.show("Erro ao processar o arquivo: " + e.getMessage(), 3000, Notification.Position.MIDDLE);
+//		handler.whenComplete(success -> {
+//			if (success) {
+//				System.out.println("Upload concluído com sucesso.");
+//			} else {
+//				System.out.println("Falha no upload.");
 //			}
 //		});
-//		// verticalLayoutAnexos.add(upload);
 //
+//		// Cria o componente de upload
+//		upload = new Upload(handler);
+//		upload.setMaxFiles(10);
+//		upload.setMaxFileSize(50 * 1024 * 1024); // 50 MB
+//		upload.setAcceptedFileTypes("application/pdf");
+//
+//		// Traduções
+//		UploadI18N i18n = new UploadI18N()
+//				.setAddFiles(new UploadI18N.AddFiles().setOne("Adicionar arquivo").setMany("Adicionar arquivos"))
+//				.setDropFiles(new UploadI18N.DropFiles().setOne("Arraste o arquivo aqui")
+//						.setMany("Arraste os arquivos aqui"));
+//		upload.setI18n(i18n);
+//
+//		// ✅ Clique no ❌ do Vaadin Upload
+//		upload.getElement().addEventListener("file-remove", e -> {
+//			String fileName = e.getEventData().getString("event.detail.file.name");
+//			deleteAnexo(fileName);
+//			model.getLogger().info("Arquivo removido pelo usuário (X do Upload): " + fileName);
+//		}).addEventData("event.detail.file.name");
 //	}
 
 	public void initUploadFiles() {
@@ -589,31 +607,46 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 			}
 			Notification.show(errorMessage, 5000, Notification.Position.MIDDLE);
 		});
+
+		// ✅ Clique no ❌ do Vaadin Upload
+		upload.getElement().addEventListener("file-remove", e -> {
+			String fileName = e.getEventData().getString("event.detail.file.name");
+			deleteAnexo(fileName);
+			model.getLogger().info("Arquivo removido pelo usuário (X do Upload): " + fileName);
+		}).addEventData("event.detail.file.name");
 	}
 
 	private void deleteAnexo(String fileName) {
-		// Adiciona o anexo à lista de exclusão no modelo
+		// Marca para exclusão no modelo
 		model.getAnexosParaExcluir().add(fileName);
-		// Remove o anexo da lista atual de anexos do modelo
-		// Remove da lista de uploads (em memória)
-		boolean removedFromUploads = model.getUploads().removeIf(f -> f.getFileName().equalsIgnoreCase(fileName));
-		boolean removed = model.getFileNames()
-				.removeIf(fileNameInList -> fileNameInList.trim().equalsIgnoreCase(fileName.trim()));
 
-		if (removed && removedFromUploads) {
-			Notification.show("O anexo \"" + fileName + "\" foi marcado para exclusão.", 3000,
-					Notification.Position.MIDDLE);
+		// Remove de uploads (anexos novos, em memória)
+		boolean removedFromUploads = model.getUploads().removeIf(f -> f.getFileName().equalsIgnoreCase(fileName));
+
+		// Remove de fileNames (anexos já persistidos no Domino)
+		boolean removedFromFileNames = model.getFileNames().removeIf(fn -> fn.trim().equalsIgnoreCase(fileName.trim()));
+
+		// Feedback ao usuário
+		if (removedFromUploads || removedFromFileNames) {
+//			Notification.show("O anexo \"" + fileName + "\" foi marcado para exclusão.", 3000,
+//					Notification.Position.MIDDLE);
 		} else {
-			Notification.show("Falha ao encontrar o anexo \"" + fileName + "\" na lista.", 3000,
+			Notification.show("Não foi possível localizar o anexo \"" + fileName + "\" na lista.", 3000,
 					Notification.Position.MIDDLE);
 		}
 
-		model.getLogger().info("Anexos size: " + model.getUploads().size());
+		model.getLogger().info("Uploads restantes: " + model.getUploads().size());
 		model.getLogger().info("Anexos para excluir: " + model.getAnexosParaExcluir().size());
 
-		// Atualiza a lista de anexos na interface
-		updateView();
+		// Atualiza só a lista de anexos visível (sem recriar toda a view)
+		refreshAnexosUI();
+	}
 
+	private void refreshAnexosUI() {
+		if (verticalLayoutAnexos != null) {
+			verticalLayoutAnexos.removeAll();
+			initAnexos(); // seu método que recria botões/links de anexos
+		}
 	}
 
 	public void initButtons() {
@@ -755,6 +788,11 @@ public abstract class AbstractViewDoc<T extends AbstractModelDoc> extends Compos
 			if (footer != null && footer.getParent().isPresent()) {
 				footer.getElement().removeFromParent();
 			}
+
+			// 🔑 SINCRONIZA TODOS OS MultivalueGrids AQUI (caso existam no model)
+			getChildren().filter(c -> c instanceof MultivalueGrid<?>)//
+					.map(c -> (MultivalueGrid<?>) c) //
+					.forEach(MultivalueGrid::syncAndSaveIfEditing);
 
 			SaveResponse saveResponse = service.save(model);
 

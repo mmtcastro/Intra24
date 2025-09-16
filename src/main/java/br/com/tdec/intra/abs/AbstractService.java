@@ -4,26 +4,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -31,7 +36,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
@@ -44,7 +48,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.hilla.ApplicationContextProvider;
 
+import br.com.tdec.intra.comum.services.ServiceLocator;
 import br.com.tdec.intra.config.WebClientService;
 import br.com.tdec.intra.directory.model.User;
 import br.com.tdec.intra.services.Response;
@@ -58,13 +64,16 @@ import reactor.core.publisher.Mono;
 
 @Getter
 @Setter
-@Service
 public abstract class AbstractService<T extends AbstractModelDoc> extends Abstract {
 
+	@Autowired
 	protected WebClientService webClientService;
-	protected WebClient webClient;
+	@Autowired
+	protected ServiceLocator serviceLocator;
 	@Autowired
 	protected ObjectMapper objectMapper; // jackson datas
+
+	protected WebClient webClient;
 	protected String scope;
 	protected String form;
 	protected String mode; // usado do Domino Restapi para definir se pode ou não deletar e rodar agentes
@@ -76,15 +85,12 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 
 	@SuppressWarnings("unchecked")
 	public AbstractService() {
-		// Infere o tipo genérico no tempo de execução
 		this.modelClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
 				.getActualTypeArguments()[0];
-		scope = Utils.getScopeFromClass(this.getClass());
-
-		this.mode = "default"; // tem que trocar para DQL ou outro mode caso necessário. Esta aqui para //
-								// simplificar.
+		this.scope = Utils.getScopeFromClass(modelClass);
+		this.mode = "default";
 		this.model = createModel();
-		form = model.getClass().getSimpleName(); // Vertical
+		this.form = model.getClass().getSimpleName();
 	}
 
 	@Autowired
@@ -101,83 +107,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 		}
 	}
 
-//	public Response<T> findByUnid(String unid) {
-//		Response<T> response = null;
-//		// Verifica se o código é nulo ou vazio
-//		if (unid == null || unid.trim().isEmpty()) {
-//			return new Response<>(null, "Unid não pode ser nulo ou vazio.", 400, false);
-//		}
-//		try {
-//			// Captura a resposta do WebClient, lidando com erros
-//			String rawResponse = webClient.get()
-//					.uri("/document/" + unid + "?dataSource=" + scope + "&computeWithForm=false"
-//							+ "&richTextAs=html&mode=" + mode)
-//					.header("Content-Type", "application/json; charset=UTF-8")//
-//					.header("Accept-Charset", "UTF-8")//
-//					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
-//					.onStatus(HttpStatusCode::isError,
-//							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
-//								// Lança CustomWebClientException, que é um Throwable
-//								return Mono.<Throwable>error(new CustomWebClientException(errorResponse.getMessage(),
-//										errorResponse.getStatus(), errorResponse));
-//							}))
-//					.bodyToMono(String.class) // Captura a resposta como String bruta
-//					.block(); // Bloqueia e espera a resposta
-//
-//			// Verifica se a resposta está vazia antes de desserializar
-//			if (rawResponse == null || rawResponse.isEmpty()) {
-//				return new Response<>(null, "Resposta vazia da Web API.", 204, false);
-//			}
-//			// Exibe a resposta bruta no console para análise
-//			System.out.println("FindByUnid - Resposta bruta da Web API: " + rawResponse);
-//
-//			// T model = objectMapper.readValue(rawResponse, modelClass); // mais direto
-//
-//			JsonNode root = objectMapper.readTree(rawResponse); // preciso manipular o multivalues antes
-//
-//			// LOG bruto dos arrays multivalue esperados (ajuste os nomes se precisar)
-//			// logs
-//			System.out.println("[findByUnid] unidadeResponsavel size = " + fsize(root, "unidadeResponsavel"));
-//			System.out.println("[findByUnid] unidadeStatus      size = " + fsize(root, "unidadeStatus"));
-//			System.out.println("[findByUnid] unidadeEstado      size = " + fsize(root, "unidadeEstado"));
-//			System.out.println("[findByUnid] unidadeCriacao     size = " + fsize(root, "unidadeCriacao"));
-//			System.out.println("[findByUnid] unidadeValor       size = " + fsize(root, "unidadeValor"));
-//			T model = objectMapper.treeToValue(root, modelClass);
-//
-//			model.init(); // Inicializa o modelo, se necessário depois de carregar os dados
-//
-//			populaMultivalues(model, root); // Popula os campos multivalueFields do modelo
-//
-//			// Chamada para carregar anexos
-//			loadAnexos(model, unid);
-//
-//			// Retorna o modelo em um Response de sucesso
-//			response = new Response<>(model, "Documento carregado com sucesso.", 200, true);
-//
-//		} catch (CustomWebClientException e) {
-//			ErrorResponse error = e.getErrorResponse();
-//			System.out.println("Erro ao tentar buscar documento. Código HTTP: " + error.getStatus());
-//			System.out.println("Mensagem de erro: " + error.getMessage());
-//			System.out.println("Detalhes do erro: " + error.getDetails());
-//
-//			// Monta a resposta de erro com base no status e mensagem do erro capturado
-//			response = new Response<>(null, error.getMessage() + " - " + error.getDetails(), error.getStatus(), false);
-//
-//		} catch (WebClientResponseException e) {
-//			HttpStatusCode statusCode = e.getStatusCode();
-//			System.out.println("Erro ao tentar buscar documento. Código HTTP: " + statusCode);
-//			System.out.println("Mensagem de erro: " + e.getMessage());
-//
-//			// Monta a resposta de erro padrão
-//			response = new Response<>(null, "Erro ao buscar documento: " + e.getMessage(), statusCode.value(), false);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			response = new Response<>(null, "Erro inesperado ao buscar documento.", 500, false);
-//		}
-//
-//		return response;
-//	}
-
 	public Response<T> findByUnid(String unid) {
 		if (unid == null || unid.isBlank())
 			return new Response<>(null, "Unid não pode ser nulo ou vazio.", 400, false);
@@ -189,143 +118,40 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 	}
 
 	public Response<T> findById(String id) {
-		Response<T> response = null;
-		// Verifica se o código é nulo ou vazio
-		if (id == null || id.trim().isEmpty()) {
+		if (id == null || id.isBlank())
 			return new Response<>(null, "Id não pode ser nulo ou vazio.", 400, false);
-		}
-		try {
-			// Montando a URI com os parâmetros para buscar por vista
-			String apiUrl = "/lists/_intraIds?mode=default&dataSource=" + scope
-					+ "keyAllowPartial=false&documents=true&richTextAs=mime&key=" + id + "&scope=documents";
 
-			// Capturando a resposta do WebClient
-			String rawResponse = webClient.get().uri(apiUrl).header("Content-Type", "application/json; charset=UTF-8")
-					.header("Accept-Charset", "UTF-8").header("Authorization", "Bearer " + getUser().getToken())
-					.retrieve().onStatus(HttpStatusCode::isError,
-							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
-								return Mono.<Throwable>error(new CustomWebClientException(errorResponse.getMessage(),
-										errorResponse.getStatus(), errorResponse));
-							}))
-					.bodyToMono(String.class).block();
-
-			// Verificando se a resposta está vazia
-			if (rawResponse == null || rawResponse.isEmpty()) {
-				return new Response<>(null, "Resposta vazia da Web API.", 204, false);
-			}
-
-			System.out.println("findById - Resposta bruta da Web API: " + rawResponse);
-
-			// Desserializar a resposta para o tipo esperado (T)
-			T model = objectMapper.readValue(rawResponse, modelClass);
-			model.init(); // Inicializa o modelo, se necessário
-
-			// Retorna o modelo em um Response de sucesso
-			response = new Response<>(model, "Documento carregado com sucesso.", 200, true);
-
-		} catch (CustomWebClientException e) {
-			ErrorResponse error = e.getErrorResponse();
-			System.out.println("Erro ao tentar buscar documento. Código HTTP: " + error.getStatus());
-			response = new Response<>(null, error.getMessage() + " - " + error.getDetails(), error.getStatus(), false);
-
-		} catch (WebClientResponseException e) {
-			HttpStatusCode statusCode = e.getStatusCode();
-			System.out.println("Erro ao tentar buscar documento. Código HTTP: " + statusCode);
-			response = new Response<>(null, "Erro ao buscar documento: " + e.getMessage(), statusCode.value(), false);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response = new Response<>(null, "Erro inesperado ao buscar documento.", 500, false);
-		}
-
-		return response;
-	}
-
-//	/**
-//	 * Esta funcao retorna um Response com apenas o conteudo da vista (ViewEntry)
-//	 * sem mime. com apenas um documento pois apenas um codigo pode existir no banco
-//	 * 
-//	 * @param codigo
-//	 * @return
-//	 */
-//	public Response<T> findByCodigo(String codigo) {
-//		System.out.println("findByCodigo - INICIO - codigo = " + codigo + " - form = " + form);
-//		// Verifica se o código é nulo ou vazio
-//		if (codigo == null || codigo.trim().isEmpty()) {
-//			return new Response<>(null, "Código não pode ser nulo ou vazio.", 400, false);
-//		}
-//
-//		Response<T> response = null;
-//		try {
-//			// Monta a URI com o código e form
-//			String uri = ("/lists/_intraCodigos?mode=" + mode + "&dataSource=" + scope
-//					+ "&keyAllowPartial=false&documents=false&richTextAs=mime&key=" + codigo + "&key=" + form)
-//					.formatted();
-//			System.out.println("URI findByCodigo: " + uri);
-//
-//			// Faz a requisição e captura a resposta
-//			String rawResponse = webClient.get().uri(uri)//
-//					.header("Content-Type", "application/json; charset=UTF-8")
-//					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
-//					.onStatus(HttpStatusCode::isError,
-//							clientResponse -> clientResponse.bodyToMono(ErrorResponse.class).flatMap(errorResponse -> {
-//								return Mono.<Throwable>error(new CustomWebClientException(errorResponse.getMessage(),
-//										errorResponse.getStatus(), errorResponse));
-//							}))
-//					.bodyToMono(String.class) // Recebe a resposta como String
-//					.block();
-//
-//			// Exibe a resposta bruta no console para análise
-//			System.out.println("findByCodigo - Resposta bruta da Web API: " + rawResponse);
-//
-//			// Desserializa como lista e captura apenas o primeiro item
-//			List<T> resultList = objectMapper.readValue(rawResponse,
-//					objectMapper.getTypeFactory().constructCollectionType(List.class, modelClass));
-//
-//			if (!resultList.isEmpty()) {
-//				T resultModel = resultList.get(0);
-//				response = new Response<>(resultModel, "Documento carregado com sucesso.", 200, true);
-//			} else {
-//				response = new Response<>(null, "Nenhum documento encontrado.", 404, false);
-//			}
-//
-//		} catch (CustomWebClientException e) {
-//			ErrorResponse error = e.getErrorResponse();
-//			System.out.println("Erro ao tentar buscar documento. Código HTTP: " + error.getStatus());
-//			System.out.println("Mensagem de erro: " + error.getMessage());
-//			System.out.println("Detalhes do erro: " + error.getDetails());
-//
-//			response = new Response<>(null, error.getMessage() + " - " + error.getDetails(), error.getStatus(), false);
-//
-//		} catch (WebClientResponseException e) {
-//			HttpStatusCode statusCode = e.getStatusCode();
-//			System.out.println("Erro ao tentar buscar documento. Código HTTP: " + statusCode);
-//			System.out.println("Mensagem de erro: " + e.getMessage());
-//
-//			response = new Response<>(null, "Erro ao buscar documento: " + e.getMessage(), statusCode.value(), false);
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			response = new Response<>(null, "Erro inesperado ao buscar documento.", 500, false);
-//		}
-//
-//		return response;
-//	}
-
-	public Response<T> findByCodigo(String codigo) {
-		if (codigo == null || codigo.isBlank())
-			return new Response<>(null, "Código não pode ser nulo ou vazio.", 400, false);
-		String uri = ("/lists/_intraCodigos?//"//
-				+ "mode=" + mode//
-				+ "&dataSource=" + scope //
-				+ "&keyAllowPartial=false&documents=false&richTextAs=mime&key=" + codigo //
-				+ "&key=" + form + "&count=1")//
-				.formatted();
+		String uri = "/lists/_intraIds?mode=default&dataSource=" + scope //
+				+ "&keyAllowPartial=false&documents=true&richTextAs=mime&key=" + id //
+				+ "&scope=documents&count=1";
 
 		return getAndPopulaModelo(uri, true);
 	}
 
-	public SaveResponse save(T model) {
+	public Response<T> findByCodigo(String codigo) {
+		if (codigo == null || codigo.isBlank())
+			return new Response<>(null, "Código não pode ser nulo ou vazio.", 400, false);
+//		String uri = ("/lists/_intraCodigos?//"//
+//				+ "mode=" + mode//
+//				+ "&dataSource=" + scope //
+//				+ "&keyAllowPartial=false&documents=false&richTextAs=mime&key=" + codigo //
+//				+ "&key=" + form + "&count=1")//
+//				.formatted();
+
+		String uri = "/lists/_intraCodigos" //
+				+ "?mode=" + mode //
+				+ "&dataSource=" + scope //
+				+ "&keyAllowPartial=false" //
+				+ "&documents=true" //
+				+ "&richTextAs=mime" //
+				+ "&key=" + codigo //
+				+ "&key=" + form //
+				+ "&count=1";
+
+		return getAndPopulaModelo(uri, true);
+	}
+
+	public SaveResponse saveOnlyParent(T model) {
 		SaveResponse saveResponse = null;
 		try {
 			model.extrairCamposMultivalueGenerico(); // Extrai campos multivalorados
@@ -446,6 +272,24 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 		}
 
 		return saveResponse;
+	}
+
+	/** depois de gravar o parent, verificar se ele tem filhos e sincronizar */
+	public SaveResponse save(T parent) {
+		// 1) salva o pai (garante id e meta/revision)
+		SaveResponse sr = saveOnlyParent(parent); // seu método atual (o mesmo save), mas sem cascatear
+		if (!sr.isSuccess())
+			return sr;
+
+		// 2) sincroniza filhos
+		SyncReport rep = syncChildren(parent);
+		log.info("Children synced: created={}, updated={}, deleted={}, errors={}", rep.created, rep.updated,
+				rep.deleted, rep.errors.size());
+		if (!rep.errors.isEmpty()) {
+			// opcional: agregar mensagens, avisar UI etc.
+			log.warn("Sync errors: {}", rep.errors);
+		}
+		return sr;
 	}
 
 	public SaveResponse patch(String unid, T model) {
@@ -881,33 +725,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 		}
 	}
 
-	public class StatusCodeDeserializer extends JsonDeserializer<Integer> {
-		@Override
-		public Integer deserialize(JsonParser p, DeserializationContext ctxt)
-				throws IOException, JsonProcessingException {
-			JsonToken token = p.getCurrentToken();
-
-			if (token == JsonToken.VALUE_NUMBER_INT) {
-				// Caso seja um número inteiro, retorna o valor como está
-				return p.getIntValue();
-			} else if (token == JsonToken.VALUE_STRING) {
-				// Caso seja uma string, tenta converter para um número se possível
-				String text = p.getText();
-				if ("OK".equalsIgnoreCase(text)) {
-					return 200; // Se for "OK", atribui 200 como valor de sucesso
-				} else {
-					// Caso a string não seja um status conhecido, lança uma exceção
-					ctxt.reportInputMismatch(Integer.class, "Status code string '{0}' is not valid", text);
-					return null;
-				}
-			} else {
-				// Se o tipo do token for inesperado, lança uma exceção
-				ctxt.reportInputMismatch(Integer.class, "Expected a string or number for status code");
-				return null;
-			}
-		}
-	}
-
 	public List<T> findAllByCodigo(int offset, int count, List<QuerySortOrder> sortOrders, String search,
 			Class<T> model, boolean fulltextsearch) {
 		List<T> resultados = new ArrayList<>();
@@ -1044,24 +861,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 		return resultados;
 	}
 
-//	@SuppressWarnings("hiding")
-//	@Getter
-//	@Setter
-//	public class Response<T> {
-//		private T model;
-//		private String message;
-//		private int status;
-//		private boolean success;
-//
-//		public Response(T body, String message, int status, boolean success) {
-//			this.model = body;
-//			this.message = message;
-//			this.status = status;
-//			this.success = success;
-//		}
-//
-//	}
-
 	public FileResponse getAttachmentNames(String unid) {
 		FileResponse response = new FileResponse();
 		try {
@@ -1124,64 +923,29 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 	public FileResponse deleteAnexo(String unid, String fileName) {
 		FileResponse response = new FileResponse();
 		try {
-			// Normaliza o nome do arquivo para NFC
-			String normalizedFileName = Normalizer.normalize(fileName, Normalizer.Form.NFC);
-			String encodedFileName = URLEncoder.encode(normalizedFileName, StandardCharsets.UTF_8);
+			String encoded = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
+			String uri = "/attachments/%s/%s?dataSource=%s".formatted(unid, encoded, scope);
 
-			String uri = "/attachments/" + unid + "/" + encodedFileName + "?dataSource=" + scope;
-
-			System.out.println("URI para deletar anexo: " + uri);
-
-			// Realiza a requisição DELETE e captura a resposta como String
-
-			String rawResponse = webClient.delete()
-					.uri(uriBuilder -> uriBuilder
-							.path("/attachments/" + unid + "/" + URLEncoder.encode(fileName, StandardCharsets.UTF_8))
-							.queryParam("dataSource", scope).build())
-					.header("Authorization", "Bearer " + getUser().getToken()).retrieve()
+			String rawResponse = webClient.delete().uri(uri).header("Authorization", "Bearer " + getUser().getToken())
+					.retrieve()
 					.onStatus(HttpStatusCode::isError,
-							clientResponse -> clientResponse.bodyToMono(String.class).flatMap(errorMessage -> {
-								System.err.println("Erro HTTP ao apagar anexo: " + errorMessage);
-								return Mono.error(new CustomWebClientException("Erro ao apagar anexo: " + errorMessage,
-										clientResponse.statusCode().value()));
-							}))
+							cr -> cr.bodyToMono(String.class)
+									.flatMap(msg -> Mono.error(new CustomWebClientException(
+											"Erro ao apagar anexo: " + msg, cr.statusCode().value()))))
 					.bodyToMono(String.class).block();
 
-			// Log da resposta bruta para depuração
-			System.out.println("Raw Response: " + rawResponse);
-
-			// Valida se a resposta está vazia
-			if (rawResponse == null || rawResponse.isEmpty()) {
-				response.setMessage("Resposta da API é nula ou vazia.");
-				response.setStatusCode(500);
-				response.setSuccess(false);
-				return response;
-			}
-
-			// Desserializa a resposta para FileResponse
 			response = objectMapper.readValue(rawResponse, FileResponse.class);
-
-			// Verifica o status da operação
 			if (!response.isDeleteSuccess()) {
 				response.setMessage("Falha ao deletar o anexo.");
 				response.setStatusCode(500);
 			}
-
-		} catch (CustomWebClientException e) {
-			System.err.println("Erro do WebClient: " + e.getMessage());
-			response.setMessage("Erro ao apagar o anexo: " + e.getMessage());
-
-			response.setSuccess(false);
+			return response;
 		} catch (Exception e) {
-			System.err.println("Erro inesperado ao apagar o anexo: " + e.getMessage());
 			response.setMessage("Erro inesperado ao apagar o anexo: " + e.getMessage());
 			response.setStatusCode(500);
 			response.setSuccess(false);
+			return response;
 		}
-
-		// Log final da resposta
-		System.out.println("deleteAnexo - Response: " + response);
-		return response;
 	}
 
 	/**
@@ -1298,8 +1062,9 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 					: "";
 
 			// Monta a URL para requisição com base no cURL fornecido
-			String uri = "/api/v1/lists/%s?mode=default&dataSource=empresas&ftSearchQuery=%s&count=%d&direction=%s&start=%d"
-					.formatted(Utils.getListaNameFromModelName(model.getSimpleName()), searchQuery, count, direction,
+			String uri = "/api/v1/lists/%s?mode=default&dataSource=" + scope
+					+ "&ftSearchQuery=%s&count=%d&direction=%s&start=%d".formatted(
+							Utils.getListaNameFromModelName(model.getSimpleName()), searchQuery, count, direction,
 							offset);
 
 			log.info("Executando busca com URI: " + uri);
@@ -1367,86 +1132,6 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 		}
 		return response;
 	}
-
-//	// Dentro do AbstractService (usa this.objectMapper)
-//	private void populaMultivalues(Object model, JsonNode root) {
-//		Class<?> clazz = model.getClass();
-//
-//		for (Class<?> inner : clazz.getDeclaredClasses()) {
-//			if (!AbstractModelDocMultivalue.class.isAssignableFrom(inner))
-//				continue;
-//
-//			String prefix = inner.getSimpleName().toLowerCase(); // "unidade"
-//			Field[] innerFields = inner.getDeclaredFields();
-//
-//			// 1) lê colunas (case-insensitive) e calcula tamanho MÁXIMO
-//			Map<Field, List<Object>> colunas = new LinkedHashMap<>();
-//			int tamanho = 0;
-//
-//			for (Field f : innerFields) {
-//				String mvKey = prefix + Utils.capitalize(f.getName()); // "unidadeResponsavel"
-//				JsonNode arr = getIgnoreCase(root, mvKey);
-//
-//				List<Object> values = new ArrayList<>();
-//				if (arr != null && arr.isArray()) {
-//					for (JsonNode n : arr) {
-//						values.add(objectMapper.convertValue(n, f.getType()));
-//					}
-//				}
-//				colunas.put(f, values);
-//				tamanho = Math.max(tamanho, values.size());
-//			}
-//
-//			// 2) monta linhas
-//			List<Object> linhas = new ArrayList<>(tamanho);
-//			try {
-//				for (int i = 0; i < tamanho; i++) {
-//					Object innerInstance = inner.getDeclaredConstructor().newInstance();
-//					for (Map.Entry<Field, List<Object>> e : colunas.entrySet()) {
-//						Field f = e.getKey();
-//						List<Object> vals = e.getValue();
-//						Object val = (i < vals.size()) ? vals.get(i) : null;
-//						f.setAccessible(true);
-//						f.set(innerInstance, val);
-//					}
-//					linhas.add(innerInstance);
-//				}
-//			} catch (Exception ex) {
-//				throw new RuntimeException("Falha criando linhas multivalue para " + inner.getName(), ex);
-//			}
-//
-//			// 3) injeta no wrapper "<prefixo> + s" (ex.: "unidades")
-//			String destinoNome = Utils.addPlurais(prefix);
-//			Field destino = getFieldByNameDeep(clazz, destinoNome);
-//			if (destino == null) {
-//				System.out.println("[populateMultivalues] Campo destino não encontrado: " + destinoNome);
-//				continue;
-//			}
-//
-//			try {
-//				destino.setAccessible(true);
-//				Object wrapper = destino.get(model);
-//
-//				// se não existir wrapper ainda, cria e set
-//				if (wrapper == null) {
-//					wrapper = destino.getType().getDeclaredConstructor().newInstance();
-//					destino.set(model, wrapper);
-//				}
-//
-//				// tenta setar direto no campo interno "lista" (substitui, não acumula)
-//				Field listaField = getFieldByNameDeep(wrapper.getClass(), "lista");
-//				if (listaField != null && List.class.isAssignableFrom(listaField.getType())) {
-//					listaField.setAccessible(true);
-//					listaField.set(wrapper, linhas); // substitui completamente
-//				} else {
-//					// fallback genérico
-//					assignListToField(model, destino, linhas, destinoNome);
-//				}
-//			} catch (Exception e) {
-//				throw new RuntimeException("Falha ao injetar lista no campo '" + destinoNome + "'", e);
-//			}
-//		}
-//	}
 
 	// dentro do AbstractService
 	private void populaMultivalues(Object model, JsonNode root) {
@@ -1549,23 +1234,27 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 		return null;
 	}
 
-	// helper
-	private int fsize(JsonNode root, String key) {
-		JsonNode n = getIgnoreCase(root, key);
-		return (n != null && n.isArray()) ? n.size() : -1;
-	}
-
-	// dentro do AbstractService
+	/**
+	 * "Achata" os wrappers de listas multivalue (AbstractModelListaMultivalue) em
+	 * arrays simples esperados pelo Domino REST API.
+	 * 
+	 * Exemplo: wrapper "unidades" com campos "status", "codigo" -> gera arrays
+	 * "unidadeStatus", "unidadeCodigo"
+	 * 
+	 * - Nunca envia valores nulos. - Remove arrays vazios (se não há valores). -
+	 * Para campos String, substitui null por "".
+	 */
 	private ObjectNode flattenForDomino(T model) {
 		ObjectNode root = objectMapper.valueToTree(model);
 
 		Class<?> clazz = model.getClass();
 		for (Class<?> inner : clazz.getDeclaredClasses()) {
-			if (!AbstractModelDocMultivalue.class.isAssignableFrom(inner))
-				continue;
+			if (!AbstractModelDocMultivalue.class.isAssignableFrom(inner)) {
+				continue; // só processa os que estendem AbstractModelDocMultivalue
+			}
 
-			String prefix = inner.getSimpleName().toLowerCase(); // "unidade"
-			String wrapperName = Utils.addPlurais(prefix); // "unidades"
+			String prefix = inner.getSimpleName().toLowerCase(); // ex: "unidade"
+			String wrapperName = Utils.addPlurais(prefix); // ex: "unidades"
 			Field wrapperField = getFieldByNameDeep(clazz, wrapperName);
 			if (wrapperField == null)
 				continue;
@@ -1582,19 +1271,38 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 
 				for (Field f : inner.getDeclaredFields()) {
 					f.setAccessible(true);
-					String itemName = prefix + Utils.capitalize(f.getName()); // ex.: unidadeStatus
-					ArrayNode arr = root.putArray(itemName);
+					String itemName = prefix + Utils.capitalize(f.getName());
+
+					ArrayNode arrayDeValores = root.putArray(itemName);
+					boolean temValorReal = false;
+
 					for (Object row : linhas) {
-						Object val = (row != null ? f.get(row) : null);
+						if (row == null)
+							continue;
+
+						Object val = f.get(row);
+
 						if (val == null) {
-							arr.addNull();
+							// Para String, substitui null por "" (aceito pelo Domino)
+							if (f.getType().equals(String.class)) {
+								arrayDeValores.add("");
+								temValorReal = true;
+							}
+							// Para outros tipos, não adiciona nada
 						} else {
-							arr.add(objectMapper.valueToTree(val));
+							arrayDeValores.add(objectMapper.valueToTree(val));
+							temValorReal = true;
 						}
+					}
+
+					// Se não houve nenhum valor real, remove o campo
+					if (!temValorReal) {
+						root.remove(itemName);
 					}
 				}
 
-				// IMPORTANTE: não mande o wrapper no payload, só os arrays
+				// ⚠️ IMPORTANTE: remove o wrapper do payload,
+				// só ficam os arrays no JSON final
 				root.remove(wrapperName);
 
 			} catch (Exception e) {
@@ -1608,6 +1316,9 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 		try {
 			String raw = doGet(uri);
 			T model = mapRawToModel(raw, carregarAnexos);
+			if (model == null) {
+				return new Response<>(null, "Nenhum documento encontrado.", 404, false);
+			}
 			return new Response<>(model, "Documento carregado com sucesso.", 200, true);
 		} catch (CustomWebClientException e) {
 			ErrorResponse err = e.getErrorResponse();
@@ -1673,6 +1384,232 @@ public abstract class AbstractService<T extends AbstractModelDoc> extends Abstra
 		}
 
 		return model;
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <C extends AbstractModelDoc> AbstractService<C> resolveService(Class<C> childClass) {
+		ApplicationContext ctx = ApplicationContextProvider.getApplicationContext();
+		String simple = childClass.getSimpleName(); // ex.: Aprovacao
+		String bean = Character.toLowerCase(simple.charAt(0)) + simple.substring(1) + "Service"; // aprovacaoService
+		return (AbstractService<C>) ctx.getBean(bean);
+	}
+
+	public <C extends AbstractModelDoc> List<C> findChildrenByIdOrigem(Class<C> childClass, String idOrigem) {
+		try {
+			String scopeChild = Utils.getScopeFromClass(childClass);
+
+			URI uri = UriComponentsBuilder.fromPath("/lists/{view}") //
+					.queryParam("dataSource", scopeChild) //
+					.queryParam("mode", this.mode) //
+					.queryParam("documents", "true") //
+					.queryParam("keyAllowPartial", "false") //
+					.queryParam("key", idOrigem) // o builder faz o encode
+					.build("_intraIdOrigem"); // ✅ sua view padronizada
+
+			String raw = webClient.get()//
+					.uri(uri) //
+					.header("Authorization", "Bearer " + getUser().getToken()) //
+					.retrieve() //
+					.bodyToMono(String.class)//
+					.block();
+
+			if (raw == null || raw.isBlank())
+				return List.of();
+
+			JavaType listType = objectMapper.getTypeFactory().constructCollectionType(List.class, childClass);
+
+			return objectMapper.readValue(raw, listType);
+
+		} catch (Exception e) {
+			log.error("findChildrenByIdOrigem falhou", e);
+			return List.of();
+		}
+	}
+
+	public static class SyncReport {
+		public int created, updated, deleted;
+		public List<String> errors = new ArrayList<>();
+	}
+
+	@SuppressWarnings("unchecked")
+	protected SyncReport syncChildren(T parent) {
+		SyncReport report = new SyncReport();
+		String parentId = parent.getId();
+		if (parentId == null || parentId.isBlank()) {
+			// garanta que o pai tenha id (você já faz no init/createNewDoc)
+			parent.init();
+			parentId = parent.getId();
+		}
+
+		for (Field f : parent.getClass().getDeclaredFields()) {
+			f.setAccessible(true);
+
+			// pular campos que não devem cascatear (se quiser, crie um @NoCascade)
+			// if (f.isAnnotationPresent(NoCascade.class)) continue;
+
+			try {
+				if (List.class.isAssignableFrom(f.getType())) {
+					// é uma lista?
+					var g = f.getGenericType();
+					if (g instanceof ParameterizedType pt) {
+						var arg = pt.getActualTypeArguments()[0];
+						if (arg instanceof Class<?> c && AbstractModelDoc.class.isAssignableFrom(c)) {
+							Class<? extends AbstractModelDoc> childClass = (Class<? extends AbstractModelDoc>) c;
+							List<AbstractModelDoc> desired = (List<AbstractModelDoc>) (f.get(parent) != null
+									? f.get(parent)
+									: List.of());
+							SyncReport r = syncOneList(parentId, childClass, desired);
+							report.created += r.created;
+							report.updated += r.updated;
+							report.deleted += r.deleted;
+							report.errors.addAll(r.errors);
+						}
+					}
+				} else if (AbstractModelDoc.class.isAssignableFrom(f.getType())) {
+					// filho único
+					Class<? extends AbstractModelDoc> childClass = (Class<? extends AbstractModelDoc>) f.getType();
+					AbstractModelDoc desired = (AbstractModelDoc) f.get(parent);
+					SyncReport r = syncOneSingle(parentId, childClass, desired);
+					report.created += r.created;
+					report.updated += r.updated;
+					report.deleted += r.deleted;
+					report.errors.addAll(r.errors);
+				}
+			} catch (Exception e) {
+				log.error("Erro no cascade do campo {}", f.getName(), e);
+				report.errors.add("Campo " + f.getName() + ": " + e.getMessage());
+			}
+		}
+		return report;
+	}
+
+	private <C extends AbstractModelDoc> SyncReport syncOneList(String parentId, Class<C> childClass,
+			List<AbstractModelDoc> desiredRaw) {
+
+		SyncReport r = new SyncReport();
+		AbstractService<C> svc = resolveService(childClass);
+
+		// 1) carregar existentes do banco
+		List<C> existing = findChildrenByIdOrigem(childClass, parentId);
+
+		// 2) indexar por id lógico (não UNID)
+		Map<String, C> existingById = existing.stream().filter(c -> c.getId() != null)
+				.collect(Collectors.toMap(C::getId, Function.identity(), (a, b) -> a));
+
+		// 3) preparar "desired" como C
+		List<C> desired = desiredRaw.stream().map(c -> childClass.cast(c)).toList();
+
+		Set<String> desiredIds = desired.stream().map(C::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+
+		// 4) CREATE / UPDATE
+		for (C child : desired) {
+			// garantir parentId e id
+			child.setIdOrigem(parentId);
+			if (child.getId() == null || child.getId().isBlank()) {
+				child.setId(Utils.newModelId(Utils.getScopeFromClass(childClass), childClass.getSimpleName())); // sua
+																												// função
+																												// de id
+			}
+
+			C persisted = existingById.get(child.getId());
+			try {
+				if (persisted == null) {
+					// novo
+					var sr = svc.save(child);
+					if (sr.isSuccess())
+						r.created++;
+					else
+						r.errors.add("Create " + childClass.getSimpleName() + ": " + sr.getMessage());
+				} else {
+					// update: opcional: comparar diff para evitar update inútil
+					// carregar meta/unid do existente para não trombar com revisão
+					child.setMeta(persisted.getMeta());
+					var sr = svc.save(child);
+					if (sr.isSuccess())
+						r.updated++;
+					else
+						r.errors.add("Update " + childClass.getSimpleName() + ": " + sr.getMessage());
+				}
+			} catch (Exception e) {
+				r.errors.add("Save " + childClass.getSimpleName() + ": " + e.getMessage());
+			}
+		}
+
+		// 5) DELETE (os que existem mas não estão mais no pai)
+		for (C old : existing) {
+			if (old.getId() == null || !desiredIds.contains(old.getId())) {
+				try {
+					var dr = svc.delete(old);
+					if (dr != null && ("OK".equalsIgnoreCase(dr.getStatusText()) || "200".equals(dr.getStatus()))) {
+						r.deleted++;
+					} else {
+						r.errors.add("Delete " + childClass.getSimpleName() + ": "
+								+ (dr != null ? dr.getMessage() : "sem resposta"));
+					}
+				} catch (Exception e) {
+					r.errors.add("Delete " + childClass.getSimpleName() + ": " + e.getMessage());
+				}
+			}
+		}
+		return r;
+	}
+
+	private <C extends AbstractModelDoc> SyncReport syncOneSingle(String parentId, Class<C> childClass,
+			AbstractModelDoc desiredRaw) {
+
+		SyncReport r = new SyncReport();
+		AbstractService<C> svc = resolveService(childClass);
+
+		// carregar o único (ou os) existente(s) por parentId
+		List<C> existing = findChildrenByIdOrigem(childClass, parentId);
+
+		if (desiredRaw == null) {
+			// se não deseja mais ter o filho, apague os existentes
+			for (C old : existing) {
+				try {
+					var dr = svc.delete(old);
+					if (dr != null && ("OK".equalsIgnoreCase(dr.getStatusText()) || "200".equals(dr.getStatus())))
+						r.deleted++;
+					else
+						r.errors.add("Delete " + childClass.getSimpleName() + ": "
+								+ (dr != null ? dr.getMessage() : "sem resposta"));
+				} catch (Exception e) {
+					r.errors.add("Delete " + childClass.getSimpleName() + ": " + e.getMessage());
+				}
+			}
+			return r;
+		}
+
+		C desired = childClass.cast(desiredRaw);
+		desired.setIdOrigem(parentId);
+		if (desired.getId() == null || desired.getId().isBlank()) {
+			desired.setId(Utils.newModelId(Utils.getScopeFromClass(childClass), childClass.getSimpleName()));
+		}
+
+		if (existing.isEmpty()) {
+			var sr = svc.save(desired);
+			if (sr.isSuccess())
+				r.created++;
+			else
+				r.errors.add("Create " + childClass.getSimpleName() + ": " + sr.getMessage());
+		} else {
+			// adote a política que preferir — por ex., manter só 1 e apagar excedentes
+			C current = existing.get(0);
+			desired.setMeta(current.getMeta());
+			var sr = svc.save(desired);
+			if (sr.isSuccess())
+				r.updated++;
+			else
+				r.errors.add("Update " + childClass.getSimpleName() + ": " + sr.getMessage());
+
+			// apaga excedentes se houver
+			for (int i = 1; i < existing.size(); i++) {
+				var dr = svc.delete(existing.get(i));
+				if (dr != null && ("OK".equalsIgnoreCase(dr.getStatusText()) || "200".equals(dr.getStatus())))
+					r.deleted++;
+			}
+		}
+		return r;
 	}
 
 }

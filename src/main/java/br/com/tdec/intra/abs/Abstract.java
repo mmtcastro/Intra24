@@ -2,8 +2,11 @@ package br.com.tdec.intra.abs;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -110,7 +113,7 @@ public abstract class Abstract {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings("unchecked")
 	protected static boolean tryFillWrapper(Object wrapper, List<?> items, String pluralHint) {
 		Class<?> t = wrapper.getClass();
 		String cap = Character.toUpperCase(pluralHint.charAt(0)) + pluralHint.substring(1);
@@ -171,6 +174,9 @@ public abstract class Abstract {
 		return false;
 	}
 
+	/**
+	 * Busca um campo por nome, percorrendo a hierarquia da classe.
+	 */
 	protected static Field getFieldByNameDeep(Class<?> clazz, String fieldName) {
 		for (Class<?> c = clazz; c != null; c = c.getSuperclass()) {
 			try {
@@ -200,6 +206,74 @@ public abstract class Abstract {
 	@SuppressWarnings("unused")
 	protected String resolvePrefix(Class<?> rowType) {
 		return Utils.addPlurais(rowType.getSimpleName().toLowerCase());
+	}
+
+	// Método para obter todos os campos da classe (incluindo herdados)
+	protected static Field[] getAllFields(Class<?> clazz) {
+		List<Field> fields = new ArrayList<>();
+		Class<?> currentClass = clazz;
+
+		while (currentClass != null) {
+			fields.addAll(Arrays.asList(currentClass.getDeclaredFields()));
+			currentClass = currentClass.getSuperclass();
+		}
+
+		return fields.toArray(new Field[0]);
+	}
+
+	/**
+	 * Extrai a classe do tipo genérico de um tipo parametrizado. Ex: para
+	 * List<String>, retorna String.class
+	 */
+	protected Class<?> getGenericTypeClass(Class<?> clazz) {
+		Type genericSuperclass = clazz.getGenericSuperclass();
+
+		// Percorre a hierarquia de superclasses até encontrar um ParameterizedType
+		// ou até chegar a Object.class
+		while (genericSuperclass != null && !(genericSuperclass instanceof ParameterizedType)
+				&& genericSuperclass != Object.class) {
+			if (genericSuperclass instanceof Class) {
+				genericSuperclass = ((Class<?>) genericSuperclass).getGenericSuperclass();
+
+			} else {
+				// Este caso não deveria ocorrer na prática para este cenário, mas é um fallback
+
+				break;
+			}
+		}
+
+		if (genericSuperclass instanceof ParameterizedType paramType) {
+			System.out.println("DEBUG:   Found ParameterizedType: " + paramType.getTypeName());
+			Type[] actualTypes = paramType.getActualTypeArguments();
+			if (actualTypes.length > 0 && actualTypes[0] instanceof Class<?>) {
+				return (Class<?>) actualTypes[0];
+			}
+		}
+		System.out.println("DEBUG:   Could not determine generic type from ParameterizedType.");
+		return null;
+	}
+
+	/**
+	 * Encontra o método setter para um dado nome de campo e tipo de parâmetro.
+	 */
+	protected static Method findSetterMethod(Class<?> clazz, String fieldName, Class<?> paramType) {
+		String setterName = "set" + Utils.capitalize(fieldName);
+		try {
+			return clazz.getMethod(setterName, paramType);
+		} catch (NoSuchMethodException e) {
+			return null;
+		}
+	}
+
+	protected static Class<?> getGenericTypeClass(Type type) {
+		if (type instanceof ParameterizedType pt) {
+			Type arg = pt.getActualTypeArguments()[0];
+			if (arg instanceof Class<?> c)
+				return c;
+			if (arg instanceof ParameterizedType p2)
+				return (Class<?>) p2.getRawType();
+		}
+		return null;
 	}
 
 }

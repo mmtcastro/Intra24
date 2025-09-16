@@ -51,9 +51,13 @@ public class CargoView extends AbstractViewDoc<Cargo> {
 		}
 		binder.forField(descricaoField).asRequired("Entre com uma descrição").bind(Cargo::getDescricao,
 				Cargo::setDescricao);
-		// binder.readBean(model);
-		binderFields.add(codigoField);
-		binderFields.add(descricaoField);
+
+		form.addFormRow(codigoField);
+		form.addFormRow(descricaoField);
+
+	}
+
+	public void afterTomorrow() {
 
 	}
 

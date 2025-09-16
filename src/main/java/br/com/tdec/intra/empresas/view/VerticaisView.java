@@ -1,5 +1,7 @@
 package br.com.tdec.intra.empresas.view;
 
+import java.io.Serial;
+
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
@@ -12,8 +14,6 @@ import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serial;
-
 @PageTitle("Verticais")
 @Route(value = "verticais", layout = MainLayout.class)
 @Getter
@@ -21,8 +21,8 @@ import java.io.Serial;
 @RolesAllowed("ROLE_EVERYONE")
 public class VerticaisView extends AbstractViewLista<Vertical> {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	public VerticaisView() {
 		super();
@@ -33,11 +33,11 @@ public class VerticaisView extends AbstractViewLista<Vertical> {
 			Anchor link = new Anchor("vertical/" + vertical.getUnid(), vertical.getCodigo());
 			link.getElement().setAttribute("router-link", true); // Permite navegação sem recarregar
 			return link;
-		}))//
-				.setHeader("Código")//
-				.setSortable(true)//
-				.setKey("codigo")//
-				.setResizable(true);//
+		})) //
+				.setHeader("Código") //
+				.setSortable(true) //
+				.setKey("codigo") //
+				.setResizable(true); //
 		grid.addColumn(Vertical::getDescricao).setHeader("Descrição");
 	}
 

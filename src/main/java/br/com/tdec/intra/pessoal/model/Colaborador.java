@@ -16,4 +16,10 @@ public class Colaborador extends AbstractModelDoc {
 		return funcionario;
 	}
 
+	@Override
+	public String getForm() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
