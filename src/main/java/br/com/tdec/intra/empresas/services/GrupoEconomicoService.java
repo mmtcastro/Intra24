@@ -159,9 +159,10 @@ public class GrupoEconomicoService extends AbstractService<GrupoEconomico> {
 		return empresas;
 	}
 
-	public Response<GrupoEconomico> findGrupoEconomicoSemMime() {
+	public Response<GrupoEconomico> findGrupoEconomicoSemMime(String codigoGrupoEconomico) {
 		return buscarPrimeiroDaLista(
-				"/lists/_intraCodigos?mode=nomime&dataSource=empresas&keyAllowPartial=false&documents=true&key=123TESTE&key=GrupoEconomico&scope=documents");
+				"/lists/_intraCodigos?mode=nomime&dataSource=empresas&keyAllowPartial=false&documents=true&key="
+						+ codigoGrupoEconomico + "&key=GrupoEconomico&scope=documents");
 
 	}
 

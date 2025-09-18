@@ -1,15 +1,22 @@
 package br.com.tdec.intra.empresas.view;
 
 import java.io.Serial;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.Validator;
@@ -32,7 +39,6 @@ import br.com.tdec.intra.api.services.ViacepService;
 import br.com.tdec.intra.empresas.api.model.ReceitaWs;
 import br.com.tdec.intra.empresas.api.service.ReceitaWsService;
 import br.com.tdec.intra.empresas.api.view.ReceitaWsView;
-import br.com.tdec.intra.empresas.componentes.EnderecoForm;
 import br.com.tdec.intra.empresas.model.Empresa;
 import br.com.tdec.intra.empresas.model.GrupoEconomico;
 import br.com.tdec.intra.empresas.model.TipoEmpresa;
@@ -45,6 +51,7 @@ import br.com.tdec.intra.services.Response;
 import br.com.tdec.intra.utils.Utils;
 import br.com.tdec.intra.utils.converters.RemoveSpacesConverter;
 import br.com.tdec.intra.utils.converters.UpperCaseConverter;
+import br.com.tdec.intra.utils.converters.ZonedDateTimeToLocalDateConverter;
 import br.com.tdec.intra.utils.validators.CepValidator;
 import br.com.tdec.intra.utils.validators.CnpjValidator;
 import br.com.tdec.intra.views.MainLayout;
@@ -76,6 +83,7 @@ public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnter
 	private TextField bairroField = new TextField("Bairro");
 	private TextField cidadeField = new TextField("Cidade");
 	private TextField cepField = new TextField("CEP");
+	private TextField porteField = new TextField("Porte");
 	private TextField statusCnpjField = new TextField("Status CNPJ");
 	private TextField bancoField = new TextField("Banco");
 	private TextField agenciaField = new TextField("Agência");
@@ -86,8 +94,29 @@ public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnter
 	private ColaboradorService colaboradorService;
 	private ReceitaWsService cnpjService;
 	private ViacepService viacepService;
-	private EnderecoForm<Empresa> enderecoForm;
 	private ReceitaWsView receitaWsView;
+	private String codigoGrupoEconomico;
+	private TextField nomeFantasiaField = new TextField("Nome Fantasia");
+	private TextField clienteField = new TextField("Cliente");
+	private DatePicker dataAberturaField = new DatePicker("Data de Abertura");
+	private TextField paginaWebField = new TextField("Página Web");
+	private TextField emailNfeMateriaisField = new TextField("Email NFe Materiais");
+	private TextField tipoInscricaoField = new TextField("Tipo Inscrição");
+	private TextField cpfField = new TextField("CPF");
+	private TextField inscricaoField = new TextField("Inscrição");
+	private TextField cnaeField = new TextField("CNAE");
+	private TextField indicadorIEField = new TextField("Indicador IE");
+	private TextField ccmField = new TextField("CCM");
+	private TextField regimeTributarioField = new TextField("Regime Tributário");
+	private TextField verticalField = new TextField("Vertical");
+	private TextField membroSuframaField = new TextField("Membro Suframa");
+	private TextField inscricaoSuframaField = new TextField("Inscrição Suframa");
+	private TextField bancoNumeroField = new TextField("Banco Número");
+	private TextField agenciaDigitoField = new TextField("Agência Dígito");
+	private TextField contaDigitoField = new TextField("Conta Dígito");
+	private DatePicker ultimaConsultaCnpjField = new DatePicker("Última Consulta CNPJ");
+	private Checkbox fezNegociosField = new Checkbox("Fez Negócios");
+	private Checkbox temFaturasField = new Checkbox("Tem Faturas");
 
 	public EmpresaView(GrupoEconomicoService grupoEconomicoService, TipoEmpresaService tipoEmpresaService,
 			ColaboradorService colaboradorService, ReceitaWsService cnpjService, ViacepService viacepService) {
@@ -101,6 +130,21 @@ public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnter
 
 		configureComboBoxes();
 
+	}
+
+	/**
+	 * Verifica se uma nova empresa está sendo criada a partir de um GrupoEconomico
+	 * 
+	 */
+	@Override
+	public void beforeEnter(BeforeEnterEvent event) {
+		Map<String, List<String>> params = event.getLocation().getQueryParameters().getParameters();
+		String unidGrupoEconomico = params.getOrDefault("unidGrupoEconomico", List.of("")).get(0);
+		codigoGrupoEconomico = params.getOrDefault("codigoGrupoEconomico", List.of("")).get(0);
+
+		if (!unidGrupoEconomico.isBlank() && !codigoGrupoEconomico.isBlank()) {
+			carregarGrupoEconomico(unidGrupoEconomico, codigoGrupoEconomico);
+		}
 	}
 
 	private void configureComboBoxes() {
@@ -120,10 +164,12 @@ public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnter
 		// Copia o grupo econômico para o campo "código" automaticamente quando for novo
 		codigoGrupoEconomicoComboBox.addValueChangeListener(event -> {
 			if (isNovo && event.getValue() != null) {
-				print("Buscando event.getValue = " + event.getValue());
+				codigoGrupoEconomico = event.getValue();
+				print("Buscando event.getValue = " + codigoGrupoEconomico);
 				// Response<GrupoEconomico> response =
 				// grupoEconomicoService.findByCodigo(event.getValue());
-				Response<GrupoEconomico> response = grupoEconomicoService.findGrupoEconomicoSemMime();
+				Response<GrupoEconomico> response = grupoEconomicoService
+						.findGrupoEconomicoSemMime(codigoGrupoEconomico);
 
 				grupoEconomico = response.getModel();
 				if (grupoEconomico != null) {
@@ -163,24 +209,47 @@ public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnter
 		paisComboBox.setWidthFull();
 	}
 
-	public void configureCnpjActions() {
-		cgcField.addValueChangeListener(event -> {
+	private void configureCnpjActions() {
+		cgcField.addBlurListener(event -> {
 			String cnpj = cgcField.getValue();
 			String cnpjSemMascara = cnpj.replaceAll("[^0-9]", "");
-			System.out.println("O CNPJ sem mascara eh: " + cnpjSemMascara);
+			if (cnpjSemMascara.length() != 14) {
+				return;
+			}
 
 			try {
-				ReceitaWs receitaWsModel = ReceitaWsService.findCnpj(cnpjSemMascara);
-				System.out.println("CNPJ: " + receitaWsModel.toString());
-				if (receitaWsModel != null) {
-					receitaWsView = new ReceitaWsView();
-					receitaWsView.popular(receitaWsModel);
-					form.addFormRow(receitaWsView);
+				ReceitaWs receita = ReceitaWsService.findCnpj(cnpjSemMascara);
+				if (receita != null) {
+					// 🔹 Atualiza o modelo Empresa diretamente
+					model.setNome(Optional.ofNullable(receita.getNome()).orElse(""));
+					model.setNomeFantasia(Optional.ofNullable(receita.getFantasia()).orElse(""));
+					model.setCgc(formatarCNPJ(cnpjSemMascara));
+					model.setTelefones(Optional.ofNullable(receita.getTelefone()).orElse(""));
+					model.setEmailNfeServicos(Optional.ofNullable(receita.getEmail()).orElse(""));
+					model.setEndereco(Optional.ofNullable(receita.getLogradouro()).orElse(""));
+					model.setNumero(Optional.ofNullable(receita.getNumero()).orElse(""));
+					model.setComplemento(Optional.ofNullable(receita.getComplemento()).orElse(""));
+					model.setBairro(Optional.ofNullable(receita.getBairro()).orElse(""));
+					model.setCidade(Optional.ofNullable(receita.getMunicipio()).orElse(""));
+					model.setEstado(Optional.ofNullable(receita.getUf()).orElse(""));
+					model.setCep(Optional.ofNullable(Utils.normalizarCep(receita.getCep())).orElse(""));
+					model.setStatusCnpj(Optional.ofNullable(receita.getStatus()).orElse(""));
+					model.setPorte(Optional.ofNullable(receita.getPorte()).orElse(""));
+					model.setDataAbertura(Optional.ofNullable(receita.getAbertura()).map(d -> LocalDate
+							.parse(d, DateTimeFormatter.ofPattern("dd/MM/yyyy")).atStartOfDay(ZoneId.systemDefault()))
+							.orElse(null));
 
+					// 🔹 Força o binder a refletir no form
+					binder.readBean(model);
+
+					// Opcional: mostrar o painel detalhado ReceitaWs
+					receitaWsView = new ReceitaWsView();
+					receitaWsView.popular(receita);
+					form.addFormRow(receitaWsView);
 				}
 			} catch (Exception e) {
+				Notification.show("Erro ao buscar CNPJ: " + e.getMessage(), 4000, Notification.Position.MIDDLE);
 				e.printStackTrace();
-				enderecoField.setValue("Erro ao buscar CNPJ");
 			}
 		});
 	}
@@ -242,10 +311,11 @@ public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnter
 		paisComboBox.setValue("Brasil");
 		binder.forField(paisComboBox).asRequired("Selecione um País").bind(Empresa::getPais, Empresa::setPais);
 
-		binder.forField(cgcField).withValidator(new CnpjValidator(paisComboBox))// fora do brasil nao valida
+		binder.forField(cgcField)//
 				.withValidator(new CnpjUnicoValidator((EmpresaService) service))//
+				.withValidator(new CnpjValidator(paisComboBox))// fora do brasil nao valida
 				.bind(Empresa::getCgc, Empresa::setCgc);
-		cgcField.setPlaceholder("99.999.999/0001-99");
+		cgcField.setPlaceholder("00.000.000/0000-00");
 		// Ao sair do campo, aplica a máscara (se tiver 14 dígitos numéricos)
 		cgcField.getElement().addEventListener("blur", e -> {
 			String raw = cgcField.getValue().replaceAll("[^\\d]", "");
@@ -253,6 +323,7 @@ public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnter
 				cgcField.setValue(formatarCNPJ(raw));
 			}
 		});
+
 		configureCnpjActions(); // tem que validar antes
 
 		binder.forField(nomeField).asRequired("Informe a Razão Social").bind(Empresa::getNome, Empresa::setNome);
@@ -270,6 +341,44 @@ public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnter
 		binder.forField(bancoField).bind(Empresa::getBanco, Empresa::setBanco);
 		binder.forField(agenciaField).bind(Empresa::getAgencia, Empresa::setAgencia);
 		binder.forField(contaField).bind(Empresa::getConta, Empresa::setConta);
+		binder.forField(porteField).bind(Empresa::getPorte, Empresa::setPorte);
+		binder.forField(nomeFantasiaField).bind(Empresa::getNomeFantasia, Empresa::setNomeFantasia);
+		binder.forField(clienteField).bind(Empresa::getCliente, Empresa::setCliente);
+		binder.forField(dataAberturaField) // DatePicker
+				.withConverter(new ZonedDateTimeToLocalDateConverter())
+				.bind(Empresa::getDataAbertura, Empresa::setDataAbertura);
+		binder.forField(paginaWebField).bind(Empresa::getPaginaWeb, Empresa::setPaginaWeb);
+		binder.forField(emailNfeMateriaisField).bind(Empresa::getEmailNfeMateriais, Empresa::setEmailNfeMateriais);
+		binder.forField(tipoInscricaoField).bind(Empresa::getTipoInscricao, Empresa::setTipoInscricao);
+		binder.forField(cpfField).bind(Empresa::getCpf, Empresa::setCpf);
+		binder.forField(inscricaoField).bind(Empresa::getInscricao, Empresa::setInscricao);
+		binder.forField(cnaeField).bind(Empresa::getCnae, Empresa::setCnae);
+		binder.forField(indicadorIEField).bind(Empresa::getIndicadorIE, Empresa::setIndicadorIE);
+		binder.forField(ccmField).bind(Empresa::getCcm, Empresa::setCcm);
+		binder.forField(regimeTributarioField).bind(Empresa::getRegimeTributario, Empresa::setRegimeTributario);
+		binder.forField(verticalField).bind(Empresa::getVertical, Empresa::setVertical);
+		binder.forField(membroSuframaField).bind(Empresa::getMembroSuframa, Empresa::setMembroSuframa);
+		binder.forField(inscricaoSuframaField).bind(Empresa::getInscricaoSuframa, Empresa::setInscricaoSuframa);
+		binder.forField(bancoNumeroField).bind(Empresa::getBancoNumero, Empresa::setBancoNumero);
+		binder.forField(agenciaDigitoField).bind(Empresa::getAgenciaDigito, Empresa::setAgenciaDigito);
+		binder.forField(contaDigitoField).bind(Empresa::getContaDigito, Empresa::setContaDigito);
+		binder.forField(ultimaConsultaCnpjField).withConverter(new ZonedDateTimeToLocalDateConverter())
+				.bind(Empresa::getUltimaConsultaCnpj, Empresa::setUltimaConsultaCnpj);
+		binder.forField(tipoInscricaoField).bind(Empresa::getTipoInscricao, Empresa::setTipoInscricao);
+		binder.forField(cpfField).bind(Empresa::getCpf, Empresa::setCpf);
+		binder.forField(inscricaoField).bind(Empresa::getInscricao, Empresa::setInscricao);
+		binder.forField(cnaeField).bind(Empresa::getCnae, Empresa::setCnae);
+		binder.forField(indicadorIEField).bind(Empresa::getIndicadorIE, Empresa::setIndicadorIE);
+		binder.forField(ccmField).bind(Empresa::getCcm, Empresa::setCcm);
+		binder.forField(regimeTributarioField).bind(Empresa::getRegimeTributario, Empresa::setRegimeTributario);
+		binder.forField(verticalField).bind(Empresa::getVertical, Empresa::setVertical);
+		binder.forField(membroSuframaField).bind(Empresa::getMembroSuframa, Empresa::setMembroSuframa);
+		binder.forField(inscricaoSuframaField).bind(Empresa::getInscricaoSuframa, Empresa::setInscricaoSuframa);
+		binder.forField(bancoNumeroField).bind(Empresa::getBancoNumero, Empresa::setBancoNumero);
+		binder.forField(agenciaDigitoField).bind(Empresa::getAgenciaDigito, Empresa::setAgenciaDigito);
+		binder.forField(contaDigitoField).bind(Empresa::getContaDigito, Empresa::setContaDigito);
+		binder.forField(fezNegociosField).bind(Empresa::getFezNegocios, Empresa::setFezNegocios);
+		binder.forField(temFaturasField).bind(Empresa::getTemFaturas, Empresa::setTemFaturas);
 
 		form.addFormRow(codigoGrupoEconomicoComboBox, codigoField);
 		form.addFormRow(tipoComboBox, gerenteContaComboBox);
@@ -277,34 +386,39 @@ public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnter
 		form.addFormRow(nomeField, telefoneField);
 
 		form.addFormRow(cepField);
-		// binderFields.add(cgcField);
+		form.addFormRow(enderecoField, numeroField);
+		form.addFormRow(bairroField); //
+		form.addFormRow(bairroField, cidadeField, ufComboBox);
 
-		if (enderecoForm != null) {
-			form.addFormRow(enderecoForm);
-		}
+		form.addFormRow(emailField, statusCnpjField);
 
-		// binderFields.add(enderecoField);
-		// binderFields.add(numeroField);
-		// binderFields.add(bairroField);
-		// binderFields.add(cidadeField);
-		// binderFields.add(ufComboBox);
-		form.addFormRow(emailField);
-		form.addFormRow(statusCnpjField);
 		form.addFormRow(bancoField);
 		form.addFormRow(agenciaField);
 		form.addFormRow(contaField);
 
-	}
+		form.addFormRow(porteField);
+		form.addFormRow(nomeFantasiaField, clienteField);
+		form.addFormRow(dataAberturaField, paginaWebField);
+		form.addFormRow(emailNfeMateriaisField, tipoInscricaoField);
+		form.addFormRow(cpfField, inscricaoField);
+		form.addFormRow(cnaeField, indicadorIEField);
+		form.addFormRow(ccmField, regimeTributarioField);
+		form.addFormRow(verticalField, membroSuframaField);
+		form.addFormRow(inscricaoSuframaField, bancoNumeroField);
+		form.addFormRow(agenciaDigitoField, contaDigitoField);
+		form.addFormRow(ultimaConsultaCnpjField);
+		form.addFormRow(nomeFantasiaField, clienteField);
+		form.addFormRow(dataAberturaField, paginaWebField);
+		form.addFormRow(emailNfeMateriaisField, tipoInscricaoField);
+		form.addFormRow(cpfField, inscricaoField);
+		form.addFormRow(cnaeField, indicadorIEField);
+		form.addFormRow(ccmField, regimeTributarioField);
+		form.addFormRow(verticalField, membroSuframaField);
+		form.addFormRow(inscricaoSuframaField, bancoNumeroField);
+		form.addFormRow(agenciaDigitoField, contaDigitoField);
+		form.addFormRow(ultimaConsultaCnpjField);
+		form.addFormRow(fezNegociosField, temFaturasField);
 
-	@Override
-	public void beforeEnter(BeforeEnterEvent event) {
-		Map<String, List<String>> params = event.getLocation().getQueryParameters().getParameters();
-		String unidGrupoEconomico = params.getOrDefault("unidGrupoEconomico", List.of("")).get(0);
-		String codigoGrupoEconomico = params.getOrDefault("codigoGrupoEconomico", List.of("")).get(0);
-
-		if (!unidGrupoEconomico.isBlank() && !codigoGrupoEconomico.isBlank()) {
-			carregarGrupoEconomico(unidGrupoEconomico, codigoGrupoEconomico);
-		}
 	}
 
 	private void carregarGrupoEconomico(String unidGrupoEconomico, String codigoGrupoEconomico) {
@@ -348,7 +462,7 @@ public class EmpresaView extends AbstractViewDoc<Empresa> implements BeforeEnter
 			if (!Objects.equals(encontrada.getUnid(), model.getUnid())) {
 				return ValidationResult.error("Este CNPJ já está cadastrado para a empresa " + encontrada.getCodigo());
 			}
-
+			print("Chegou aqui, cnpj ok");
 			return ValidationResult.ok();
 		}
 	}

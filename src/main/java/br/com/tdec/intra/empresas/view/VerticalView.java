@@ -15,7 +15,7 @@ import com.vaadin.flow.router.Route;
 
 import br.com.tdec.intra.abs.AbstractValidator;
 import br.com.tdec.intra.abs.AbstractViewDoc;
-import br.com.tdec.intra.empresas.componentes.MultivalueGrid;
+import br.com.tdec.intra.components.MultivalueGrid;
 import br.com.tdec.intra.empresas.model.Vertical;
 import br.com.tdec.intra.utils.converters.ChainedConverter;
 import br.com.tdec.intra.utils.converters.ProperCaseConverter;

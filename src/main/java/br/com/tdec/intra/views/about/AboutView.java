@@ -41,8 +41,8 @@ import lombok.Setter;
 @Setter
 public class AboutView extends VerticalLayout {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 1L;
 	private final br.com.tdec.intra.config.SecurityService securityService;
 	private final LdapConfig ldapConfig;
 	private final WebClientProperties webClientProperties;
@@ -63,16 +63,24 @@ public class AboutView extends VerticalLayout {
 		H2 header = new H2("Informações de Versão e Ambiente");
 		header.addClassNames(Margin.Top.XLARGE, Margin.Bottom.MEDIUM);
 		add(header);
-H1 heading12 = new H1("Heading 1");
+		H1 heading12 = new H1("Heading 1");
 		H1 heading1 = new H1("Heading 1");
-add(heading12);
+		add(heading12);
 		add(heading1);
 		add(new Paragraph("It’s a place where you can grow your own UI 🤗"));
-		String vaadinVersion = Version.getFullVersion();
+
 		String springBootVersion = SpringBootVersion.getVersion();
+
+		String vaadinVersion = Version.getFullVersion();
 		Div vaadinText = new Div();
 		vaadinText.setText("Vaadin version: " + vaadinVersion);
 		vaadinText.addClassName("text-success");
+
+		String javaHome = System.getProperty("java.home");
+		Div javaText = new Div();
+		javaText.setText("Java Home: " + javaHome);
+		javaText.addClassName("text-info");
+		add(javaText);
 
 		add(vaadinText);
 		Div springText = new Div();

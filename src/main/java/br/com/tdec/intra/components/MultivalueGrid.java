@@ -1,4 +1,4 @@
-package br.com.tdec.intra.empresas.componentes;
+package br.com.tdec.intra.components;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;

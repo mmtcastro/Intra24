@@ -817,4 +817,24 @@ public class Utils {
 		System.err.println(msg);
 	}
 
+	/**
+	 * "01.440-020" → "01440-020" ✅ * "01440020" → "01440-020" ✅ * "01 440/020" →
+	 * "01440-020" ✅ * "CEP: 01440-020" → "01440-020" ✅ * "01440-02" (7 dígitos só)
+	 * → fica como "01440-02" ❌ (não corrige porque está inválido).
+	 * 
+	 * @param cep
+	 * @return
+	 */
+	public static String normalizarCep(String cep) {
+		if (cep == null) {
+			return "";
+		}
+		// Remove tudo que não é dígito
+		String somenteDigitos = cep.replaceAll("\\D", "");
+		if (somenteDigitos.length() == 8) {
+			return somenteDigitos.substring(0, 5) + "-" + somenteDigitos.substring(5);
+		}
+		return cep; // retorna como veio se não tiver 8 dígitos
+	}
+
 }

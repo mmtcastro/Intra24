@@ -24,6 +24,14 @@ public class Empresa extends AbstractModelDoc implements Comparable<AbstractMode
 	@JsonAlias({ "cliente", "CLIENTE" })
 	private String cliente;
 
+	@JsonProperty("NomeFantasia")
+	@JsonAlias({ "nomeFantasia", "NOMEFANTASIA" })
+	private String nomeFantasia;
+
+	@JsonProperty("DataAbertura")
+	@JsonAlias({ "dataAbertura", "DATAABERTURA" })
+	private ZonedDateTime dataAbertura;
+
 	@JsonProperty("GerenteConta")
 	@JsonAlias({ "gerenteConta", "GERENTE_CONTA" })
 	private String gerenteConta;
@@ -79,6 +87,10 @@ public class Empresa extends AbstractModelDoc implements Comparable<AbstractMode
 	@JsonProperty("Pais")
 	@JsonAlias({ "pais", "PAIS" })
 	private String pais;
+
+	@JsonProperty("Porte")
+	@JsonAlias({ "porte", "porte" })
+	private String porte;
 
 	@JsonProperty("Cep")
 	@JsonAlias({ "cep", "CEP" })
